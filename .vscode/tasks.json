@@ -1,0 +1,56 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Next.js dev server",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Run Next.js production server",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"start"
+			],
+			"isBackground": true,
+			"group": "build"
+		},
+		{
+			"label": "Cloudflare Tunnel",
+			"type": "shell",
+			"command": "cloudflared",
+			"args": [
+				"tunnel",
+				"--url",
+				"http://localhost:3000",
+				"--no-autoupdate"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Cloudflare Tunnel",
+			"type": "shell",
+			"command": "cloudflared",
+			"args": [
+				"tunnel",
+				"--url",
+				"http://localhost:3000",
+				"--no-autoupdate"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}

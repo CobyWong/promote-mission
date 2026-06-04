@@ -1,0 +1,30 @@
+import { MissionCard } from "@/components/mission-card";
+import { getMissionCenterData } from "@/lib/backend";
+import { getCurrentLocale } from "@/lib/i18n";
+
+const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。每個任務都列明交稿要求、內容切入建議同可獲金幣。";
+
+export default async function MissionsPage() {
+  const locale = await getCurrentLocale();
+  const missionCatalog = await getMissionCenterData();
+
+  return (
+    <section className="section-shell py-12 sm:py-16">
+      <div className="max-w-3xl">
+        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{locale === "en" ? "Mission Center" : "任務中心"}</p>
+        <h1 className="mt-3 text-4xl font-semibold text-white">{locale === "en" ? "Mission Marketplace" : "任務中心"}</h1>
+        <p className="mt-4 text-lg leading-8 text-slate-300">
+          {locale === "en"
+            ? "Pick campaigns that fit your audience and content style. Every mission includes clear deliverables, hook ideas, and coin rewards."
+            : zhMissionIntro}
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        {missionCatalog.missions.map((mission) => (
+          <MissionCard key={mission.slug} mission={mission} locale={locale} />
+        ))}
+      </div>
+    </section>
+  );
+}

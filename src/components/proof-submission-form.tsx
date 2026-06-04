@@ -1,0 +1,343 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+import type { Mission } from "@/lib/data";
+import type { Locale } from "@/lib/i18n";
+import {
+  getMissionAcceptanceStorageKey,
+  isMissionAcceptanceValid,
+} from "@/lib/mission-acceptance";
+import { hasSupabaseConfig } from "@/lib/supabase/env";
+
+type ProofSubmissionFormProps = {
+  mission: Mission;
+  locale?: Locale;
+};
+
+const inputClassName =
+  "mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:bg-white/8";
+
+export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissionFormProps) {
+  const isEnglish = locale === "en";
+  const router = useRouter();
+  const [reelUrl, setReelUrl] = useState("");
+  const [captionSummary, setCaptionSummary] = useState("");
+  const [notes, setNotes] = useState("");
+  const [checks, setChecks] = useState({
+    published: true,
+    taggedBrand: false,
+    attachedScreenshots: false,
+    willUploadInsights: false,
+  });
+  const [submitted, setSubmitted] = useState(false);
+  const [submissionId, setSubmissionId] = useState<string | null>(null);
+  const [uploadedFileNames, setUploadedFileNames] = useState<string[]>([]);
+  const [screenshotFiles, setScreenshotFiles] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [acceptedAndValid, setAcceptedAndValid] = useState(false);
+  const [acceptanceChecked, setAcceptanceChecked] = useState(false);
+  const backendReady = hasSupabaseConfig();
+
+  useEffect(() => {
+    const key = getMissionAcceptanceStorageKey(mission.slug);
+    const refreshStatus = () => {
+      const raw = window.localStorage.getItem(key);
+      const acceptedAt = raw ? Number(raw) : NaN;
+      const valid = !Number.isNaN(acceptedAt) && isMissionAcceptanceValid(acceptedAt, mission.eta);
+      setAcceptedAndValid(valid);
+      setAcceptanceChecked(true);
+    };
+
+    refreshStatus();
+    const timer = window.setInterval(refreshStatus, 1000);
+    window.addEventListener("storage", refreshStatus);
+
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("storage", refreshStatus);
+    };
+  }, [mission.eta, mission.slug]);
+
+  const completedChecks = useMemo(
+    () => Object.values(checks).filter(Boolean).length,
+    [checks],
+  );
+
+  const canSubmit = acceptedAndValid && reelUrl.trim().startsWith("http") && completedChecks === 4 && screenshotFiles.length > 0;
+
+  if (submitted) {
+    return (
+      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="glass-panel p-8">
+          <p className="text-sm uppercase tracking-[0.3em] text-emerald-300">{isEnglish ? "Submission sent" : "已完成提交"}</p>
+          <h1 className="mt-3 text-4xl font-semibold text-white">{isEnglish ? "Proof submitted successfully" : "proof 已成功提交"}</h1>
+          <p className="mt-4 text-lg leading-8 text-slate-300">
+            {isEnglish
+              ? `Your ${mission.brand} mission is now in the review queue. Once approved, ${mission.points} Coins will be credited to your wallet.`
+              : `你嘅 ${mission.brand} 任務已進入審核隊列。管理員確認完成後，會將 ${mission.points} 金幣入返你個 wallet。`}
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-2xl bg-white/5 p-4">
+              <p className="text-sm text-slate-400">{isEnglish ? "Status" : "狀態"}</p>
+              <p className="mt-2 font-semibold text-amber-300">{isEnglish ? "Pending review" : "待審核"}</p>
+            </div>
+            <div className="rounded-2xl bg-white/5 p-4">
+              <p className="text-sm text-slate-400">{isEnglish ? "Reward" : "獎勵"}</p>
+              <p className="mt-2 font-semibold text-cyan-300">{mission.points} {isEnglish ? "Coins" : "金幣"}</p>
+            </div>
+            <div className="rounded-2xl bg-white/5 p-4">
+              <p className="text-sm text-slate-400">{isEnglish ? "Next step" : "下一步"}</p>
+              <p className="mt-2 font-semibold text-white">{isEnglish ? "Upload insights" : "補交 insights"}</p>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/dashboard" className="rounded-full bg-cyan-400 px-5 py-3 text-center font-semibold text-slate-950">
+              {isEnglish ? "Back to Dashboard" : "返回控制台"}
+            </Link>
+            <Link href="/admin/reviews" className="rounded-full border border-white/15 px-5 py-3 text-center font-semibold text-white">
+              {isEnglish ? "View Admin Review Demo" : "查看後台審核示範"}
+            </Link>
+          </div>
+        </div>
+
+        <div className="glass-panel p-8">
+          <h2 className="text-2xl font-semibold text-white">{isEnglish ? "Submission summary" : "提交摘要"}</h2>
+          <div className="mt-6 space-y-4 text-sm text-slate-300">
+            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Reel URL" : "Reels 連結"}: {reelUrl}</div>
+            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Submission ID" : "提交編號"}: {submissionId ?? (isEnglish ? "Pending assignment" : "等待分配")}</div>
+            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Screenshots" : "截圖"}: {uploadedFileNames.join(", ") || `${screenshotFiles.length} ${isEnglish ? "files" : "個檔案"}`}</div>
+            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Caption summary" : "Caption 重點"}: {captionSummary || (isEnglish ? "Submitted" : "已提交")}</div>
+            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Notes" : "備註"}: {notes || (isEnglish ? "None" : "無")}</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+      <form
+        className="glass-panel p-8"
+        onSubmit={async (event) => {
+          event.preventDefault();
+
+          if (!acceptedAndValid) {
+            setError(locale === "en" ? "Accept this mission first from the mission detail page." : "請先喺任務詳情頁接受任務，再提交 proof。");
+            return;
+          }
+
+          if (!canSubmit) {
+            return;
+          }
+
+          if (!backendReady) {
+            setError(locale === "en" ? "Supabase is not configured. Submission stays in demo mode." : "未設定 Supabase env，提交會停留喺 demo mode。");
+            setSubmitted(true);
+            return;
+          }
+
+          setLoading(true);
+          setError(null);
+
+          const formData = new FormData();
+          formData.set("slug", mission.slug);
+          formData.set("reelUrl", reelUrl);
+          formData.set("captionSummary", captionSummary);
+          formData.set("notes", notes);
+          formData.set("checks", JSON.stringify(checks));
+
+          screenshotFiles.forEach((file) => {
+            formData.append("screenshots", file);
+          });
+
+          const response = await fetch("/api/submissions", {
+            method: "POST",
+            body: formData,
+          });
+
+          const result = (await response.json()) as { error?: string; id?: string };
+
+          if (!response.ok) {
+            setError(result.error ?? (locale === "en" ? "Submission failed. Please try again." : "提交失敗，請稍後再試。"));
+            setLoading(false);
+            if (response.status === 401) {
+              router.push(`/login?next=/submit/${mission.slug}`);
+            }
+            return;
+          }
+
+          setSubmissionId(result.id ?? null);
+          setUploadedFileNames(screenshotFiles.map((file) => file.name));
+          setSubmitted(true);
+          setLoading(false);
+          router.refresh();
+        }}
+      >
+        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{isEnglish ? "Submission form" : "提交表單"}</p>
+        <h1 className="mt-3 text-4xl font-semibold text-white">{isEnglish ? `Submit ${mission.brand} proof` : `提交 ${mission.brand} proof`}</h1>
+        <p className="mt-4 text-lg leading-8 text-slate-300">
+          {locale === "en"
+            ? "Paste your reels link, complete the checklist, and upload proof screenshots."
+            : "貼上 Reels 連結、勾好 checklist，再模擬上傳截圖。呢個 prototype 會幫你感受成個 creator submission flow。"}
+        </p>
+
+        {acceptanceChecked && !acceptedAndValid ? (
+          <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
+            <p>
+              {locale === "en"
+                ? "You must accept this mission first before submitting proof."
+                : "提交 proof 前，你必須先接受呢個任務。"}
+            </p>
+            <Link href={`/missions/${mission.slug}`} className="mt-3 inline-flex font-semibold text-amber-200 underline decoration-amber-200/40 underline-offset-4">
+              {locale === "en" ? "Go to mission detail to accept →" : "前往任務詳情接受任務 →"}
+            </Link>
+          </div>
+        ) : null}
+
+        {!backendReady ? (
+          <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
+            {locale === "en"
+              ? "Backend mode is disabled. Configure Supabase to persist real submissions."
+              : "Backend mode 未啟用。設定 Supabase 後，提交會真實寫入 `submissions` table。"}
+          </div>
+        ) : null}
+
+        <div className="mt-8 space-y-5">
+          <label className="block text-sm text-slate-300">
+            {isEnglish ? "IG Reels URL" : "IG Reels 連結"}
+            <input
+              required
+              value={reelUrl}
+              onChange={(event) => setReelUrl(event.target.value)}
+              className={inputClassName}
+              placeholder="https://instagram.com/reel/..."
+            />
+          </label>
+
+          <label className="block text-sm text-slate-300">
+            {isEnglish ? "Caption summary" : "Caption 重點"}
+            <textarea
+              value={captionSummary}
+              onChange={(event) => setCaptionSummary(event.target.value)}
+              className={`${inputClassName} min-h-28 resize-none`}
+              placeholder="寫低你點樣帶出產品賣點、CTA 同 hashtag"
+            />
+          </label>
+
+          <label className="block text-sm text-slate-300">
+            {isEnglish ? "Additional notes" : "補充備註"}
+            <textarea
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              className={`${inputClassName} min-h-24 resize-none`}
+              placeholder="例如：48 小時後會補 insights、已配合品牌指定 caption"
+            />
+          </label>
+
+          <label className="block text-sm text-slate-300">
+            {locale === "en" ? "Proof screenshots" : "提交截圖"}
+            <input
+              required
+              multiple
+              accept="image/*"
+              type="file"
+              onChange={(event) => {
+                const files = Array.from(event.target.files ?? []);
+                setScreenshotFiles(files);
+                setChecks((current) => ({
+                  ...current,
+                  attachedScreenshots: files.length > 0,
+                }));
+              }}
+              className="mt-2 block w-full rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-4 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-400 file:px-4 file:py-2 file:font-semibold file:text-slate-950"
+            />
+            <span className="mt-2 block text-xs text-slate-500">
+              {locale === "en"
+                ? "Upload at least one image (cover, publish screen, insights, etc.)."
+                : "最少上傳 1 張截圖；可以加封面、發佈畫面、insights。"}
+            </span>
+          </label>
+
+          {screenshotFiles.length > 0 ? (
+            <div className="rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
+              {locale === "en" ? "Selected:" : "已選擇："}{screenshotFiles.map((file) => file.name).join(", ")}
+            </div>
+          ) : null}
+
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
+            <p className="font-semibold text-white">{isEnglish ? "Checklist" : "檢查清單"}</p>
+            <div className="mt-4 space-y-3 text-sm text-slate-300">
+              {[
+                { key: "published", label: isEnglish ? "Video is published publicly" : "影片已公開發佈" },
+                { key: "taggedBrand", label: isEnglish ? "Brand account and hashtags are tagged" : "已 tag 品牌帳號同 hashtag" },
+                { key: "attachedScreenshots", label: isEnglish ? "Publish/cover screenshots are prepared" : "已準備發佈截圖 / 封面截圖" },
+                { key: "willUploadInsights", label: isEnglish ? "Will upload insights after 48 hours" : "承諾 48 小時後補交 insights" },
+              ].map((item) => (
+                <label key={item.key} className="flex items-start gap-3 rounded-2xl bg-slate-950/60 px-4 py-4">
+                  <input
+                    type="checkbox"
+                    checked={checks[item.key as keyof typeof checks]}
+                    onChange={(event) =>
+                      setChecks((current) => ({
+                        ...current,
+                        [item.key]: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent"
+                  />
+                  <span>{item.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {error ? <p className="text-sm text-rose-300">{error}</p> : null}
+
+          <button
+            disabled={!canSubmit || loading}
+            className="w-full rounded-full bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition enabled:hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+          >
+            {loading ? (locale === "en" ? "Submitting..." : "提交中...") : (locale === "en" ? "Submit proof" : "提交 proof")}
+          </button>
+        </div>
+      </form>
+
+      <div className="space-y-6">
+        <div className="glass-panel p-8">
+          <h2 className="text-2xl font-semibold text-white">{isEnglish ? "Mission summary" : "任務摘要"}</h2>
+          <div className="mt-6 space-y-3 text-sm text-slate-300">
+            <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+              <span>{isEnglish ? "Mission" : "任務"}</span>
+              <span className="font-medium text-white">{mission.title}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+              <span>{isEnglish ? "Brand" : "品牌"}</span>
+              <span className="font-medium text-white">{mission.brand}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+              <span>{isEnglish ? "Reward" : "獎勵"}</span>
+              <span className="font-medium text-cyan-300">{mission.points} {isEnglish ? "Coins" : "金幣"}</span>
+            </div>
+            <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+              <span>{isEnglish ? "Progress" : "進度"}</span>
+              <span className="font-medium text-white">{completedChecks}/4 {isEnglish ? "ready" : "已完成"}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="glass-panel p-8">
+          <h2 className="text-2xl font-semibold text-white">{isEnglish ? "Required deliverables" : "必交內容"}</h2>
+          <ul className="mt-5 space-y-3 text-slate-300">
+            {mission.deliverables.map((item) => (
+              <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
