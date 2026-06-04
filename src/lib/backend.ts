@@ -76,6 +76,8 @@ function toReward(row: RewardRow): Reward {
     description: row.description,
     eta: row.fulfillment_eta,
     stock: row.stock,
+    displayOrder: row.display_order,
+    isActive: row.is_active,
   };
 }
 

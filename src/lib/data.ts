@@ -24,6 +24,8 @@ export type Reward = {
   description: string;
   eta?: string;
   stock?: number | null;
+  displayOrder?: number;
+  isActive?: boolean;
 };
 
 export type Leader = {
