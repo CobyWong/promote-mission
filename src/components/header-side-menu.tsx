@@ -66,6 +66,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       adminRedemptions: "Admin Fulfillment",
       adminUsers: "User Management",
       brandMissions: "Brand Missions",
+      brandRewards: "Brand Rewards",
       leaderboard: "Leaderboard",
       signOut: "Sign out",
     }
@@ -80,6 +81,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       adminRedemptions: "兌換處理",
       adminUsers: "用戶管理",
       brandMissions: "品牌任務管理",
+      brandRewards: "品牌獎賞管理",
       leaderboard: "排行榜",
       signOut: "登出",
     };
@@ -167,6 +169,12 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                       : "border-slate-200 text-slate-700 hover:bg-slate-50"
                       }`}>
                       {links.brandMissions}
+                    </Link>
+                    <Link href="/brand/rewards" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                      ? "border-white/10 text-slate-200 hover:bg-white/5"
+                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                      }`}>
+                      {links.brandRewards}
                     </Link>
                   </>
                 ) : null}

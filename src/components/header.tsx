@@ -17,6 +17,7 @@ const linkLabels: Record<Locale, Record<string, string>> = {
     adminFulfillment: "兌換處理",
     adminUsers: "用戶管理",
     brandMissions: "品牌任務管理",
+    brandRewards: "品牌獎賞管理",
     login: "登入",
     start: "免費開始",
     subtitle: "接任務・拍 Reels・換獎賞",
@@ -30,6 +31,7 @@ const linkLabels: Record<Locale, Record<string, string>> = {
     adminFulfillment: "Admin Fulfillment",
     adminUsers: "User Management",
     brandMissions: "Brand Missions",
+    brandRewards: "Brand Rewards",
     login: "Login",
     start: "Get Started",
     subtitle: "Take missions • Post Reels • Redeem rewards",
@@ -48,6 +50,7 @@ const adminLinks = [
   { href: "/admin/redemptions", key: "adminFulfillment" },
   { href: "/admin/users", key: "adminUsers" },
   { href: "/brand/missions", key: "brandMissions" },
+  { href: "/brand/rewards", key: "brandRewards" },
 ];
 
 export async function Header() {
