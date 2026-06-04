@@ -99,6 +99,22 @@ export function AuthForm({ mode, nextPath = "/dashboard", locale = "zh-HK" }: Au
       window.clearTimeout(timeoutId);
 
       if (adminResponse.ok) {
+        // Also sign in via Supabase so the user session is active across all pages
+        const supabase = getSupabaseBrowserClient();
+        if (supabase) {
+          const { data: signInData } = await supabase.auth.signInWithPassword({ email, password });
+          if (signInData?.session) {
+            await fetch("/api/auth/session", {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                access_token: signInData.session.access_token,
+                refresh_token: signInData.session.refresh_token,
+              }),
+            });
+          }
+        }
         setSubmitted(true);
         window.location.assign("/admin/reviews");
         return;
