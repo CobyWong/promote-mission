@@ -14,6 +14,8 @@ export type Mission = {
   tags: string[];
   displayOrder?: number;
   isActive?: boolean;
+  minParticipants?: number;
+  currentParticipants?: number;
 };
 
 export type Reward = {

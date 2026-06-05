@@ -65,6 +65,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
     deliverables: "",
     tags: "",
     displayOrder: 0,
+    minParticipants: 0,
+    currentParticipants: 0,
   });
 
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
@@ -102,6 +104,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       tags: form.tags.split(",").map((item) => item.trim()).filter(Boolean),
       display_order: Number(form.displayOrder),
       is_active: true,
+      min_participants: Number(form.minParticipants),
+      current_participants: Number(form.currentParticipants),
     };
 
     const response = await fetch(editingSlug ? `/api/brand/missions/${editingSlug}` : "/api/brand/missions", {
@@ -135,6 +139,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       deliverables: "",
       tags: "",
       displayOrder: 0,
+      minParticipants: 0,
+      currentParticipants: 0,
     });
     setEditingSlug(null);
     setLoading(false);
@@ -182,6 +188,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
             { key: "eta", label: "ETA", type: "text" },
             { key: "category", label: "Category", type: "text" },
             { key: "displayOrder", label: "Display Order", type: "number" },
+            { key: "minParticipants", label: "最低開放人數 (0=不限)", type: "number" },
+            { key: "currentParticipants", label: "目前登記人數", type: "number" },
           ].map((field) => (
             <label key={field.key} className="block text-sm text-slate-300">
               {field.label}
@@ -273,6 +281,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                       deliverables: mission.deliverables.join("\n"),
                       tags: mission.tags.join(", "),
                       displayOrder: mission.displayOrder ?? 0,
+                      minParticipants: mission.minParticipants ?? 0,
+                      currentParticipants: mission.currentParticipants ?? 0,
                     });
                   }}
                   className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200"

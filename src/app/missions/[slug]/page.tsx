@@ -92,7 +92,13 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           </div>
         </div>
 
-        <MissionAcceptCard missionSlug={mission.slug} eta={mission.eta} locale={locale} />
+        <MissionAcceptCard
+          missionSlug={mission.slug}
+          eta={mission.eta}
+          locale={locale}
+          minParticipants={mission.minParticipants}
+          currentParticipants={mission.currentParticipants}
+        />
       </div>
     </section>
   );
