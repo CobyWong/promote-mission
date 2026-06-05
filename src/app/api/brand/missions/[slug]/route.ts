@@ -52,8 +52,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
     tags: Array.isArray(body.tags) ? body.tags : undefined,
     is_active: typeof body.is_active === "boolean" ? body.is_active : undefined,
     display_order: typeof body.display_order === "number" ? body.display_order : undefined,
-    min_participants: typeof body.min_participants === "number" ? body.min_participants : undefined,
-    current_participants: typeof body.current_participants === "number" ? body.current_participants : undefined,
   };
 
   const { error } = await access.admin.from("missions").update(payload).eq("slug", slug);

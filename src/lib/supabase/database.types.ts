@@ -93,8 +93,6 @@ export type Database = {
           slug: string;
           tags: string[];
           title: string;
-          current_participants: number;
-          min_participants: number;
         };
         Insert: {
           brand: string;
@@ -113,8 +111,6 @@ export type Database = {
           slug: string;
           tags?: string[];
           title: string;
-          current_participants?: number;
-          min_participants?: number;
         };
         Update: {
           brand?: string;
@@ -133,8 +129,6 @@ export type Database = {
           slug?: string;
           tags?: string[];
           title?: string;
-          current_participants?: number;
-          min_participants?: number;
         };
         Relationships: [];
       };

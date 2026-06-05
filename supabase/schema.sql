@@ -16,8 +16,6 @@ create table if not exists public.missions (
   tags text[] not null default '{}',
   is_active boolean not null default true,
   display_order integer not null default 0,
-  min_participants integer not null default 0,
-  current_participants integer not null default 0,
   created_at timestamptz not null default timezone('utc', now())
 );
 

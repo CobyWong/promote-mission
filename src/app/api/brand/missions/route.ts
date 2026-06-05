@@ -59,8 +59,6 @@ export async function GET() {
     tags: item.tags,
     displayOrder: item.display_order,
     isActive: item.is_active,
-    minParticipants: item.min_participants,
-    currentParticipants: item.current_participants,
   }));
 
   return NextResponse.json({ missions });
@@ -95,8 +93,6 @@ export async function POST(request: Request) {
     tags: Array.isArray(body.tags) ? body.tags : [],
     is_active: body.is_active ?? true,
     display_order: Number(body.display_order ?? 0),
-    min_participants: Number(body.min_participants ?? 0),
-    current_participants: Number(body.current_participants ?? 0),
   };
 
   const { data, error } = await access.admin.from("missions").insert(payload).select("slug").single();
