@@ -88,7 +88,7 @@ export async function Header() {
         {isAuthenticated ? (
           <>
             <nav className={`hidden items-center gap-6 text-sm ${secondaryTextColor} md:flex`}>
-              {userLinks.map((link) => (
+              {userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => (
                 <Link key={link.href} href={link.href} className={`transition ${theme === "dark" ? "hover:text-white" : "hover:text-slate-900"}`}>
                   {t[link.key]}
                 </Link>

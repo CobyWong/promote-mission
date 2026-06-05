@@ -131,12 +131,14 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   }`}>
                   {links.rewards}
                 </Link>
-                <Link href="/dashboard" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.dashboard}
-                </Link>
+                {!isAdmin && (
+                  <Link href="/dashboard" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                    ? "border-white/10 text-slate-200 hover:bg-white/5"
+                    : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                    }`}>
+                    {links.dashboard}
+                  </Link>
+                )}
                 <Link href="/leaderboard" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
