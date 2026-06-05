@@ -90,7 +90,7 @@ export function Mascot({ locale }: { locale: Locale }) {
         className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 shadow-lg shadow-cyan-500/30 transition hover:scale-110 animate-bounce"
       >
         <span className="select-none inline-flex items-center justify-center w-8 h-8">
-        <img src="promote mission/src/components/character_1.png" alt="Character 1" className="w-full h-full object-contain rounded-full" />
+        <img src="/character_1.png" alt="Character 1" className="w-full h-full object-contain rounded-full" />
         </span>
       </button>
     );
@@ -114,7 +114,7 @@ export function Mascot({ locale }: { locale: Locale }) {
           {/* Header */}
           <div className="flex items-center gap-2 mb-3">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500">
-                <img src="promote mission/src/components/character_1.png" alt="Character 1" className="h-5 w-5 object-cover rounded-full" />
+                <img src="/character_1.png" alt="Character 1" className="h-5 w-5 object-cover rounded-full" />
             </div>
             <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">
               {locale === "en" ? "P-Bot" : "小P"}
@@ -161,7 +161,7 @@ export function Mascot({ locale }: { locale: Locale }) {
         className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 shadow-lg shadow-cyan-500/30 transition hover:scale-110"
         style={{ animation: open ? "none" : "mascot-bounce 2s ease-in-out infinite" }}
       >
-        <span className="select-none inline-flex items-center justify-center w-8 h-8"> <img src="promote mission/src/components/character_1.png" alt="Character 1" className="w-full h-full object-contain rounded-full" /> </span>
+        <span className="select-none inline-flex items-center justify-center w-8 h-8"> <img src="/character_1.png" alt="Character 1" className="w-full h-full object-contain rounded-full" /> </span>
         {!open && (
           <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-slate-950">
             {tips.length}
