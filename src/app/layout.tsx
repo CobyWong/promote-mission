@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { Mascot } from "@/components/mascot";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getCurrentTheme } from "@/lib/theme";
 
@@ -21,6 +22,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Header />
         <main>{children}</main>
         <Footer />
+        <Mascot locale={locale} />
       </body>
     </html>
   );

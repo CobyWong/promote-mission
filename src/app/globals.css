@@ -183,6 +183,11 @@ html[data-theme="light"] .border-amber-400\/30 {
   -webkit-text-fill-color: transparent;
 }
 
+@keyframes mascot-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 html[data-theme="light"] .gradient-text {
   background: linear-gradient(135deg, #0f172a, #334155 55%, #475569);
   background-clip: text;

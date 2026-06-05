@@ -1,0 +1,180 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import type { Locale } from "@/lib/i18n";
+
+const TIPS: Record<string, { zh: string; en: string }[]> = {
+  "/": [
+    { zh: "嘿！我係小P，你嘅任務嚮導～ 完成任務就可以賺金幣換獎賞！", en: "Hey! I'm P-Bot, your mission guide! Complete missions to earn Coins and redeem rewards!" },
+    { zh: "想開始？去「任務中心」揀一個你鍾意嘅品牌任務！", en: "Ready to start? Head to Missions and pick a brand task you like!" },
+  ],
+  "/missions": [
+    { zh: "呢度有晒可以接嘅任務！點擊任務睇清楚要求先好接！", en: "All available missions are here! Click one to read the brief before accepting." },
+    { zh: "任務難度越高，金幣獎勵越多！量力而為喎～", en: "Higher difficulty = more Coins! Choose wisely." },
+  ],
+  "/rewards": [
+    { zh: "呢度可以用金幣換心水獎賞！記得注意庫存，先到先得！", en: "Spend your Coins here on rewards! Watch the stock — first come, first served!" },
+    { zh: "金幣唔夠？去接多幾個任務先！", en: "Not enough Coins? Go complete more missions first!" },
+  ],
+  "/leaderboard": [
+    { zh: "本月金幣收益排第一，可以攞額外 3,000 金幣獎勵！衝啊！", en: "The #1 creator this month gets a bonus 3,000 Coins! Go for it!" },
+    { zh: "完成任務數量同追蹤數都有排名，唔止金幣先算！", en: "Rankings also track missions done and followers — not just Coins!" },
+  ],
+  "/dashboard": [
+    { zh: "呢度係你嘅個人控制台，追蹤任務進度同提交記錄！", en: "This is your personal dashboard — track your missions and submission history!" },
+    { zh: "有待審核嘅提交？耐心等等，審核通過就即刻入帳！", en: "Submissions pending? Sit tight — Coins land as soon as you're approved!" },
+  ],
+  "/login": [
+    { zh: "登入就可以接任務、賺金幣、換獎賞！", en: "Log in to start accepting missions, earning Coins, and redeeming rewards!" },
+  ],
+  "/register": [
+    { zh: "加入我哋！建立帳號就可以立即開始接任務！", en: "Join us! Create an account and start accepting missions right away!" },
+  ],
+};
+
+function getTips(pathname: string, locale: Locale) {
+  // Exact match first
+  const exact = TIPS[pathname];
+  if (exact) return locale === "en" ? exact.map((t) => t.en) : exact.map((t) => t.zh);
+
+  // Prefix match (e.g. /missions/some-slug)
+  const prefix = Object.keys(TIPS).find((key) => key !== "/" && pathname.startsWith(key));
+  if (prefix) {
+    const tips = TIPS[prefix];
+    if (prefix === "/missions") {
+      const missionTips = [
+        { zh: "睇清楚任務要求，特別係 Deliverables，確保你嘅內容符合要求先好接！", en: "Read the deliverables carefully before accepting — make sure your content fits!" },
+        { zh: "接受任務後倒數就開始，記得準時提交！", en: "The countdown starts the moment you accept — don't miss the deadline!" },
+      ];
+      return locale === "en" ? missionTips.map((t) => t.en) : missionTips.map((t) => t.zh);
+    }
+    if (prefix === "/submit") {
+      const submitTips = [
+        { zh: "提交時要填 Reel 連結同截圖，缺一不可！", en: "You need both the Reel URL and a screenshot — both are required!" },
+        { zh: "截圖要包含觀看次數同發佈日期，方便審核！", en: "Screenshot should show view count and publish date to speed up review!" },
+      ];
+      return locale === "en" ? submitTips.map((t) => t.en) : submitTips.map((t) => t.zh);
+    }
+    return locale === "en" ? tips.map((t) => t.en) : tips.map((t) => t.zh);
+  }
+
+  // Default
+  const defaultTips = [
+    { zh: "有問題？我係小P，隨時喺度幫你！", en: "Need help? I'm P-Bot, always here for you!" },
+  ];
+  return locale === "en" ? defaultTips.map((t) => t.en) : defaultTips.map((t) => t.zh);
+}
+
+export function Mascot({ locale }: { locale: Locale }) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [tipIndex, setTipIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  const tips = getTips(pathname, locale);
+
+  // Reset tip index when page changes, auto-open on first visit
+  useEffect(() => {
+    setTipIndex(0);
+    setOpen(true);
+    setVisible(true);
+  }, [pathname]);
+
+  if (!visible) {
+    return (
+      <button
+        type="button"
+        aria-label="Open guide"
+        onClick={() => { setVisible(true); setOpen(true); }}
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 shadow-lg shadow-cyan-500/30 transition hover:scale-110 animate-bounce"
+      >
+        <span className="text-2xl">🤖</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      {/* Speech bubble */}
+      {open && (
+        <div className="relative w-72 max-w-[calc(100vw-3rem)] rounded-3xl border border-cyan-400/20 bg-slate-900/95 p-5 shadow-2xl shadow-cyan-500/10 backdrop-blur-md">
+          {/* Close */}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:text-white transition"
+            aria-label="Close"
+          >
+            ✕
+          </button>
+
+          {/* Header */}
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 text-sm">
+              🤖
+            </div>
+            <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">
+              {locale === "en" ? "P-Bot" : "小P"}
+            </span>
+            <span className="ml-auto h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+          </div>
+
+          {/* Tip text */}
+          <p className="text-sm leading-relaxed text-slate-200">
+            {tips[tipIndex]}
+          </p>
+
+          {/* Navigation */}
+          {tips.length > 1 && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="flex gap-1">
+                {tips.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`h-1.5 rounded-full transition-all ${i === tipIndex ? "w-4 bg-cyan-400" : "w-1.5 bg-white/20"}`}
+                  />
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setTipIndex((prev) => (prev + 1) % tips.length)}
+                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/20"
+              >
+                {locale === "en" ? "Next tip →" : "下一個 →"}
+              </button>
+            </div>
+          )}
+
+          {/* Tail */}
+          <div className="absolute -bottom-2 right-6 h-4 w-4 rotate-45 border-b border-r border-cyan-400/20 bg-slate-900/95" />
+        </div>
+      )}
+
+      {/* Avatar button */}
+      <button
+        type="button"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-label="Toggle guide"
+        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 shadow-lg shadow-cyan-500/30 transition hover:scale-110"
+        style={{ animation: open ? "none" : "mascot-bounce 2s ease-in-out infinite" }}
+      >
+        <span className="text-2xl select-none">🤖</span>
+        {!open && (
+          <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-slate-950">
+            {tips.length}
+          </span>
+        )}
+      </button>
+
+      {/* Hide button */}
+      <button
+        type="button"
+        onClick={() => setVisible(false)}
+        className="text-xs text-slate-500 hover:text-slate-300 transition"
+      >
+        {locale === "en" ? "hide" : "隱藏"}
+      </button>
+    </div>
+  );
+}
