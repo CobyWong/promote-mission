@@ -345,26 +345,11 @@ export async function getDashboardData() {
     };
   }
 
-  const [adminSession, { data: { user } }] = await Promise.all([
-    hasAdminSession(),
-    supabase.auth.getUser(),
-  ]);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    if (adminSession) {
-      // Admin is logged in via cookie but has no Supabase session — show demo dashboard
-      return {
-        mode: "demo" as const,
-        profile: fallbackCreatorProfile,
-        submissions: [],
-        balance: 6840,
-        pendingCount: 0,
-        activeMissions: [],
-        missionStatusMap: new Map<string, SubmissionStatus>(),
-        instagramConnection: null as InstagramConnectionRow | null,
-        recentInsights: [] as ReelInsightRow[],
-      };
-    }
     return {
       mode: "unauthenticated" as const,
       profile: null,
