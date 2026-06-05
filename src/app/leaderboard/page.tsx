@@ -52,7 +52,7 @@ export default async function LeaderboardPage() {
           {/* Reward pill */}
           <div className="shrink-0 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-6 py-4 text-center">
             <p className="text-3xl font-extrabold tracking-tight text-amber-300">+3,000</p>
-            <p className="mt-0.5 text-xs font-medium text-amber-200/60">
+            <p className="mt-0.5 text-xs font-medium text-amber-700">
               {locale === "en" ? "Coins" : "金幣"}
             </p>
           </div>
