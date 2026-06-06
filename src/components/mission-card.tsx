@@ -57,6 +57,24 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
 
       <p className="text-sm leading-6 text-slate-300">{mission.description}</p>
 
+      {(mission.minParticipants ?? 0) > 0 && (
+        <div className={`mt-4 flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs ${
+          (mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0)
+            ? "border-green-400/20 bg-green-400/8 text-green-300"
+            : "border-amber-400/20 bg-amber-400/8 text-amber-300"
+        }`}>
+          <span>{(mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0) ? "✅" : "🔒"}</span>
+          <span className="font-medium">
+            {(mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0)
+              ? (locale === "en" ? "Open" : "已開放")
+              : (locale === "en" ? "Waiting to open" : "等待人數開放")}
+          </span>
+          <span className="ml-auto text-slate-400">
+            {mission.currentParticipants ?? 0} / {mission.minParticipants} {locale === "en" ? "creators" : "人"}
+          </span>
+        </div>
+      )}
+
       <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300">
         <span className="rounded-full bg-white/5 px-3 py-1">{categoryLabel}</span>
         <span className="rounded-full bg-white/5 px-3 py-1">{difficultyLabel}</span>

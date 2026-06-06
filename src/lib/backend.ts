@@ -64,6 +64,8 @@ function toMission(row: MissionRow): Mission {
     tags: row.tags,
     displayOrder: row.display_order,
     isActive: row.is_active,
+    minParticipants: row.min_participants,
+    currentParticipants: row.current_participants,
   };
 }
 

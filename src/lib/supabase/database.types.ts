@@ -79,6 +79,7 @@ export type Database = {
         Row: {
           brand: string;
           category: string;
+          current_participants: number;
           created_at: string;
           deliverables: string[];
           description: string;
@@ -87,6 +88,7 @@ export type Database = {
           eta: string;
           hook: string;
           is_active: boolean;
+          min_participants: number;
           product: string;
           requirements: string[];
           reward_coins: number;
@@ -97,6 +99,7 @@ export type Database = {
         Insert: {
           brand: string;
           category: string;
+          current_participants?: number;
           created_at?: string;
           deliverables?: string[];
           description: string;
@@ -105,6 +108,7 @@ export type Database = {
           eta: string;
           hook: string;
           is_active?: boolean;
+          min_participants?: number;
           product: string;
           requirements?: string[];
           reward_coins: number;
@@ -115,6 +119,7 @@ export type Database = {
         Update: {
           brand?: string;
           category?: string;
+          current_participants?: number;
           created_at?: string;
           deliverables?: string[];
           description?: string;
@@ -123,6 +128,7 @@ export type Database = {
           eta?: string;
           hook?: string;
           is_active?: boolean;
+          min_participants?: number;
           product?: string;
           requirements?: string[];
           reward_coins?: number;
