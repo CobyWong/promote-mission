@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
 
 const TIPS: Record<string, { zh: string; en: string }[]> = {
@@ -87,11 +88,16 @@ export function Mascot({ locale }: { locale: Locale }) {
         type="button"
         aria-label="Open guide"
         onClick={() => { setVisible(true); setOpen(true); }}
-        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 shadow-lg shadow-cyan-500/30 transition hover:scale-110 animate-bounce"
+        className="fixed bottom-6 right-6 z-50 flex h-20 w-20 items-center justify-center transition hover:scale-110 animate-bounce"
       >
-        <span className="select-none inline-flex items-center justify-center w-8 h-8">
-        <img src="/character_1.png" alt="Character 1" className="w-full h-full object-contain rounded-full" />
-        </span>
+        <Image
+          src="/character_1.png"
+          alt="Character 1"
+          width={80}
+          height={80}
+          className="h-20 w-20 object-contain drop-shadow-[0_10px_20px_rgba(34,211,238,0.35)]"
+          priority
+        />
       </button>
     );
   }
@@ -113,9 +119,13 @@ export function Mascot({ locale }: { locale: Locale }) {
 
           {/* Header */}
           <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500">
-                <img src="/character_1.png" alt="Character 1" className="h-5 w-5 object-cover rounded-full" />
-            </div>
+            <Image
+              src="/character_1.png"
+              alt="Character 1"
+              width={32}
+              height={32}
+              className="h-8 w-8 object-contain"
+            />
             <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">
               {locale === "en" ? "P-Bot" : "小P"}
             </span>
@@ -158,10 +168,16 @@ export function Mascot({ locale }: { locale: Locale }) {
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-label="Toggle guide"
-        className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-violet-500 shadow-lg shadow-cyan-500/30 transition hover:scale-110"
+        className="relative flex h-20 w-20 items-center justify-center transition hover:scale-110"
         style={{ animation: open ? "none" : "mascot-bounce 2s ease-in-out infinite" }}
       >
-        <span className="select-none inline-flex items-center justify-center w-8 h-8"> <img src="/character_1.png" alt="Character 1" className="w-full h-full object-contain rounded-full" /> </span>
+        <Image
+          src="/character_1.png"
+          alt="Character 1"
+          width={80}
+          height={80}
+          className="h-20 w-20 object-contain drop-shadow-[0_10px_20px_rgba(34,211,238,0.35)]"
+        />
         {!open && (
           <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-slate-950">
             {tips.length}
