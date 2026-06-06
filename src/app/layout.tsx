@@ -4,7 +4,9 @@ import "./globals.css";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { Mascot } from "@/components/mascot";
+import { hasAdminSession } from "@/lib/admin-session";
 import { getCurrentLocale } from "@/lib/i18n";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCurrentTheme } from "@/lib/theme";
 
 export const metadata: Metadata = {
@@ -15,6 +17,11 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getCurrentLocale();
   const theme = await getCurrentTheme();
+  const [adminSession, supabase] = await Promise.all([hasAdminSession(), createSupabaseServerClient()]);
+  const {
+    data: { user },
+  } = await supabase?.auth.getUser() ?? { data: { user: null } };
+  const isAuthenticated = adminSession || Boolean(user);
 
   return (
     <html lang={locale} data-theme={theme}>
@@ -22,7 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Header />
         <main>{children}</main>
         <Footer />
-        <Mascot locale={locale} />
+        {isAuthenticated ? <Mascot locale={locale} /> : null}
       </body>
     </html>
   );
