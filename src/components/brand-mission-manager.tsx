@@ -26,22 +26,50 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       requirementsPerLine: "Requirements (one per line)",
       deliverablesPerLine: "Deliverables (one per line)",
       tagsComma: "Tags (comma separated)",
+      description: "Description",
+      hook: "Hook",
+      fieldSlug: "Slug",
+      fieldTitle: "Title",
+      fieldBrand: "Brand",
+      fieldProduct: "Product",
+      fieldRewardCoins: "Reward Coins",
+      fieldDifficulty: "Difficulty",
+      fieldEta: "ETA",
+      fieldCategory: "Category",
+      fieldDisplayOrder: "Display Order",
+      fieldMinParticipants: "Min participants to unlock (0 = no limit)",
+      fieldCurrentParticipants: "Current registered participants",
+      coinsUnit: "Coins",
       edit: "Edit",
       delete: "Delete",
     }
     : {
-      refreshFailed: "無法更新 mission 清單。",
-      saveFailed: "儲存 mission 失敗。",
-      deleteFailed: "刪除 mission 失敗。",
-      editMission: "編輯 mission",
-      createMission: "建立新 mission",
+      refreshFailed: "無法更新任務清單。",
+      saveFailed: "儲存任務失敗。",
+      deleteFailed: "刪除任務失敗。",
+      editMission: "編輯任務",
+      createMission: "建立新任務",
       processing: "處理中...",
-      updateMission: "更新 mission",
-      createMissionBtn: "建立 mission",
+      updateMission: "更新任務",
+      createMissionBtn: "建立任務",
       cancelEdit: "取消編輯",
-      requirementsPerLine: "Requirements (one per line)",
-      deliverablesPerLine: "Deliverables (one per line)",
-      tagsComma: "Tags (comma separated)",
+      requirementsPerLine: "任務要求（每行一項）",
+      deliverablesPerLine: "提交內容（每行一項）",
+      tagsComma: "標籤（用逗號分隔）",
+      description: "任務描述",
+      hook: "拍片 Hook 建議",
+      fieldSlug: "Slug",
+      fieldTitle: "標題",
+      fieldBrand: "品牌",
+      fieldProduct: "產品",
+      fieldRewardCoins: "任務獎勵（金幣）",
+      fieldDifficulty: "難度",
+      fieldEta: "交稿時限",
+      fieldCategory: "分類",
+      fieldDisplayOrder: "顯示排序",
+      fieldMinParticipants: "最低開放人數（0＝不限）",
+      fieldCurrentParticipants: "目前登記人數",
+      coinsUnit: "金幣",
       edit: "編輯",
       delete: "刪除",
     };
@@ -179,17 +207,17 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
         <h2 className="text-2xl font-semibold text-white">{editingSlug ? `${t.editMission}: ${editingSlug}` : t.createMission}</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {[
-            { key: "slug", label: "Slug", type: "text" },
-            { key: "title", label: "Title", type: "text" },
-            { key: "brand", label: "Brand", type: "text" },
-            { key: "product", label: "Product", type: "text" },
-            { key: "points", label: "Reward Coins", type: "number" },
-            { key: "difficulty", label: "Difficulty", type: "text" },
-            { key: "eta", label: "ETA", type: "text" },
-            { key: "category", label: "Category", type: "text" },
-            { key: "displayOrder", label: "Display Order", type: "number" },
-            { key: "minParticipants", label: "最低開放人數 (0=不限)", type: "number" },
-            { key: "currentParticipants", label: "目前登記人數", type: "number" },
+            { key: "slug", label: t.fieldSlug, type: "text" },
+            { key: "title", label: t.fieldTitle, type: "text" },
+            { key: "brand", label: t.fieldBrand, type: "text" },
+            { key: "product", label: t.fieldProduct, type: "text" },
+            { key: "points", label: t.fieldRewardCoins, type: "number" },
+            { key: "difficulty", label: t.fieldDifficulty, type: "text" },
+            { key: "eta", label: t.fieldEta, type: "text" },
+            { key: "category", label: t.fieldCategory, type: "text" },
+            { key: "displayOrder", label: t.fieldDisplayOrder, type: "number" },
+            { key: "minParticipants", label: t.fieldMinParticipants, type: "number" },
+            { key: "currentParticipants", label: t.fieldCurrentParticipants, type: "number" },
           ].map((field) => (
             <label key={field.key} className="block text-sm text-slate-300">
               {field.label}
@@ -211,11 +239,11 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
 
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="block text-sm text-slate-300">
-            Description
+            {t.description}
             <textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} className="mt-2 min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white" />
           </label>
           <label className="block text-sm text-slate-300">
-            Hook
+            {t.hook}
             <textarea value={form.hook} onChange={(event) => setForm((current) => ({ ...current, hook: event.target.value }))} className="mt-2 min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white" />
           </label>
           <label className="block text-sm text-slate-300">
@@ -259,7 +287,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
               <div>
                 <p className="text-sm text-slate-400">{mission.slug}</p>
                 <h3 className="mt-1 text-xl font-semibold text-white">{mission.title}</h3>
-                <p className="mt-2 text-sm text-slate-300">{mission.brand} · {mission.points} Coins · {mission.category}</p>
+                <p className="mt-2 text-sm text-slate-300">{mission.brand} · {mission.points} {t.coinsUnit} · {mission.category}</p>
               </div>
               <div className="flex gap-3">
                 <button
