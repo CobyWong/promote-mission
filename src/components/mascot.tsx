@@ -257,6 +257,29 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300/90">
                 {locale === "en" ? "First Login Tour" : "首次登入導覽"}
               </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {ONBOARDING_STEPS.map((step, index) => {
+                  const isCurrentPage = pathname === step.path || pathname.startsWith(`${step.path}/`);
+                  const isCurrentStep = index === onboardingStepIndex;
+
+                  return (
+                    <span
+                      key={step.path}
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold transition ${
+                        isCurrentPage
+                          ? "border-emerald-400/50 bg-emerald-400/20 text-emerald-200"
+                          : isCurrentStep
+                            ? "border-cyan-400/50 bg-cyan-400/20 text-cyan-200"
+                            : "border-white/15 bg-white/5 text-slate-300"
+                      }`}
+                    >
+                      {locale === "en"
+                        ? step.enTitle
+                        : step.zhTitle}
+                    </span>
+                  );
+                })}
+              </div>
               <p className="mt-2 text-base font-semibold text-white">
                 {locale === "en" ? onboardingStep.enTitle : onboardingStep.zhTitle}
               </p>
@@ -273,15 +296,6 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
           {/* Navigation */}
           {onboardingActive ? (
             <div className="mt-4 flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  router.push(onboardingStep.path);
-                }}
-                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/20"
-              >
-                {locale === "en" ? "Open page" : "打開頁面"}
-              </button>
               <button
                 type="button"
                 onClick={() => {
