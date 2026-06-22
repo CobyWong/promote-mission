@@ -215,36 +215,12 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
     <>
       {onboardingActive ? (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[1px]"
+          className="fixed inset-0 z-[70] bg-slate-950/55 backdrop-blur-[1px]"
           aria-hidden="true"
         />
       ) : null}
 
-      <div className="fixed left-1/2 top-4 z-50 w-[min(92vw,920px)] -translate-x-1/2 rounded-2xl bg-slate-900/90 px-3 py-3 shadow-xl shadow-cyan-500/10 backdrop-blur-md">
-        <div className="flex flex-wrap items-center justify-center gap-1.5">
-          {ONBOARDING_STEPS.map((step, index) => {
-            const isCurrentPage = pathname === step.path || pathname.startsWith(`${step.path}/`);
-            const isCurrentStep = onboardingActive && index === onboardingStepIndex;
-
-            return (
-              <span
-                key={step.path}
-                className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${
-                  isCurrentPage
-                    ? "border-emerald-400/50 bg-emerald-400/20 text-emerald-200"
-                    : isCurrentStep
-                      ? "border-cyan-400/50 bg-cyan-400/20 text-cyan-200"
-                      : "border-white/15 bg-white/5 text-slate-300"
-                }`}
-              >
-                {locale === "en" ? step.enTitle : step.zhTitle}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+      <div className="fixed bottom-6 right-6 z-[80] flex flex-col items-end gap-3">
       {/* Speech bubble */}
       {open && (
         <div className="relative w-72 max-w-[calc(100vw-3rem)] rounded-3xl border border-cyan-400/20 bg-slate-900/95 p-5 shadow-2xl shadow-cyan-500/10 backdrop-blur-md">

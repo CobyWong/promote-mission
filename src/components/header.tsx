@@ -5,6 +5,7 @@ import { getCurrentTheme } from "@/lib/theme";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/env";
 import { hasAdminSession } from "@/lib/admin-session";
+import { HeaderMainNav } from "@/components/header-main-nav";
 import { HeaderSideMenu } from "@/components/header-side-menu";
 
 const linkLabels: Record<Locale, Record<string, string>> = {
@@ -69,8 +70,20 @@ export async function Header() {
   const borderColor = theme === "dark" ? "border-white/10" : "border-slate-200";
   const bgColor = theme === "dark" ? "bg-slate-950/80" : "bg-white/80";
   const textColor = theme === "dark" ? "text-white" : "text-slate-900";
-  const secondaryTextColor = theme === "dark" ? "text-slate-300" : "text-slate-600";
   const tertiaryTextColor = theme === "dark" ? "text-slate-400" : "text-slate-500";
+
+  const navLinks = [
+    ...userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => ({
+      href: link.href,
+      label: t[link.key],
+    })),
+    ...(isAdmin
+      ? adminLinks.map((link) => ({
+        href: link.href,
+        label: t[link.key],
+      }))
+      : []),
+  ];
 
   return (
     <header className={`sticky top-0 z-50 border-b ${borderColor} ${bgColor} backdrop-blur`}>
@@ -87,21 +100,7 @@ export async function Header() {
 
         {isAuthenticated ? (
           <>
-            <nav className={`hidden items-center gap-6 text-sm ${secondaryTextColor} md:flex`}>
-              {userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => (
-                <Link key={link.href} href={link.href} className={`transition ${theme === "dark" ? "hover:text-white" : "hover:text-slate-900"}`}>
-                  {t[link.key]}
-                </Link>
-              ))}
-
-              {isAdmin && (
-                adminLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className={`transition ${theme === "dark" ? "hover:text-white" : "hover:text-slate-900"}`}>
-                    {t[link.key]}
-                  </Link>
-                ))
-              )}
-            </nav>
+            <HeaderMainNav links={navLinks} theme={theme} />
 
             <HeaderSideMenu
               locale={locale}
