@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
         <Header />
         <main>{children}</main>
         <Footer />
-        {isAuthenticated ? <Mascot locale={locale} /> : null}
+        {isAuthenticated ? <Mascot locale={locale} userId={user?.id ?? null} /> : null}
       </body>
     </html>
   );

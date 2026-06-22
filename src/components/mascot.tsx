@@ -1,9 +1,62 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
+
+type OnboardingStep = {
+  path: string;
+  zhTitle: string;
+  enTitle: string;
+  zhDesc: string;
+  enDesc: string;
+};
+
+const ONBOARDING_STEPS: OnboardingStep[] = [
+  {
+    path: "/dashboard",
+    zhTitle: "控制台 Dashboard",
+    enTitle: "Dashboard",
+    zhDesc: "睇你嘅 Coins、提交狀態同進度，呢度係你每日最常用頁面。",
+    enDesc: "Check your Coins, submission status, and progress. This is your daily command center.",
+  },
+  {
+    path: "/missions",
+    zhTitle: "任務中心 Missions",
+    enTitle: "Missions",
+    zhDesc: "揀任務前先睇清楚 requirements 同 deliverables，避免交稿被退回。",
+    enDesc: "Review requirements and deliverables before accepting to avoid rework.",
+  },
+  {
+    path: "/rewards",
+    zhTitle: "獎賞商城 Rewards",
+    enTitle: "Rewards",
+    zhDesc: "用 Coins 換獎賞，記得留意庫存同兌換所需 Coins。",
+    enDesc: "Redeem your Coins for rewards. Watch stock and required Coins.",
+  },
+  {
+    path: "/leaderboard",
+    zhTitle: "排行榜 Leaderboard",
+    enTitle: "Leaderboard",
+    zhDesc: "跟住本月排名衝榜，第一名有每月大獎。",
+    enDesc: "Track monthly rankings and climb to #1 for the monthly grand prize.",
+  },
+];
+
+function getOnboardingStorageKey(userId: string) {
+  return `promote-mission:onboarding:v1:${userId}`;
+}
+
+function findOnboardingStepIndex(pathname: string) {
+  const exactIndex = ONBOARDING_STEPS.findIndex((step) => step.path === pathname);
+  if (exactIndex >= 0) {
+    return exactIndex;
+  }
+
+  const prefixIndex = ONBOARDING_STEPS.findIndex((step) => pathname.startsWith(step.path));
+  return prefixIndex >= 0 ? prefixIndex : 0;
+}
 
 const TIPS: Record<string, { zh: string; en: string }[]> = {
   "/": [
@@ -67,13 +120,29 @@ function getTips(pathname: string, locale: Locale) {
   return locale === "en" ? defaultTips.map((t) => t.en) : defaultTips.map((t) => t.zh);
 }
 
-export function Mascot({ locale }: { locale: Locale }) {
+export function Mascot({ locale, userId }: { locale: Locale; userId?: string | null }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [tipIndex, setTipIndex] = useState(0);
   const [visible, setVisible] = useState(true);
+  const [onboardingActive, setOnboardingActive] = useState(false);
+  const [onboardingStepIndex, setOnboardingStepIndex] = useState(0);
 
   const tips = getTips(pathname, locale);
+  const onboardingStep = ONBOARDING_STEPS[onboardingStepIndex];
+
+  function completeOnboarding() {
+    if (userId) {
+      try {
+        localStorage.setItem(getOnboardingStorageKey(userId), "done");
+      } catch {
+        // no-op in blocked storage mode
+      }
+    }
+
+    setOnboardingActive(false);
+  }
 
   // Reset tip index when page changes, auto-open on first visit
   useEffect(() => {
@@ -81,6 +150,25 @@ export function Mascot({ locale }: { locale: Locale }) {
     setOpen(true);
     setVisible(true);
   }, [pathname]);
+
+  // One-time onboarding tour for first login
+  useEffect(() => {
+    if (!userId) {
+      setOnboardingActive(false);
+      return;
+    }
+
+    try {
+      const done = localStorage.getItem(getOnboardingStorageKey(userId)) === "done";
+      if (!done) {
+        setOnboardingActive(true);
+        setOpen(true);
+        setOnboardingStepIndex(findOnboardingStepIndex(pathname));
+      }
+    } catch {
+      // no-op
+    }
+  }, [pathname, userId]);
 
   if (!visible) {
     return (
@@ -133,12 +221,79 @@ export function Mascot({ locale }: { locale: Locale }) {
           </div>
 
           {/* Tip text */}
-          <p className="text-sm leading-relaxed text-white">
-            {tips[tipIndex]}
-          </p>
+          {onboardingActive ? (
+            <>
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300/90">
+                {locale === "en" ? "First Login Tour" : "首次登入導覽"}
+              </p>
+              <p className="mt-2 text-base font-semibold text-white">
+                {locale === "en" ? onboardingStep.enTitle : onboardingStep.zhTitle}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-white">
+                {locale === "en" ? onboardingStep.enDesc : onboardingStep.zhDesc}
+              </p>
+            </>
+          ) : (
+            <p className="text-sm leading-relaxed text-white">
+              {tips[tipIndex]}
+            </p>
+          )}
 
           {/* Navigation */}
-          {tips.length > 1 && (
+          {onboardingActive ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  router.push(onboardingStep.path);
+                }}
+                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/20"
+              >
+                {locale === "en" ? "Open page" : "打開頁面"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onboardingStepIndex === 0) {
+                    return;
+                  }
+
+                  const previousIndex = onboardingStepIndex - 1;
+                  setOnboardingStepIndex(previousIndex);
+                  router.push(ONBOARDING_STEPS[previousIndex].path);
+                }}
+                disabled={onboardingStepIndex === 0}
+                className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {locale === "en" ? "Back" : "上一步"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onboardingStepIndex >= ONBOARDING_STEPS.length - 1) {
+                    completeOnboarding();
+                    return;
+                  }
+
+                  const nextIndex = onboardingStepIndex + 1;
+                  setOnboardingStepIndex(nextIndex);
+                  router.push(ONBOARDING_STEPS[nextIndex].path);
+                }}
+                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/20"
+              >
+                {onboardingStepIndex >= ONBOARDING_STEPS.length - 1
+                  ? locale === "en" ? "Finish" : "完成"
+                  : locale === "en" ? "Next" : "下一步"}
+              </button>
+              <button
+                type="button"
+                onClick={completeOnboarding}
+                className="ml-auto text-xs text-slate-400 transition hover:text-slate-200"
+              >
+                {locale === "en" ? "Skip" : "略過"}
+              </button>
+            </div>
+          ) : tips.length > 1 && (
             <div className="mt-4 flex items-center justify-between">
               <div className="flex gap-1">
                 {tips.map((_, i) => (
@@ -180,7 +335,7 @@ export function Mascot({ locale }: { locale: Locale }) {
         />
         {!open && (
           <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-cyan-400 text-[9px] font-bold text-slate-950">
-            {tips.length}
+            {onboardingActive ? ONBOARDING_STEPS.length - onboardingStepIndex : tips.length}
           </span>
         )}
       </button>
