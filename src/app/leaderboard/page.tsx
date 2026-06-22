@@ -69,16 +69,16 @@ export default async function LeaderboardPage() {
             </p>
             <p className="mt-1 text-sm leading-relaxed text-slate-300">
               {locale === "en"
-                ? "The #1 ranked creator by Coins earned this month receives an exclusive bonus on top of their earnings."
-                : "本月金幣收益排名第一的創作者，將額外獲得豐厚金幣獎勵。"}
+                ? "The #1 ranked creator by Coins earned this month receives a luxury watch."
+                : "本月金幣收益排名第一的創作者，將額外獲得名錶獎勵。"}
             </p>
           </div>
 
           {/* Reward pill */}
           <div className="shrink-0 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-6 py-4 text-center">
-            <p className="text-3xl font-extrabold tracking-tight text-amber-300">+3,000</p>
+            <p className="text-3xl font-extrabold tracking-tight text-amber-300">⌚</p>
             <p className="mt-0.5 text-xs font-medium text-amber-700">
-              {locale === "en" ? "Coins" : "金幣"}
+              {locale === "en" ? "Luxury Watch" : "名錶"}
             </p>
           </div>
         </div>
