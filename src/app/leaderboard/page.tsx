@@ -22,6 +22,31 @@ export default async function LeaderboardPage() {
         </p>
       </div>
 
+      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+        <div className="rounded-2xl border border-amber-400/25 bg-amber-400/10 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">
+            {locale === "en" ? "Monthly Grand Prize" : "每月大獎"}
+          </p>
+          <p className="mt-2 text-xl font-bold text-white">
+            {locale === "en" ? "Luxury Watch" : "名錶"}
+          </p>
+          <p className="mt-2 text-sm text-slate-300">
+            {locale === "en" ? "Top 1 creator of the month" : "本月積分第 1 名創作者"}
+          </p>
+        </div>
+        <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-5 py-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-rose-300">
+            {locale === "en" ? "Monthly Grand Prize" : "每月大獎"}
+          </p>
+          <p className="mt-2 text-xl font-bold text-white">
+            {locale === "en" ? "Supercar Experience" : "跑車體驗"}
+          </p>
+          <p className="mt-2 text-sm text-slate-300">
+            {locale === "en" ? "Top 2 creator of the month" : "本月積分第 2 名創作者"}
+          </p>
+        </div>
+      </div>
+
       {/* Monthly reward banner */}
       <div className="relative mt-10 overflow-hidden rounded-3xl border border-amber-400/20 bg-gradient-to-br from-amber-500/15 via-yellow-400/8 to-orange-500/10 px-8 py-6 shadow-lg shadow-amber-500/5">
         {/* Decorative glow blobs */}

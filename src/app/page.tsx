@@ -135,6 +135,11 @@ export default async function Home() {
         <div className="glass-panel p-8">
           <p className="text-sm uppercase tracking-[0.3em] text-amber-300">Leaderboard</p>
           <h2 className="mt-3 text-3xl font-semibold text-white">本月龍虎榜</h2>
+          <div className="mt-5 rounded-2xl border border-amber-400/20 bg-gradient-to-r from-amber-400/10 to-rose-400/10 px-4 py-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-amber-300">每月大獎</p>
+            <p className="mt-2 text-sm text-slate-200">🥇 名錶 ・ 🥈 跑車體驗</p>
+            <p className="mt-1 text-xs text-slate-400">按本月 Coins 排名派發</p>
+          </div>
           <div className="mt-6 space-y-3">
             {leaders.map((leader, index) => (
               <div key={leader.name} className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-4">
