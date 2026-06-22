@@ -170,6 +170,27 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
     }
   }, [pathname, userId]);
 
+  // Hard lock the UI while onboarding is active
+  useEffect(() => {
+    if (!onboardingActive) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onboardingActive]);
+
+  useEffect(() => {
+    if (onboardingActive) {
+      setOpen(true);
+      setVisible(true);
+    }
+  }, [onboardingActive]);
+
   if (!visible) {
     return (
       <button
@@ -191,19 +212,29 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
   }
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+    <>
+      {onboardingActive ? (
+        <div
+          className="fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-[1px]"
+          aria-hidden="true"
+        />
+      ) : null}
+
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
       {/* Speech bubble */}
       {open && (
         <div className="relative w-72 max-w-[calc(100vw-3rem)] rounded-3xl border border-cyan-400/20 bg-slate-900/95 p-5 shadow-2xl shadow-cyan-500/10 backdrop-blur-md">
           {/* Close */}
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:text-white transition"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          {!onboardingActive ? (
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:text-white transition"
+              aria-label="Close"
+            >
+              ✕
+            </button>
+          ) : null}
 
           {/* Header */}
           <div className="flex items-center gap-2 mb-3">
@@ -285,13 +316,6 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
                   ? locale === "en" ? "Finish" : "完成"
                   : locale === "en" ? "Next" : "下一步"}
               </button>
-              <button
-                type="button"
-                onClick={completeOnboarding}
-                className="ml-auto text-xs text-slate-400 transition hover:text-slate-200"
-              >
-                {locale === "en" ? "Skip" : "略過"}
-              </button>
             </div>
           ) : tips.length > 1 && (
             <div className="mt-4 flex items-center justify-between">
@@ -321,7 +345,13 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
       {/* Avatar button */}
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          if (onboardingActive) {
+            return;
+          }
+
+          setOpen((prev) => !prev);
+        }}
         aria-label="Toggle guide"
         className="relative flex h-20 w-20 items-center justify-center transition hover:scale-110"
         style={{ animation: open ? "none" : "mascot-bounce 2s ease-in-out infinite" }}
@@ -341,13 +371,16 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
       </button>
 
       {/* Hide button */}
-      <button
-        type="button"
-        onClick={() => setVisible(false)}
-        className="text-xs text-slate-500 hover:text-slate-300 transition"
-      >
-        {locale === "en" ? "hide" : "隱藏"}
-      </button>
-    </div>
+      {!onboardingActive ? (
+        <button
+          type="button"
+          onClick={() => setVisible(false)}
+          className="text-xs text-slate-500 hover:text-slate-300 transition"
+        >
+          {locale === "en" ? "hide" : "隱藏"}
+        </button>
+      ) : null}
+      </div>
+    </>
   );
 }
