@@ -19,7 +19,7 @@ const TIPS: Record<string, { zh: string; en: string }[]> = {
     { zh: "金幣唔夠？去接多幾個任務先！", en: "Not enough Coins? Go complete more missions first!" },
   ],
   "/leaderboard": [
-    { zh: "本月金幣收益排第一，可以攞額外 3,000 金幣獎勵！衝啊！", en: "The #1 creator this month gets a bonus 3,000 Coins! Go for it!" },
+    { zh: "本月金幣收益排第一，可以攞名錶獎勵！衝啊！", en: "The #1 creator this month wins a luxury watch! Go for it!" },
     { zh: "完成任務數量同追蹤數都有排名，唔止金幣先算！", en: "Rankings also track missions done and followers — not just Coins!" },
   ],
   "/dashboard": [
