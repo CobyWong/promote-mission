@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { getCurrentLocale, type Locale } from "@/lib/i18n";
 import { getCurrentTheme } from "@/lib/theme";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { isAdminEmail } from "@/lib/supabase/env";
 import { hasAdminSession } from "@/lib/admin-session";
+import { getCurrentViewer } from "@/lib/backend";
 import { HeaderMainNav } from "@/components/header-main-nav";
 import { HeaderSideMenu } from "@/components/header-side-menu";
 
@@ -57,14 +57,11 @@ const adminLinks = [
 export async function Header() {
   const locale = await getCurrentLocale();
   const theme = await getCurrentTheme();
-  const adminSession = await hasAdminSession();
-  
-  // Check user auth session
-  const supabase = await createSupabaseServerClient();
-  const { data: { user } } = await supabase?.auth.getUser() ?? { data: { user: null } };
+  const [adminSession, viewer] = await Promise.all([hasAdminSession(), getCurrentViewer()]);
+  const user = viewer.user;
   const isAdmin = adminSession || Boolean(user && isAdminEmail(user.email));
   const isAuthenticated = adminSession || Boolean(user);
-  
+
   const t = linkLabels[locale];
 
   const borderColor = theme === "dark" ? "border-white/10" : "border-slate-200";

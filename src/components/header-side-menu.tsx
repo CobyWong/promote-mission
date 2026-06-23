@@ -119,32 +119,32 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
           <div className="mt-8 flex-1 space-y-3 overflow-y-auto pr-1">
             {isAuthenticated ? (
               <>
-                <Link href="/missions" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                <Link href="/missions" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.missions}
                 </Link>
-                <Link href="/rewards" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                <Link href="/rewards" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.rewards}
                 </Link>
+                <Link href="/leaderboard" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.leaderboard}
+                </Link>
                 {!isAdmin && (
-                  <Link href="/dashboard" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  <Link href="/dashboard" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                     ? "border-white/10 text-slate-200 hover:bg-white/5"
                     : "border-slate-200 text-slate-700 hover:bg-slate-50"
                     }`}>
                     {links.dashboard}
                   </Link>
                 )}
-                <Link href="/leaderboard" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.leaderboard}
-                </Link>
 
                 {isAdmin ? (
                   <>
@@ -183,13 +183,13 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
               </>
             ) : (
               <>
-                <Link href="/login" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                <Link href="/login" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.login}
                 </Link>
-                <Link href="/register" className={`block rounded-full px-4 py-3 text-center text-sm font-semibold transition ${theme === "dark"
+                <Link href="/register" prefetch className={`block rounded-full px-4 py-3 text-center text-sm font-semibold transition ${theme === "dark"
                   ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
                   : "bg-cyan-500 text-white hover:bg-cyan-600"
                   }`}>

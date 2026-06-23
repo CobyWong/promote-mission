@@ -1,5 +1,6 @@
 import { missions, rewards, sampleRewardRedemptions, leaders } from "@/lib/data";
 import type { CreatorProfile, Leader, Mission, Reward, RewardRedemption, Submission } from "@/lib/data";
+import { cache } from "react";
 import { hasAdminSession } from "@/lib/admin-session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -144,7 +145,7 @@ function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null 
   };
 }
 
-export async function getCurrentViewer() {
+export const getCurrentViewer = cache(async () => {
   if (!hasSupabaseConfig()) {
     return { configured: false as const, user: null };
   }
@@ -160,7 +161,7 @@ export async function getCurrentViewer() {
   } = await supabase.auth.getUser();
 
   return { configured: true as const, user };
-}
+});
 
 export async function getMissionCatalog() {
   if (!hasSupabaseConfig()) {

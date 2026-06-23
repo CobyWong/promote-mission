@@ -43,6 +43,7 @@ export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
           <Link
             key={link.href}
             href={link.href}
+            prefetch
             className={`rounded-full border px-4 py-2 font-semibold transition ${isActive ? activeClass : inactiveClass}`}
             aria-current={isActive ? "page" : undefined}
           >

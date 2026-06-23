@@ -7,15 +7,16 @@ import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseAnonKey, getSupabaseUrl, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
-  const response = await updateSession(request);
   const { pathname, search } = request.nextUrl;
   const isAdminLogin = pathname === "/admin/login";
   const isAdminAuthApi = pathname === "/api/admin/login" || pathname === "/api/admin/logout";
   const isProtectedAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/brand") || pathname.startsWith("/api/admin") || pathname.startsWith("/api/brand");
 
   if (!isProtectedAdminRoute || isAdminLogin || isAdminAuthApi) {
-    return response;
+    return NextResponse.next({ request });
   }
+
+  const response = await updateSession(request);
 
   const hasAdminSession = hasAdminSessionCookieValue(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
 
