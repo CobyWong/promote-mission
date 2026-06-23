@@ -2,10 +2,33 @@ import Image from "next/image";
 import { getCurrentLocale } from "@/lib/i18n";
 import { LeaderboardClient } from "@/components/leaderboard-client";
 import { getLeaderboardData } from "@/lib/backend";
+import { getCurrentTheme } from "@/lib/theme";
 
 export default async function LeaderboardPage() {
   const locale = await getCurrentLocale();
+  const theme = await getCurrentTheme();
   const data = await getLeaderboardData();
+  const isDark = theme === "dark";
+
+  const bannerClass = isDark
+    ? "border-amber-300/25 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-[#171229]/90 shadow-lg shadow-slate-950/35"
+    : "border-amber-500/20 bg-gradient-to-br from-[#fffaf1] via-[#f7f9ff] to-[#eef6ff] shadow-lg shadow-slate-900/8";
+
+  const glowTopClass = isDark ? "bg-cyan-300/10" : "bg-cyan-300/20";
+  const glowBottomClass = isDark ? "bg-amber-300/10" : "bg-amber-300/22";
+
+  const iconClass = isDark
+    ? "bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 text-slate-950"
+    : "bg-gradient-to-br from-amber-200 via-amber-300 to-orange-300 text-amber-900";
+
+  const titleTagClass = isDark ? "text-amber-200/90" : "text-amber-700";
+  const headingClass = isDark ? "text-white" : "text-slate-900";
+  const descClass = isDark ? "text-slate-200/90" : "text-slate-700";
+
+  const rewardPillClass = isDark
+    ? "border-amber-300/30 bg-slate-900/70"
+    : "border-amber-400/25 bg-white/75";
+  const rewardLabelClass = isDark ? "text-amber-200" : "text-amber-700";
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -24,26 +47,26 @@ export default async function LeaderboardPage() {
       </div>
 
       {/* Monthly reward banner */}
-      <div className="relative mt-10 overflow-hidden rounded-3xl border border-amber-300/25 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-[#171229]/90 px-8 py-6 shadow-lg shadow-slate-950/35">
+      <div className={`relative mt-10 overflow-hidden rounded-3xl border px-8 py-6 ${bannerClass}`}>
         {/* Decorative glow blobs */}
-        <div className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full bg-cyan-300/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-10 left-1/3 h-36 w-36 rounded-full bg-amber-300/10 blur-2xl" />
+        <div className={`pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full blur-3xl ${glowTopClass}`} />
+        <div className={`pointer-events-none absolute -bottom-10 left-1/3 h-36 w-36 rounded-full blur-2xl ${glowBottomClass}`} />
 
         <div className="relative flex flex-wrap items-center gap-6">
           {/* Icon */}
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 text-2xl text-slate-950 shadow-md shadow-amber-500/30">
+          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-md shadow-amber-500/30 ${iconClass}`}>
             🏆
           </div>
 
           {/* Text */}
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-widest text-amber-200/90">
+            <p className={`text-xs font-semibold uppercase tracking-widest ${titleTagClass}`}>
               {locale === "en" ? "Monthly Exclusive" : "月度專屬獎勵"}
             </p>
-            <p className="mt-1 text-lg font-bold text-white">
+            <p className={`mt-1 text-lg font-bold ${headingClass}`}>
               {locale === "en" ? "Top Creator Bonus Reward" : "本月第一名額外獎勵"}
             </p>
-            <p className="mt-1 text-sm leading-relaxed text-slate-200/90">
+            <p className={`mt-1 text-sm leading-relaxed ${descClass}`}>
               {locale === "en"
                 ? "The #1 ranked creator by Coins earned this month receives a luxury watch."
                 : "本月金幣收益排名第一的創作者，將額外獲得名錶獎勵。"}
@@ -51,7 +74,7 @@ export default async function LeaderboardPage() {
           </div>
 
           {/* Reward pill */}
-          <div className="shrink-0 rounded-2xl border border-amber-300/30 bg-slate-900/70 px-6 py-4 text-center backdrop-blur-sm">
+          <div className={`shrink-0 rounded-2xl border px-6 py-4 text-center backdrop-blur-sm ${rewardPillClass}`}>
             <Image
               src="/watch.jpeg"
               alt={locale === "en" ? "Luxury watch reward" : "名錶獎勵"}
@@ -59,7 +82,7 @@ export default async function LeaderboardPage() {
               height={44}
               className="mx-auto h-11 w-11 rounded-lg object-cover"
             />
-            <p className="mt-1 text-xs font-semibold tracking-wide text-amber-200">
+            <p className={`mt-1 text-xs font-semibold tracking-wide ${rewardLabelClass}`}>
               {locale === "en" ? "Luxury Watch" : "名錶"}
             </p>
           </div>
