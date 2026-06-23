@@ -191,6 +191,11 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
     }
   }, [onboardingActive]);
 
+  // In normal mode, do not render NPC at all.
+  if (!onboardingActive) {
+    return null;
+  }
+
   if (!visible) {
     return (
       <button
