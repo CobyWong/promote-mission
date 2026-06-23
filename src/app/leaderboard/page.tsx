@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getCurrentLocale } from "@/lib/i18n";
 import { LeaderboardClient } from "@/components/leaderboard-client";
 import { getLeaderboardData } from "@/lib/backend";
@@ -51,7 +52,13 @@ export default async function LeaderboardPage() {
 
           {/* Reward pill */}
           <div className="shrink-0 rounded-2xl border border-amber-400/30 bg-amber-400/10 px-6 py-4 text-center">
-            <p className="text-3xl font-extrabold tracking-tight text-amber-300">⌚</p>
+            <Image
+              src="/watch.jpeg"
+              alt={locale === "en" ? "Luxury watch reward" : "名錶獎勵"}
+              width={44}
+              height={44}
+              className="mx-auto h-11 w-11 rounded-lg object-cover"
+            />
             <p className="mt-0.5 text-xs font-medium text-amber-700">
               {locale === "en" ? "Luxury Watch" : "名錶"}
             </p>
