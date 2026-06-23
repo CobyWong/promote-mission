@@ -158,7 +158,7 @@ export function AuthForm({ mode, nextPath = "/dashboard", locale = "zh-HK" }: Au
       }
 
       setSubmitted(true);
-      window.location.assign(`/api/auth/redirect?next=${encodeURIComponent(nextPath)}`);
+      window.location.assign("/api/auth/redirect?next=%2Fdashboard");
     } catch {
       setError(t.networkError);
     } finally {

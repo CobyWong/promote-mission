@@ -1,12 +1,19 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { MissionCard } from "@/components/mission-card";
 import { RewardCard } from "@/components/reward-card";
-import { getMissionCatalog, getRewardsCatalog } from "@/lib/backend";
+import { getCurrentViewer, getMissionCatalog, getRewardsCatalog } from "@/lib/backend";
 import { leaders, perks, reelIdeas, stats } from "@/lib/data";
 import { getCurrentLocale } from "@/lib/i18n";
 
 export default async function Home() {
+  const viewer = await getCurrentViewer();
+
+  if (viewer.user) {
+    redirect("/dashboard");
+  }
+
   const locale = await getCurrentLocale();
   const missionCatalog = await getMissionCatalog();
   const rewardCatalog = await getRewardsCatalog();

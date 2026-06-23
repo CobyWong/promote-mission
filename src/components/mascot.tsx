@@ -215,7 +215,7 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
     <>
       {onboardingActive ? (
         <div
-          className="fixed inset-0 z-[70] bg-slate-950/55 backdrop-blur-[1px]"
+          className="fixed inset-0 z-[70] bg-slate-950/55"
           aria-hidden="true"
         />
       ) : null}
