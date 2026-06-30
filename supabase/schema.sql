@@ -122,6 +122,19 @@ create table if not exists public.reward_redemptions (
   created_at timestamptz not null default timezone('utc', now())
 );
 
+create table if not exists public.support_tickets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  name text not null,
+  email text not null,
+  category text not null default 'General',
+  message text not null,
+  page_path text,
+  status text not null default 'open' check (status in ('open', 'in_progress', 'resolved', 'closed')),
+  created_at timestamptz not null default timezone('utc', now()),
+  updated_at timestamptz not null default timezone('utc', now())
+);
+
 -- Create storage bucket for mission screenshots (if it doesn't already exist)
 -- Note: This is handled by Supabase automatically, but we include it for completeness
 do $$
@@ -148,6 +161,7 @@ alter table public.rewards_catalog enable row level security;
 alter table public.submissions enable row level security;
 alter table public.coin_transactions enable row level security;
 alter table public.reward_redemptions enable row level security;
+alter table public.support_tickets enable row level security;
 alter table public.instagram_connections enable row level security;
 alter table public.reel_insights enable row level security;
 

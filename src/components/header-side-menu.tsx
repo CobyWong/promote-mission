@@ -60,6 +60,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       missions: "Missions",
       rewards: "Rewards",
       dashboard: "Dashboard",
+      support: "Support",
       login: "Login",
       register: "Get Started",
       adminReview: "Admin Review",
@@ -75,6 +76,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       missions: "任務中心",
       rewards: "獎賞商城",
       dashboard: "面板",
+      support: "客服中心",
       login: "登入",
       register: "免費開始",
       adminReview: "審核後台",
@@ -145,6 +147,12 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                     {links.dashboard}
                   </Link>
                 )}
+                <Link href="/support" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.support}
+                </Link>
 
                 {isAdmin ? (
                   <>
@@ -194,6 +202,12 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   : "bg-cyan-500 text-white hover:bg-cyan-600"
                   }`}>
                   {links.register}
+                </Link>
+                <Link href="/support" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.support}
                 </Link>
               </>
             )}

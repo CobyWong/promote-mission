@@ -14,6 +14,7 @@ const linkLabels: Record<Locale, Record<string, string>> = {
     rewards: "獎賞商城",
     leaderboard: "排行榜",
     dashboard: "創作者面板",
+    support: "客服中心",
     adminReview: "審核後台",
     adminFulfillment: "兌換處理",
     adminUsers: "用戶管理",
@@ -28,6 +29,7 @@ const linkLabels: Record<Locale, Record<string, string>> = {
     rewards: "Rewards",
     leaderboard: "Leaderboard",
     dashboard: "Creator Dashboard",
+    support: "Support",
     adminReview: "Admin Review",
     adminFulfillment: "Admin Fulfillment",
     adminUsers: "User Management",
@@ -44,6 +46,7 @@ const userLinks = [
   { href: "/rewards", key: "rewards" },
   { href: "/leaderboard", key: "leaderboard" },
   { href: "/dashboard", key: "dashboard" },
+  { href: "/support", key: "support" },
 ];
 
 const adminLinks = [

@@ -1,4 +1,5 @@
 import { getCurrentLocale } from "@/lib/i18n";
+import Link from "next/link";
 
 export async function Footer() {
   const locale = await getCurrentLocale();
@@ -19,6 +20,9 @@ export async function Footer() {
             ? "Prototype experience for an IG Reels mission marketplace."
             : "IG Reels 任務平台原型體驗。"}
         </p>
+        <Link href="/support" className="text-cyan-300 hover:text-cyan-200">
+          {locale === "en" ? "Contact Support" : "聯絡客服"}
+        </Link>
       </div>
     </footer>
   );
