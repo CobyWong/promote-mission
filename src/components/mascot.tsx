@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import type { Locale } from "@/lib/i18n";
+import type { Theme } from "@/lib/theme";
 
 type OnboardingStep = {
   path: string;
@@ -120,7 +121,7 @@ function getTips(pathname: string, locale: Locale) {
   return locale === "en" ? defaultTips.map((t) => t.en) : defaultTips.map((t) => t.zh);
 }
 
-export function Mascot({ locale, userId }: { locale: Locale; userId?: string | null }) {
+export function Mascot({ locale, userId, theme }: { locale: Locale; userId?: string | null; theme: Theme }) {
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -131,6 +132,25 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
 
   const tips = getTips(pathname, locale);
   const onboardingStep = ONBOARDING_STEPS[onboardingStepIndex];
+  const isDark = theme === "dark";
+
+  const overlayClass = isDark ? "bg-slate-950/55" : "bg-slate-900/30";
+  const bubbleClass = isDark
+    ? "border-cyan-400/20 bg-slate-900/95 shadow-cyan-500/10"
+    : "border-slate-300 bg-white/95 shadow-slate-400/20";
+  const closeButtonClass = isDark ? "text-slate-400 hover:text-white" : "text-slate-500 hover:text-slate-900";
+  const nameClass = isDark ? "text-cyan-300" : "text-slate-700";
+  const tourLabelClass = isDark ? "text-cyan-300/90" : "text-slate-600";
+  const titleClass = isDark ? "text-white" : "text-slate-900";
+  const bodyClass = isDark ? "text-slate-100" : "text-slate-700";
+  const neutralButtonClass = isDark
+    ? "border-white/20 bg-white/5 text-slate-200 hover:bg-white/10"
+    : "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200";
+  const primaryButtonClass = isDark
+    ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-300 hover:bg-cyan-400/20"
+    : "border-slate-300 bg-slate-100 text-slate-800 hover:bg-slate-200";
+  const dotInactiveClass = isDark ? "bg-white/20" : "bg-slate-300";
+  const tailClass = isDark ? "border-cyan-400/20 bg-slate-900/95" : "border-slate-300 bg-white/95";
 
   function completeOnboarding() {
     if (userId) {
@@ -220,7 +240,7 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
     <>
       {onboardingActive ? (
         <div
-          className="fixed inset-0 z-[70] bg-slate-950/55"
+          className={`fixed inset-0 z-[70] ${overlayClass}`}
           aria-hidden="true"
         />
       ) : null}
@@ -228,13 +248,13 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
       <div className="fixed bottom-6 right-6 z-[80] flex flex-col items-end gap-3">
       {/* Speech bubble */}
       {open && (
-        <div className="relative w-72 max-w-[calc(100vw-3rem)] rounded-3xl border border-cyan-400/20 bg-slate-900/95 p-5 shadow-2xl shadow-cyan-500/10 backdrop-blur-md">
+        <div className={`relative w-72 max-w-[calc(100vw-3rem)] rounded-3xl border p-5 shadow-2xl backdrop-blur-md ${bubbleClass}`}>
           {/* Close */}
           {!onboardingActive ? (
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full text-slate-400 hover:text-white transition"
+              className={`absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full transition ${closeButtonClass}`}
               aria-label="Close"
             >
               ✕
@@ -250,7 +270,7 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
               height={32}
               className="h-8 w-8 object-contain"
             />
-            <span className="text-xs font-bold text-cyan-300 uppercase tracking-widest">
+            <span className={`text-xs font-bold uppercase tracking-widest ${nameClass}`}>
               {locale === "en" ? "P-Bot" : "小P"}
             </span>
             <span className="ml-auto h-2 w-2 rounded-full bg-green-400 animate-pulse" />
@@ -259,18 +279,18 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
           {/* Tip text */}
           {onboardingActive ? (
             <>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-cyan-300/90">
+              <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${tourLabelClass}`}>
                 {locale === "en" ? "First Login Tour" : "首次登入導覽"}
               </p>
-              <p className="mt-2 text-base font-semibold text-white">
+              <p className={`mt-2 text-base font-semibold ${titleClass}`}>
                 {locale === "en" ? onboardingStep.enTitle : onboardingStep.zhTitle}
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-white">
+              <p className={`mt-2 text-sm leading-relaxed ${bodyClass}`}>
                 {locale === "en" ? onboardingStep.enDesc : onboardingStep.zhDesc}
               </p>
             </>
           ) : (
-            <p className="text-sm leading-relaxed text-white">
+            <p className={`text-sm leading-relaxed ${bodyClass}`}>
               {tips[tipIndex]}
             </p>
           )}
@@ -290,7 +310,7 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
                   router.push(ONBOARDING_STEPS[previousIndex].path);
                 }}
                 disabled={onboardingStepIndex === 0}
-                className="rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${neutralButtonClass}`}
               >
                 {locale === "en" ? "Back" : "上一步"}
               </button>
@@ -306,7 +326,7 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
                   setOnboardingStepIndex(nextIndex);
                   router.push(ONBOARDING_STEPS[nextIndex].path);
                 }}
-                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/20"
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${primaryButtonClass}`}
               >
                 {onboardingStepIndex >= ONBOARDING_STEPS.length - 1
                   ? locale === "en" ? "Finish" : "完成"
@@ -319,14 +339,14 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
                 {tips.map((_, i) => (
                   <span
                     key={i}
-                    className={`h-1.5 rounded-full transition-all ${i === tipIndex ? "w-4 bg-cyan-400" : "w-1.5 bg-white/20"}`}
+                    className={`h-1.5 rounded-full transition-all ${i === tipIndex ? "w-4 bg-cyan-400" : `w-1.5 ${dotInactiveClass}`}`}
                   />
                 ))}
               </div>
               <button
                 type="button"
                 onClick={() => setTipIndex((prev) => (prev + 1) % tips.length)}
-                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-cyan-400/20"
+                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${primaryButtonClass}`}
               >
                 {locale === "en" ? "Next tip →" : "下一個 →"}
               </button>
@@ -334,7 +354,7 @@ export function Mascot({ locale, userId }: { locale: Locale; userId?: string | n
           )}
 
           {/* Tail */}
-          <div className="absolute -bottom-2 right-6 h-4 w-4 rotate-45 border-b border-r border-cyan-400/20 bg-slate-900/95" />
+          <div className={`absolute -bottom-2 right-6 h-4 w-4 rotate-45 border-b border-r ${tailClass}`} />
         </div>
       )}
 
