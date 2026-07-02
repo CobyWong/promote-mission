@@ -147,7 +147,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                     {links.dashboard}
                   </Link>
                 )}
-                <Link href="/support" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                <Link href="/dashboard#support-center" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
@@ -203,7 +203,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   }`}>
                   {links.register}
                 </Link>
-                <Link href="/support" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                <Link href="/dashboard#support-center" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>

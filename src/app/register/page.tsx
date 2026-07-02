@@ -7,7 +7,7 @@ import { getCurrentLocale } from "@/lib/i18n";
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const locale = await getCurrentLocale();
   const viewer = await getCurrentViewer();
-  const resolvedSearchParams = await searchParams;
+  await searchParams;
 
   if (viewer.user) {
     redirect("/dashboard");
@@ -15,7 +15,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
 
   return (
     <section className="section-shell py-12 sm:py-16">
-      <AuthForm mode="register" nextPath={resolvedSearchParams.next} locale={locale} />
+      <AuthForm mode="register" locale={locale} />
     </section>
   );
 }

@@ -20,7 +20,7 @@ export async function Footer() {
             ? "Prototype experience for an IG Reels mission marketplace."
             : "IG Reels 任務平台原型體驗。"}
         </p>
-        <Link href="/support" className="text-cyan-300 hover:text-cyan-200">
+        <Link href="/dashboard#support-center" className="text-cyan-300 hover:text-cyan-200">
           {locale === "en" ? "Contact Support" : "聯絡客服"}
         </Link>
       </div>

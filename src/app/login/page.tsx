@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
   return (
     <section className="section-shell py-12 sm:py-16">
-      <AuthForm mode="login" nextPath="/dashboard" locale={locale} />
+      <AuthForm mode="login" locale={locale} />
     </section>
   );
 }

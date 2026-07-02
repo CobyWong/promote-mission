@@ -11,15 +11,15 @@ import { hasSupabaseConfig } from "@/lib/supabase/env";
 
 type AuthFormProps = {
   mode: "login" | "register";
-  nextPath?: string;
   locale?: Locale;
 };
 
 const inputClassName =
   "mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:bg-white/8";
 
-export function AuthForm({ mode, nextPath = "/dashboard", locale = "zh-HK" }: AuthFormProps) {
+export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const isRegister = mode === "register";
+  const showLeftPanel = isRegister;
   const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -167,37 +167,39 @@ export function AuthForm({ mode, nextPath = "/dashboard", locale = "zh-HK" }: Au
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start">
-      <div className="glass-panel p-8">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">
-          {isRegister ? (locale === "en" ? "Creator Sign Up" : "創作者註冊") : (locale === "en" ? "Welcome Back" : "歡迎回來")}
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold text-white">
-          {isRegister
-            ? locale === "en" ? "Create your creator account" : "建立你嘅 Creator 帳號"
-            : locale === "en" ? "Sign in to continue" : "登入返嚟繼續接 mission"}
-        </h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">
-          {isRegister
-            ? locale === "en"
-              ? "Connect your Instagram profile and niche to get mission matches."
-              : "連接 Instagram 帳號、填好 niche 同 audience，平台就可以幫你配對更啱嘅品牌任務。"
-            : locale === "en"
-              ? "Manage missions, submit proof, and track coin payouts after signing in."
-              : "登入後即可管理接咗嘅任務、提交 proof，同追蹤 Coins 入帳狀態。"}
-        </p>
+    <div className={showLeftPanel ? "grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start" : "mx-auto max-w-3xl"}>
+      {showLeftPanel ? (
+        <div className="glass-panel p-8">
+          <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">
+            {isRegister ? (locale === "en" ? "Creator Sign Up" : "創作者註冊") : (locale === "en" ? "Welcome Back" : "歡迎回來")}
+          </p>
+          <h1 className="mt-3 text-4xl font-semibold text-white">
+            {isRegister
+              ? locale === "en" ? "Create your creator account" : "建立你嘅 Creator 帳號"
+              : locale === "en" ? "Sign in to continue" : "登入返嚟繼續接 mission"}
+          </h1>
+          <p className="mt-4 text-lg leading-8 text-slate-300">
+            {isRegister
+              ? locale === "en"
+                ? "Connect your Instagram profile and niche to get mission matches."
+                : "連接 Instagram 帳號、填好 niche 同 audience，平台就可以幫你配對更啱嘅品牌任務。"
+              : locale === "en"
+                ? "Manage missions, submit proof, and track coin payouts after signing in."
+                : "登入後即可管理接咗嘅任務、提交 proof，同追蹤 Coins 入帳狀態。"}
+          </p>
 
-        <div className="mt-8 space-y-3">
-          {creatorOnboardingSteps.map((step, index) => (
-            <div key={step} className="flex gap-4 rounded-2xl bg-white/5 p-4 text-slate-200">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-400/15 text-sm font-semibold text-cyan-200">
-                {index + 1}
-              </span>
-              <span>{step}</span>
-            </div>
-          ))}
+          <div className="mt-8 space-y-3">
+            {creatorOnboardingSteps.map((step, index) => (
+              <div key={step} className="flex gap-4 rounded-2xl bg-white/5 p-4 text-slate-200">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-400/15 text-sm font-semibold text-cyan-200">
+                  {index + 1}
+                </span>
+                <span>{step}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="glass-panel p-8">
         {!backendReady ? (

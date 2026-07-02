@@ -2,10 +2,12 @@ import Link from "next/link";
 
 import { DashboardMissionActions } from "@/components/dashboard-mission-actions";
 import { InstagramSyncButton } from "@/components/instagram-sync-button";
+import { SupportContactForm } from "@/components/support-contact-form";
 import { UserProfileCard } from "@/components/user-profile-card";
 import { rewards } from "@/lib/data";
 import { getDashboardData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
+import { getSupportEmail, getSupportWhatsappUrl } from "@/lib/supabase/env";
 
 export default async function DashboardPage({
   searchParams,
@@ -146,6 +148,15 @@ export default async function DashboardPage({
               {t.createAccount}
             </Link>
           </div>
+        </div>
+
+        <div id="support-center" className="mt-8 mx-auto max-w-3xl scroll-mt-28">
+          <SupportContactForm
+            locale={locale}
+            defaultEmail=""
+            supportEmail={getSupportEmail()}
+            supportWhatsappUrl={getSupportWhatsappUrl()}
+          />
         </div>
       </section>
     );
@@ -349,6 +360,15 @@ export default async function DashboardPage({
             <p className="mt-2 text-sm text-slate-200">{t.pointsAway} {pointsToNextReward} {t.pointsAwaySuffix}</p>
           </div>
         </div>
+      </div>
+
+      <div id="support-center" className="mt-8 scroll-mt-28">
+        <SupportContactForm
+          locale={locale}
+          defaultEmail={dashboard.userEmail ?? ""}
+          supportEmail={getSupportEmail()}
+          supportWhatsappUrl={getSupportWhatsappUrl()}
+        />
       </div>
     </section>
   );

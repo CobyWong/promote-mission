@@ -46,7 +46,7 @@ const userLinks = [
   { href: "/rewards", key: "rewards" },
   { href: "/leaderboard", key: "leaderboard" },
   { href: "/dashboard", key: "dashboard" },
-  { href: "/support", key: "support" },
+  { href: "/dashboard#support-center", key: "support" },
 ];
 
 const adminLinks = [
