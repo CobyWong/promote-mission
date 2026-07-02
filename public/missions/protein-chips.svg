@@ -1,0 +1,17 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Protein chips mission">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#14532d"/>
+      <stop offset="55%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#86efac"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#bg)"/>
+  <circle cx="140" cy="660" r="150" fill="#ffffff" fill-opacity="0.10"/>
+  <circle cx="1020" cy="120" r="140" fill="#ffffff" fill-opacity="0.12"/>
+  <rect x="430" y="210" width="170" height="380" rx="24" fill="#fef08a"/>
+  <rect x="620" y="240" width="170" height="350" rx="24" fill="#fde68a"/>
+  <ellipse cx="520" cy="430" rx="45" ry="18" fill="#92400e" fill-opacity="0.35"/>
+  <ellipse cx="710" cy="420" rx="45" ry="18" fill="#92400e" fill-opacity="0.35"/>
+  <text x="80" y="670" fill="#ffffff" font-size="56" font-family="Arial, Helvetica, sans-serif" font-weight="700">Protein Challenge</text>
+</svg>

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 import { MissionAcceptCard } from "@/components/mission-accept-card";
 import { getMissionBySlug } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
+import { getMissionImage } from "@/lib/mission-media";
 
 export default async function MissionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const locale = await getCurrentLocale();
@@ -14,6 +16,8 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
+  const missionImage = getMissionImage(mission.slug);
+
   return (
     <section className="section-shell py-12 sm:py-16">
       <Link href="/missions" className="text-sm font-semibold text-cyan-300">
@@ -22,6 +26,18 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="glass-panel p-8">
+          <div className="relative -mx-4 -mt-4 mb-7 h-64 overflow-hidden rounded-3xl border border-white/10 sm:-mx-2">
+            <Image
+              src={missionImage}
+              alt={mission.title}
+              fill
+              className="object-cover"
+              sizes="(max-width: 1024px) 100vw, 60vw"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/20 to-transparent" />
+          </div>
+
           <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{mission.brand}</p>
           <h1 className="mt-3 text-4xl font-semibold text-white">{mission.title}</h1>
           <p className="mt-6 text-lg leading-8 text-slate-300">{mission.description}</p>
