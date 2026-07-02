@@ -324,6 +324,9 @@ export async function getDashboardData() {
       profile: fallbackCreatorProfile,
       submissions: [],
       balance: 6840,
+      totalEarned: 6840,
+      withdrawnSoFar: 0,
+      availableToWithdraw: 6840,
       pendingCount: 0,
       activeMissions: [],
       missionStatusMap: new Map<string, SubmissionStatus>(),
@@ -340,6 +343,9 @@ export async function getDashboardData() {
       profile: fallbackCreatorProfile,
       submissions: [],
       balance: 6840,
+      totalEarned: 6840,
+      withdrawnSoFar: 0,
+      availableToWithdraw: 6840,
       pendingCount: 0,
       activeMissions: [],
       missionStatusMap: new Map<string, SubmissionStatus>(),
@@ -358,6 +364,9 @@ export async function getDashboardData() {
       profile: null,
       submissions: [],
       balance: 0,
+      totalEarned: 0,
+      withdrawnSoFar: 0,
+      availableToWithdraw: 0,
       pendingCount: 0,
       activeMissions: [],
       missionStatusMap: new Map<string, SubmissionStatus>(),
@@ -382,6 +391,14 @@ export async function getDashboardData() {
 
   const typedSubmissions = submissionRows.map(toSubmission);
   const balance = transactionRows.reduce((sum: number, item) => sum + item.amount, 0);
+  const totalEarned = transactionRows
+    .filter((item) => item.amount > 0)
+    .reduce((sum: number, item) => sum + item.amount, 0);
+  const withdrawnSoFar = Math.abs(
+    transactionRows
+      .filter((item) => item.amount < 0)
+      .reduce((sum: number, item) => sum + item.amount, 0),
+  );
   
   // Build a map of mission slug to completion-aware status
   const missionStatusMap = new Map<string, SubmissionStatus>();
@@ -410,6 +427,9 @@ export async function getDashboardData() {
     profile: toCreatorProfile(profileRow, user),
     submissions: typedSubmissions,
     balance,
+    totalEarned,
+    withdrawnSoFar,
+    availableToWithdraw: Math.max(balance, 0),
     pendingCount: typedSubmissions.filter((item) => item.status === "Pending").length,
     activeMissions,
     missionStatusMap,
