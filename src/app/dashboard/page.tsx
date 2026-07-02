@@ -22,7 +22,6 @@ export default async function DashboardPage() {
       profileCardTitle: "Profile",
       followers: "Followers",
       joinedAt: "Joined",
-      creditScore: "Credit score",
       earningsTitle: "Earnings",
       earningsDesc: "Your lifetime earnings and available balance.",
       totalEarned: "Total earned",
@@ -52,7 +51,6 @@ export default async function DashboardPage() {
       profileCardTitle: "個人資料",
       followers: "追蹤數",
       joinedAt: "加入時間",
-      creditScore: "信用分數",
       earningsTitle: "收益",
       earningsDesc: "顯示你嘅累計收益同可提現金額。",
       totalEarned: "累計收益",
@@ -134,9 +132,6 @@ export default async function DashboardPage() {
               <p className="mt-1 text-slate-300">{dashboard.profile.handle}</p>
               <p className="mt-1 text-sm text-slate-400">{dashboard.userEmail ?? "-"}</p>
             </div>
-          </div>
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-200">
-            {t.creditScore} 90
           </div>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
