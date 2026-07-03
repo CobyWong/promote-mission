@@ -9,9 +9,23 @@ export default async function MissionsPage() {
   const locale = await getCurrentLocale();
   const missionCatalog = await getMissionCenterData();
   const userLevel = missionCatalog.userLevel ?? 1;
+
+  function sortMissionsForDisplay<T extends { slug: string }>(list: T[]) {
+    return [...list].sort((a, b) => {
+      const aIsCommunity = a.slug.startsWith("missionone-");
+      const bIsCommunity = b.slug.startsWith("missionone-");
+
+      if (aIsCommunity !== bIsCommunity) {
+        return aIsCommunity ? -1 : 1;
+      }
+
+      return a.slug.localeCompare(b.slug);
+    });
+  }
+
   const levelSections = [1, 2, 3].map((level) => ({
     level,
-    missions: missionCatalog.missions.filter((mission) => getMissionRequiredLevel(mission.difficulty) === level),
+    missions: sortMissionsForDisplay(missionCatalog.missions.filter((mission) => getMissionRequiredLevel(mission.difficulty) === level)),
   }));
 
   return (

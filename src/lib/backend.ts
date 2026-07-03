@@ -178,10 +178,27 @@ export async function getMissionCatalog() {
 
   const { data } = await supabase.from("missions").select("*").eq("is_active", true).order("display_order", { ascending: true });
   const missionRows = (data ?? []) as MissionRow[];
+  const liveMissions = missionRows.map(toMission);
+
+  // Keep live missions as source of truth, but include local fallback missions
+  // that are not yet migrated into the database.
+  const mergedMissionMap = new Map<string, Mission>();
+  for (const item of missions) {
+    mergedMissionMap.set(item.slug, item);
+  }
+  for (const item of liveMissions) {
+    mergedMissionMap.set(item.slug, item);
+  }
+
+  const mergedMissions = Array.from(mergedMissionMap.values()).sort((a, b) => {
+    const aOrder = a.displayOrder ?? Number.MAX_SAFE_INTEGER;
+    const bOrder = b.displayOrder ?? Number.MAX_SAFE_INTEGER;
+    return aOrder - bOrder;
+  });
 
   return {
     mode: "live" as const,
-    missions: missionRows.length > 0 ? missionRows.map(toMission) : missions,
+    missions: mergedMissions,
   };
 }
 
