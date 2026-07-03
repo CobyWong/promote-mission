@@ -86,9 +86,12 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
           <p className="text-[2rem] font-black text-emerald-600">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
-          <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Per REELS payout" : "每條 REELS 派發"}</p>
-          <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : `HK$${rewards.third.toLocaleString()} - HK$${rewards.first.toLocaleString()}`}</p>
+          <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Participation reward" : "參加獎勵"}</p>
+          <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`}</p>
         </div>
+        <p className="mt-2 text-xs text-slate-500">
+          {locale === "en" ? "Coins can be used to redeem rewards in the reward shop." : "金幣可用於獎賞商城兌換獎勵。"}
+        </p>
       </div>
 
       <div className="space-y-3 px-5 py-4">

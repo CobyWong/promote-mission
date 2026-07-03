@@ -8,6 +8,11 @@ import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConf
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromApprovedCount } from "@/lib/mission-rules";
 
+const hiddenMissionSlugs = new Set([
+  "spark-hydration-bottle",
+  "fitbyte-protein-chips",
+]);
+
 const fallbackCreatorProfile: CreatorProfile = {
   name: "Chloe Wong",
   handle: "@chloe.creates",
@@ -352,7 +357,7 @@ export async function getMissionCenterData() {
     ...missionCatalog,
     userLevel,
     approvedMissionCount,
-    missions: rankedMissions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
+    missions: rankedMissions.filter((mission) => !completedMissionSlugs.has(mission.slug) && !hiddenMissionSlugs.has(mission.slug)),
   };
 }
 
