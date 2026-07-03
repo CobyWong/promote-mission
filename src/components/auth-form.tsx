@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-import { creatorOnboardingSteps } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { hasSupabaseConfig } from "@/lib/supabase/env";
@@ -14,12 +13,43 @@ type AuthFormProps = {
   locale?: Locale;
 };
 
-const inputClassName =
-  "mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:bg-white/8";
+const registerNiches = [
+  { value: "Beauty", labelZh: "美容與化妝品", labelEn: "Beauty" },
+  { value: "Food", labelZh: "美食與餐飲", labelEn: "Food" },
+  { value: "Tech", labelZh: "科技與產品", labelEn: "Tech" },
+  { value: "Lifestyle", labelZh: "生活風格", labelEn: "Lifestyle" },
+  { value: "Fashion", labelZh: "時尚與穿搭", labelEn: "Fashion" },
+  { value: "Fitness", labelZh: "健身與健康", labelEn: "Fitness" },
+  { value: "Travel", labelZh: "旅遊", labelEn: "Travel" },
+  { value: "Gaming", labelZh: "遊戲", labelEn: "Gaming" },
+  { value: "Finance", labelZh: "金融與金融科技", labelEn: "Finance" },
+  { value: "Education", labelZh: "教育", labelEn: "Education" },
+];
+
+const registerLanguages = ["Cantonese", "English", "Mandarin", "Japanese", "Korean"];
+
+const registerRegions = ["Hong Kong", "Macau", "Taiwan", "Singapore", "Malaysia", "Japan", "Korea", "USA", "UK", "Australia", "Other"];
+
+const registerGenders = ["男", "女", "其他", "不願透露"];
+const registerAgeGroups = ["18-24", "25-34", "35-44", "45+"];
+
+const lightInputClassName =
+  "mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400";
+
+function toggleChip(list: string[], value: string, maxSelection = 99) {
+  if (list.includes(value)) {
+    return list.filter((item) => item !== value);
+  }
+
+  if (list.length >= maxSelection) {
+    return list;
+  }
+
+  return [...list, value];
+}
 
 export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const isRegister = mode === "register";
-  const showLeftPanel = isRegister;
   const router = useRouter();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -28,17 +58,162 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
-  const [niche, setNiche] = useState("");
-  const [followersRange, setFollowersRange] = useState("");
-  const [portfolioUrl, setPortfolioUrl] = useState("");
+  const niche = "";
+  const followersRange = "";
+  const portfolioUrl = "";
+  const [phoneRegion, setPhoneRegion] = useState("HK (+852)");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [bio, setBio] = useState("");
+  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
+  const [gender, setGender] = useState("");
+  const [ageGroup, setAgeGroup] = useState("");
+  const [accountType, setAccountType] = useState<"creator" | "brand">("creator");
+  const [referralCode, setReferralCode] = useState("");
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [registerStep, setRegisterStep] = useState(1);
   const backendReady = hasSupabaseConfig();
   const t = locale === "en"
     ? {
       networkError: "Unable to reach server. Please try again.",
+      registerTitle: "Set up your profile",
+      registerSubtitle: "A few simple steps to unlock missions and payouts.",
+      continue: "Continue",
+      back: "Back",
+      create: "Create account",
+      stepBasic: "Basic info",
+      stepInstagram: "Instagram",
+      stepCoverage: "Content coverage",
+      stepAudience: "Audience profile",
+      stepFinal: "Finish",
+      stepOf: "Step",
+      ofTotal: "of 5",
+      name: "Creator name",
+      phone: "Phone",
+      bio: "Bio",
+      instagram: "Instagram username",
+      instagramHint: "Paste @handle or profile URL. We will auto-extract your username.",
+      niches: "Content niches",
+      nicheHint: "Choose 2-5 categories that fit your content.",
+      languages: "Languages",
+      regions: "Coverage regions",
+      gender: "Gender",
+      age: "Age group",
+      accountUse: "How will you use Mission One?",
+      creator: "Creator",
+      creatorDesc: "Join campaigns and earn from views.",
+      brand: "Brand",
+      brandDesc: "Launch campaigns and pay by performance.",
+      referral: "Referral code (optional)",
+      terms: "I agree to the service terms.",
+      needTwoNiches: "Please select at least 2 content niches.",
+      needBasic: "Please complete name, email, and password.",
+      needInstagram: "Please provide your Instagram username.",
+      needAudience: "Please select gender and age group.",
+      needTerms: "Please agree to the service terms.",
     }
     : {
       networkError: "無法連線到伺服器，請再試一次。",
+      registerTitle: "設定你的個人檔案",
+      registerSubtitle: "幾個簡單步驟即可解鎖活動同提款。",
+      continue: "繼續",
+      back: "返回",
+      create: "建立帳戶",
+      stepBasic: "基本資料",
+      stepInstagram: "Instagram",
+      stepCoverage: "內容覆蓋範圍",
+      stepAudience: "受眾資料",
+      stepFinal: "完成設定",
+      stepOf: "第",
+      ofTotal: "步，共 5 步",
+      name: "創作者名稱",
+      phone: "電話號碼",
+      bio: "個人簡介",
+      instagram: "Instagram 用戶名稱",
+      instagramHint: "可以貼上 @帳號或個人檔案 URL，系統會自動提取帳號名稱。",
+      niches: "內容範疇",
+      nicheHint: "請選擇 2-5 個最符合你內容的範疇。",
+      languages: "語言",
+      regions: "覆蓋地區",
+      gender: "性別",
+      age: "年齡組別",
+      accountUse: "你會如何使用 Mission One？",
+      creator: "創作者",
+      creatorDesc: "參與活動，按觀看次數賺取收益。",
+      brand: "品牌",
+      brandDesc: "建立活動，按成效付款。",
+      referral: "推薦碼（選填）",
+      terms: "我同意服務條款",
+      needTwoNiches: "請至少選擇 2 個內容範疇。",
+      needBasic: "請先填妥名稱、電郵及密碼。",
+      needInstagram: "請填寫 Instagram 用戶名稱。",
+      needAudience: "請選擇性別及年齡組別。",
+      needTerms: "請先同意服務條款。",
     };
+
+  const registerStepLabels = [t.stepBasic, t.stepInstagram, t.stepCoverage, t.stepAudience, t.stepFinal];
+
+  function getHandleFromInput(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return "";
+    }
+
+    const match = trimmed.match(/(?:instagram\.com\/)?@?([a-zA-Z0-9._]+)/);
+    return (match?.[1] ?? trimmed).replace(/^@/, "");
+  }
+
+  function validateCurrentRegisterStep() {
+    if (registerStep === 1) {
+      if (!fullName.trim() || !email.trim() || password.length < 8) {
+        setError(t.needBasic);
+        return false;
+      }
+    }
+
+    if (registerStep === 2) {
+      if (!getHandleFromInput(instagramHandle)) {
+        setError(t.needInstagram);
+        return false;
+      }
+    }
+
+    if (registerStep === 3) {
+      if (selectedNiches.length < 2) {
+        setError(t.needTwoNiches);
+        return false;
+      }
+    }
+
+    if (registerStep === 4) {
+      if (!gender || !ageGroup) {
+        setError(t.needAudience);
+        return false;
+      }
+    }
+
+    if (registerStep === 5 && !agreedTerms) {
+      setError(t.needTerms);
+      return false;
+    }
+
+    return true;
+  }
+
+  function goNextRegisterStep() {
+    setError(null);
+    if (!validateCurrentRegisterStep()) {
+      return;
+    }
+
+    setRegisterStep((step) => Math.min(step + 1, 5));
+  }
+
+  function goBackRegisterStep() {
+    setError(null);
+    setRegisterStep((step) => Math.max(step - 1, 1));
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,6 +230,19 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
     try {
       if (isRegister) {
+        if (registerStep < 5) {
+          goNextRegisterStep();
+          return;
+        }
+
+        if (!validateCurrentRegisterStep()) {
+          return;
+        }
+
+        const normalizedHandle = getHandleFromInput(instagramHandle);
+        const derivedNiche = selectedNiches.join(" / ") || niche;
+        const derivedFollowers = ageGroup || followersRange;
+
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -62,10 +250,19 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
             emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
             data: {
               full_name: fullName,
-              instagram_handle: instagramHandle,
-              niche,
-              followers_range: followersRange,
+              instagram_handle: normalizedHandle ? `@${normalizedHandle}` : null,
+              niche: derivedNiche,
+              followers_range: derivedFollowers,
               portfolio_url: portfolioUrl || null,
+              phone_region: phoneRegion,
+              phone_number: phoneNumber,
+              bio,
+              languages: selectedLanguages,
+              regions: selectedRegions,
+              gender,
+              age_group: ageGroup,
+              account_type: accountType,
+              referral_code: referralCode || null,
             },
           },
         });
@@ -167,159 +364,328 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   }
 
   return (
-    <div className={showLeftPanel ? "grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-start" : "mx-auto max-w-3xl"}>
-      {showLeftPanel ? (
-        <div className="glass-panel p-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">
-            {isRegister ? (locale === "en" ? "Creator Sign Up" : "創作者註冊") : (locale === "en" ? "Welcome Back" : "歡迎回來")}
-          </p>
-          <h1 className="mt-3 text-4xl font-semibold text-white">
-            {isRegister
-              ? locale === "en" ? "Create your creator account" : "建立你嘅 Creator 帳號"
-              : locale === "en" ? "Sign in to continue" : "登入返嚟繼續接 mission"}
-          </h1>
-          <p className="mt-4 text-lg leading-8 text-slate-300">
-            {isRegister
-              ? locale === "en"
-                ? "Connect your Instagram profile and niche to get mission matches."
-                : "連接 Instagram 帳號、填好 niche 同 audience，平台就可以幫你配對更啱嘅品牌任務。"
-              : locale === "en"
-                ? "Manage missions, submit proof, and track coin payouts after signing in."
-                : "登入後即可管理接咗嘅任務、提交 proof，同追蹤 Coins 入帳狀態。"}
-          </p>
-
-          <div className="mt-8 space-y-3">
-            {creatorOnboardingSteps.map((step, index) => (
-              <div key={step} className="flex gap-4 rounded-2xl bg-white/5 p-4 text-slate-200">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-400/15 text-sm font-semibold text-cyan-200">
-                  {index + 1}
-                </span>
-                <span>{step}</span>
-              </div>
-            ))}
-          </div>
+    <div className="mx-auto w-full max-w-5xl">
+      {!backendReady ? (
+        <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-700">
+          {locale === "en"
+            ? "Backend mode is disabled. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY first."
+            : "Backend mode 未啟用。請先設定 NEXT_PUBLIC_SUPABASE_URL 同 NEXT_PUBLIC_SUPABASE_ANON_KEY。"}
         </div>
       ) : null}
 
-      <div className="glass-panel p-8">
-        {!backendReady ? (
-          <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
-            {locale === "en"
-              ? "Backend mode is disabled. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY first."
-              : "Backend mode 未啟用。請先設定 `NEXT_PUBLIC_SUPABASE_URL` 同 `NEXT_PUBLIC_SUPABASE_ANON_KEY`。"}
+      {submitted ? (
+        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8">
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Success</p>
+          <h2 className="mt-3 text-4xl font-semibold text-slate-900">
+            {isRegister ? (locale === "en" ? "Account created" : "帳號已建立") : (locale === "en" ? "Signed in" : "已成功登入")}
+          </h2>
+          <p className="mt-4 text-slate-600">
+            {isRegister
+              ? locale === "en"
+                ? "Account created. Continue to your dashboard."
+                : "帳號已建立，可以直接前往個人檔案。"
+              : locale === "en"
+                ? "Go to your dashboard to continue mission work."
+                : "登入成功，立即前往個人檔案。"}
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link href="/dashboard" className="rounded-full bg-blue-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-blue-700">
+              {locale === "en" ? "Open Profile" : "前往個人檔案"}
+            </Link>
+            <Link href="/missions" className="rounded-full border border-slate-300 px-5 py-3 text-center font-semibold text-slate-700 transition hover:border-slate-400">
+              {locale === "en" ? "View Missions" : "查看任務"}
+            </Link>
           </div>
-        ) : null}
-
-        {submitted ? (
-          <div className="rounded-[1.75rem] border border-emerald-400/20 bg-emerald-400/10 p-6">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-200">Success</p>
-            <h2 className="mt-3 text-3xl font-semibold text-white">
-              {isRegister ? (locale === "en" ? "Account created" : "帳號已建立") : (locale === "en" ? "Signed in" : "已成功登入")}
-            </h2>
-            <p className="mt-4 text-slate-200">
-              {isRegister
-                ? locale === "en"
-                  ? "Account created. Continue to your dashboard."
-                  : "帳號已建立，可以直接前往 dashboard。"
-                : locale === "en"
-                  ? "Go to your dashboard to continue mission work."
-                  : "返去 dashboard 檢查進行中任務，同提交最新 proof。"}
-            </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <Link href="/dashboard" className="rounded-full bg-cyan-400 px-5 py-3 text-center font-semibold text-slate-950">
-                {locale === "en" ? "Open Dashboard" : "去 Dashboard"}
-              </Link>
-              <Link href="/missions" className="rounded-full border border-white/15 px-5 py-3 text-center font-semibold text-white">
-                {locale === "en" ? "View Missions" : "睇 Mission Center"}
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {isRegister ? (
-              <div className="grid gap-5 sm:grid-cols-2">
-                <label className="block text-sm text-slate-300">
-                  Full name
-                  <input required value={fullName} onChange={(event) => setFullName(event.target.value)} className={inputClassName} placeholder="Chloe Wong" />
-                </label>
-                <label className="block text-sm text-slate-300">
-                  Instagram handle
-                  <input required value={instagramHandle} onChange={(event) => setInstagramHandle(event.target.value)} className={inputClassName} placeholder="@chloe.creates" />
-                </label>
+        </div>
+      ) : (
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {isRegister ? (
+            <>
+              <div>
+                <h1 className="text-6xl font-semibold text-slate-900">{t.registerTitle}</h1>
+                <p className="mt-3 text-3xl text-slate-500">{t.registerSubtitle}</p>
               </div>
-            ) : null}
 
-            <label className="block text-sm text-slate-300">
-              Email
-              <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClassName} placeholder="you@example.com" />
-            </label>
+              <div className="flex items-end justify-between gap-3">
+                <p className="text-3xl text-slate-600">{registerStepLabels[registerStep - 1]}</p>
+                <p className="text-3xl text-slate-500">{t.stepOf} {registerStep} {t.ofTotal}</p>
+              </div>
+              <div className="h-2 rounded-full bg-slate-200">
+                <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(registerStep / 5) * 100}%` }} />
+              </div>
 
-            <label className="block text-sm text-slate-300">
-              Password
-              <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={inputClassName} placeholder="••••••••" minLength={8} />
-            </label>
+              <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
+                <div className="space-y-6 p-8">
+                  {registerStep === 1 ? (
+                    <>
+                      <label className="block text-2xl font-medium text-slate-900">
+                        {t.name} <span className="text-rose-500">*</span>
+                        <input
+                          required
+                          value={fullName}
+                          onChange={(event) => setFullName(event.target.value)}
+                          className={lightInputClassName}
+                          placeholder={locale === "en" ? "Your name" : "你的名稱"}
+                        />
+                      </label>
 
-            {isRegister ? (
-              <>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <label className="block text-sm text-slate-300">
-                    Content niche
-                    <select required value={niche} onChange={(event) => setNiche(event.target.value)} className={inputClassName}>
-                      <option value="" disabled>
-                        Select niche
-                      </option>
-                      <option>Lifestyle</option>
-                      <option>Beauty</option>
-                      <option>Fitness</option>
-                      <option>Tech</option>
-                    </select>
-                  </label>
-                  <label className="block text-sm text-slate-300">
-                    Followers range
-                    <select required value={followersRange} onChange={(event) => setFollowersRange(event.target.value)} className={inputClassName}>
-                      <option value="" disabled>
-                        Select range
-                      </option>
-                      <option>1K - 5K</option>
-                      <option>5K - 20K</option>
-                      <option>20K - 50K</option>
-                      <option>50K+</option>
-                    </select>
-                  </label>
+                      <label className="block text-2xl font-medium text-slate-900">
+                        Email <span className="text-rose-500">*</span>
+                        <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={lightInputClassName} placeholder="you@example.com" />
+                      </label>
+
+                      <label className="block text-2xl font-medium text-slate-900">
+                        Password <span className="text-rose-500">*</span>
+                        <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={lightInputClassName} placeholder="********" minLength={8} />
+                      </label>
+
+                      <div>
+                        <p className="text-2xl font-medium text-slate-900">{t.phone}</p>
+                        <div className="mt-2 grid gap-3 sm:grid-cols-[220px_1fr]">
+                          <select value={phoneRegion} onChange={(event) => setPhoneRegion(event.target.value)} className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-400">
+                            <option>HK (+852)</option>
+                            <option>MO (+853)</option>
+                            <option>TW (+886)</option>
+                            <option>SG (+65)</option>
+                          </select>
+                          <input value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder="9123 4567" />
+                        </div>
+                      </div>
+
+                      <label className="block text-2xl font-medium text-slate-900">
+                        {t.bio}
+                        <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="mt-2 min-h-36 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder={locale === "en" ? "Tell brands about your style and audience..." : "介紹你的內容風格、受眾，以及你的 Reels 有什麼特色..."} />
+                      </label>
+                    </>
+                  ) : null}
+
+                  {registerStep === 2 ? (
+                    <>
+                      <label className="block text-4xl font-semibold text-slate-900">
+                        {t.instagram}
+                        <p className="mt-2 text-2xl font-normal text-slate-500">{t.instagramHint}</p>
+                        <input value={instagramHandle} onChange={(event) => setInstagramHandle(event.target.value)} className={lightInputClassName} placeholder="yourhandle" />
+                      </label>
+                    </>
+                  ) : null}
+
+                  {registerStep === 3 ? (
+                    <>
+                      <div>
+                        <h3 className="text-3xl font-semibold text-slate-900">{t.niches}</h3>
+                        <p className="mt-2 text-2xl text-slate-500">{t.nicheHint}</p>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {registerNiches.map((item) => {
+                            const label = locale === "en" ? item.labelEn : item.labelZh;
+                            const selected = selectedNiches.includes(item.value);
+                            return (
+                              <button
+                                key={item.value}
+                                type="button"
+                                onClick={() => setSelectedNiches((prev) => toggleChip(prev, item.value, 5))}
+                                className={`rounded-full border px-4 py-2 text-xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-3xl font-semibold text-slate-900">{t.languages}</h3>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {registerLanguages.map((language) => {
+                            const selected = selectedLanguages.includes(language);
+                            return (
+                              <button
+                                key={language}
+                                type="button"
+                                onClick={() => setSelectedLanguages((prev) => toggleChip(prev, language))}
+                                className={`rounded-full border px-4 py-2 text-xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                              >
+                                {language}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-3xl font-semibold text-slate-900">{t.regions}</h3>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {registerRegions.map((region) => {
+                            const selected = selectedRegions.includes(region);
+                            return (
+                              <button
+                                key={region}
+                                type="button"
+                                onClick={() => setSelectedRegions((prev) => toggleChip(prev, region))}
+                                className={`rounded-full border px-4 py-2 text-xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                              >
+                                {region}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {registerStep === 4 ? (
+                    <>
+                      <div>
+                        <h3 className="text-3xl font-semibold text-slate-900">{t.gender} <span className="text-rose-500">*</span></h3>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {registerGenders.map((item) => {
+                            const selected = gender === item;
+                            return (
+                              <button
+                                key={item}
+                                type="button"
+                                onClick={() => setGender(item)}
+                                className={`rounded-full border px-5 py-2 text-2xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                              >
+                                {item}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-3xl font-semibold text-slate-900">{t.age} <span className="text-rose-500">*</span></h3>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {registerAgeGroups.map((item) => {
+                            const selected = ageGroup === item;
+                            return (
+                              <button
+                                key={item}
+                                type="button"
+                                onClick={() => setAgeGroup(item)}
+                                className={`rounded-full border px-5 py-2 text-2xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                              >
+                                {item}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {registerStep === 5 ? (
+                    <>
+                      <div>
+                        <h3 className="text-4xl font-semibold text-slate-900">{t.accountUse}</h3>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <button
+                            type="button"
+                            onClick={() => setAccountType("creator")}
+                            className={`rounded-3xl border p-5 text-left transition ${accountType === "creator" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
+                          >
+                            <p className="text-3xl font-semibold text-slate-900">{t.creator}</p>
+                            <p className="mt-2 text-2xl text-slate-500">{t.creatorDesc}</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setAccountType("brand")}
+                            className={`rounded-3xl border p-5 text-left transition ${accountType === "brand" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
+                          >
+                            <p className="text-3xl font-semibold text-slate-900">{t.brand}</p>
+                            <p className="mt-2 text-2xl text-slate-500">{t.brandDesc}</p>
+                          </button>
+                        </div>
+                      </div>
+
+                      <label className="block text-2xl font-medium text-slate-900">
+                        {t.referral}
+                        <input value={referralCode} onChange={(event) => setReferralCode(event.target.value)} className={lightInputClassName} placeholder={locale === "en" ? "ABC123" : "輸入推薦碼（例如：ABC123）"} />
+                      </label>
+
+                      <label className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-2xl text-slate-700">
+                        <input checked={agreedTerms} onChange={(event) => setAgreedTerms(event.target.checked)} type="checkbox" className="h-5 w-5 rounded border-slate-400" />
+                        <span>{t.terms}</span>
+                      </label>
+                    </>
+                  ) : null}
+
+                  {error ? <p className="text-xl text-rose-600">{error}</p> : null}
                 </div>
 
-                <label className="block text-sm text-slate-300">
-                  過往作品 / media kit link
-                  <input value={portfolioUrl} onChange={(event) => setPortfolioUrl(event.target.value)} className={inputClassName} placeholder="https://drive.google.com/..." />
+                <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-8 py-6">
+                  <button
+                    type="button"
+                    onClick={goBackRegisterStep}
+                    disabled={registerStep === 1 || loading}
+                    className="text-3xl font-semibold text-slate-700 disabled:opacity-40"
+                  >
+                    {t.back}
+                  </button>
+
+                  {registerStep < 5 ? (
+                    <button
+                      type="button"
+                      onClick={goNextRegisterStep}
+                      disabled={loading}
+                      className="rounded-full bg-blue-600 px-6 py-3 text-3xl font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {t.continue}
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="rounded-full bg-blue-600 px-6 py-3 text-3xl font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                    >
+                      {loading ? (locale === "en" ? "Processing..." : "處理中...") : t.create}
+                    </button>
+                  )}
+                </div>
+              </section>
+
+              <p className="text-center text-xl text-slate-500">
+                {locale === "en" ? "Already have an account?" : "已有帳戶？"}{" "}
+                <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
+                  {locale === "en" ? "Login" : "登入"}
+                </Link>
+              </p>
+            </>
+          ) : (
+            <section className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <h1 className="text-5xl font-semibold text-slate-900">{locale === "en" ? "Welcome back" : "歡迎回來"}</h1>
+              <p className="mt-3 text-2xl text-slate-500">
+                {locale === "en" ? "Sign in to continue your mission journey." : "登入後即可繼續管理任務及收益。"}
+              </p>
+
+              <div className="mt-6 space-y-4">
+                <label className="block text-xl text-slate-700">
+                  Email
+                  <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={lightInputClassName} placeholder="you@example.com" />
                 </label>
 
-                <label className="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
-                  <input required type="checkbox" className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent" />
-                  <span>我同意平台審核提交內容，並確認會遵守品牌 brief、平台規則同任務發佈要求。</span>
+                <label className="block text-xl text-slate-700">
+                  Password
+                  <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={lightInputClassName} placeholder="********" minLength={8} />
                 </label>
-              </>
-            ) : (
-              <label className="flex items-start gap-3 rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
-                <input type="checkbox" className="mt-1 h-4 w-4 rounded border-white/20 bg-transparent" />
-                <span>記住我，方便下次快速登入。</span>
-              </label>
-            )}
 
-            {error ? <p className="text-sm text-rose-300">{error}</p> : null}
+                {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
-            <button disabled={loading} className="w-full rounded-full bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
-              {loading ? (locale === "en" ? "Processing..." : "處理中...") : isRegister ? (locale === "en" ? "Create account" : "建立帳號") : (locale === "en" ? "Sign in" : "登入平台")}
-            </button>
+                <button disabled={loading} className="w-full rounded-full bg-blue-600 px-5 py-3 text-xl font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                  {loading ? (locale === "en" ? "Processing..." : "處理中...") : (locale === "en" ? "Sign in" : "登入平台")}
+                </button>
 
-            <p className="text-center text-sm text-slate-400">
-              {isRegister ? (locale === "en" ? "Already have an account?" : "已經有帳號？") : (locale === "en" ? "No account yet?" : "未有帳號？")}{" "}
-              <Link href={isRegister ? "/login" : "/register"} className="font-semibold text-cyan-300">
-                {isRegister ? (locale === "en" ? "Go to login" : "去 Login") : (locale === "en" ? "Register now" : "立即註冊")}
-              </Link>
-            </p>
-          </form>
-        )}
-      </div>
+                <p className="text-center text-sm text-slate-500">
+                  {locale === "en" ? "No account yet?" : "未有帳號？"}{" "}
+                  <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
+                    {locale === "en" ? "Register now" : "立即註冊"}
+                  </Link>
+                </p>
+              </div>
+            </section>
+          )}
+        </form>
+      )}
     </div>
   );
 }
