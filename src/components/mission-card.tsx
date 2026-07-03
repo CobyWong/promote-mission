@@ -42,57 +42,69 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const etaLabel = locale === "en" ? mission.eta : (zhEtaMap[mission.eta] ?? mission.eta);
+  const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
+  const payoutText = `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`;
 
   return (
-    <article className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
+    <article className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-[#f7f8fb] shadow-sm transition hover:border-slate-300 hover:shadow-md">
+      <div className="p-6 sm:p-7">
+        <div className="flex items-center gap-3">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-amber-300 text-lg font-bold text-slate-900">
+            {brandInitial}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-2xl font-semibold text-slate-800">{brandLabel}</p>
+            <h3 className="mt-1 text-4xl font-bold leading-tight text-slate-900 sm:text-[2.2rem]">{mission.title}</h3>
+          </div>
+        </div>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          <span className="rounded-full bg-orange-100 px-4 py-1.5 text-sm font-semibold text-orange-600">
             {categoryLabel}
           </span>
-          <p className="mt-4 text-xs uppercase tracking-[0.3em] text-slate-500">{brandLabel}</p>
-          <h3 className="mt-2 text-2xl font-semibold text-slate-900">{mission.title}</h3>
+          <span className="rounded-full border border-amber-300 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-700">
+            {locale === "en" ? "On-site experience shoot" : "自費體驗拍攝"}
+          </span>
+          <span className="rounded-full bg-slate-200 px-4 py-1.5 text-sm font-semibold text-slate-600">
+            UGC
+          </span>
         </div>
-        <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-sm font-medium text-white">
-          {mission.points} {locale === "en" ? "Coins" : "金幣"}
-        </span>
       </div>
 
-      <div className="mt-5">
-        <p className="text-sm leading-6 text-slate-600">{mission.description}</p>
-
-        {(mission.minParticipants ?? 0) > 0 && (
-          <div className={`mt-4 flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs ${
-            (mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0)
-              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-              : "border-amber-200 bg-amber-50 text-amber-700"
-          }`}>
-            <span>{(mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0) ? "✅" : "🔒"}</span>
-            <span className="font-medium">
-              {(mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0)
-                ? (locale === "en" ? "Open" : "已開放")
-                : (locale === "en" ? "Waiting to open" : "等待人數開放")}
-            </span>
-            <span className="ml-auto text-slate-500">
-              {mission.currentParticipants ?? 0} / {mission.minParticipants} {locale === "en" ? "creators" : "人"}
-            </span>
+      <div className="border-t border-slate-200 px-6 py-5 sm:px-7">
+        <div className="space-y-4">
+          <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-4">
+            <p className="text-3xl font-semibold text-slate-500">{locale === "en" ? "Reward per REELS" : "每條 REELS 派發"}</p>
+            <p className="text-3xl font-black text-emerald-600">{payoutText}</p>
           </div>
-        )}
 
-        <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-600">
-          <span className="rounded-full bg-slate-100 px-3 py-1">{difficultyLabel}</span>
-          <span className="rounded-full bg-slate-100 px-3 py-1">{locale === "en" ? "ETA" : "時限"} {etaLabel}</span>
-        </div>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-3xl font-semibold text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
+            <p className="text-3xl font-bold text-slate-800">{difficultyLabel}</p>
+          </div>
 
-        <div className="mt-6 flex items-center justify-between text-sm">
-          <span className="text-slate-500">{productLabel}</span>
-          <Link
-            href={`/missions/${mission.slug}`}
-            className="font-semibold text-blue-600 transition group-hover:text-blue-700"
-          >
-            {locale === "en" ? "View details →" : "查看詳情 →"}
-          </Link>
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-3xl font-semibold text-slate-500">{locale === "en" ? "ETA" : "時限"}</p>
+            <p className="text-3xl font-bold text-slate-800">{etaLabel}</p>
+          </div>
+
+          {(mission.minParticipants ?? 0) > 0 && (
+            <div className="pt-1 text-sm text-slate-500">
+              {locale === "en" ? "Creator quota" : "創作者名額"}: {mission.currentParticipants ?? 0} / {mission.minParticipants}
+            </div>
+          )}
+
+          <p className="pt-1 text-sm leading-6 text-slate-500">{productLabel} · {mission.description}</p>
         </div>
+      </div>
+
+      <div className="border-t border-slate-200 p-6 sm:p-7">
+        <Link
+          href={`/missions/${mission.slug}`}
+          className="flex w-full items-center justify-center rounded-3xl bg-blue-600 px-6 py-4 text-xl font-semibold text-white transition hover:bg-blue-700"
+        >
+          {locale === "en" ? "Join campaign" : "參與活動"}
+        </Link>
       </div>
     </article>
   );
