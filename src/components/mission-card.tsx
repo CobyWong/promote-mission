@@ -30,18 +30,11 @@ const zhDifficultyMap: Record<string, string> = {
   Hard: "高級",
 };
 
-const zhEtaMap: Record<string, string> = {
-  "1 day": "1 日",
-  "2 days": "2 日",
-  "3 days": "3 日",
-};
-
 export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; locale?: Locale }) {
   const brandLabel = locale === "en" ? mission.brand : (zhBrandMap[mission.brand] ?? mission.brand);
   const productLabel = locale === "en" ? mission.product : (zhProductMap[mission.product] ?? mission.product);
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
-  const etaLabel = locale === "en" ? mission.eta : (zhEtaMap[mission.eta] ?? mission.eta);
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const payoutText = `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`;
 
@@ -81,11 +74,6 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
           <div className="flex items-center justify-between gap-3">
             <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
             <p className="text-xl font-bold text-slate-800">{difficultyLabel}</p>
-          </div>
-
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "ETA" : "時限"}</p>
-            <p className="text-xl font-bold text-slate-800">{etaLabel}</p>
           </div>
 
           {(mission.minParticipants ?? 0) > 0 && (

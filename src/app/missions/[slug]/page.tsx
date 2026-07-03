@@ -50,7 +50,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             ))}
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Reward" : "獎勵"}</p>
               <p className="mt-2 text-2xl font-semibold text-cyan-300">{mission.points} Coins</p>
@@ -58,10 +58,6 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Difficulty" : "難度"}</p>
               <p className="mt-2 text-2xl font-semibold text-white">{mission.difficulty}</p>
-            </div>
-            <div className="rounded-2xl bg-white/5 p-5">
-              <p className="text-sm text-slate-400">{locale === "en" ? "Deadline" : "交稿時間"}</p>
-              <p className="mt-2 text-2xl font-semibold text-white">{mission.eta}</p>
             </div>
           </div>
         </div>
@@ -75,7 +71,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <div className="glass-panel p-8">
             <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
             <ul className="mt-5 space-y-3 text-slate-300">
-              {mission.requirements.map((item) => (
+              {[(locale === "en" ? "Video length must be longer than 60 seconds" : "影片長度需超過 60 秒")].map((item) => (
                 <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
               ))}
             </ul>
@@ -97,8 +93,8 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {(locale === "en"
-              ? ["Film & publish your IG Reels publicly", "Upload the video link & a screenshot", "Receive Coins after review approval"]
-              : ["拍攝並公開發佈 IG Reels", "上傳影片連結與發佈截圖", "待審核後收 Coins 入帳"]
+              ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", "Receive Coins after review approval"]
+              : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", "待審核後收 Coins 入帳"]
             ).map((step, index) => (
               <div key={step} className="rounded-2xl bg-white/5 p-5">
                 <p className="text-sm text-cyan-300">Step {index + 1}</p>
@@ -110,7 +106,6 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
         <MissionAcceptCard
           missionSlug={mission.slug}
-          eta={mission.eta}
           locale={locale}
           minParticipants={mission.minParticipants}
           currentParticipants={mission.currentParticipants}
