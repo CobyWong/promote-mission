@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { missions } from "@/lib/data";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCreatorLevelFromApprovedCount, getMissionRequiredLevel } from "@/lib/mission-rules";
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -40,11 +41,28 @@ export async function POST(request: Request) {
         title: missionRow.title,
         brand: missionRow.brand,
         points: missionRow.reward_coins,
+        difficulty: missionRow.difficulty,
       }
     : missions.find((item) => item.slug === slug);
 
   if (!mission) {
     return NextResponse.json({ error: "Mission not found." }, { status: 404 });
+  }
+
+  const { data: approvedSubmissions } = await supabase
+    .from("submissions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "Approved");
+
+  const creatorLevel = getCreatorLevelFromApprovedCount((approvedSubmissions ?? []).length);
+  const missionRequiredLevel = getMissionRequiredLevel(mission.difficulty ?? "Easy");
+
+  if (creatorLevel < missionRequiredLevel) {
+    return NextResponse.json(
+      { error: `This mission requires level ${missionRequiredLevel}. Your current level is ${creatorLevel}.` },
+      { status: 403 },
+    );
   }
 
   if (!reelUrl.startsWith("http")) {

@@ -6,6 +6,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCreatorLevelFromApprovedCount, getMissionRequiredLevel } from "@/lib/mission-rules";
 
 const fallbackCreatorProfile: CreatorProfile = {
   name: "Chloe Wong",
@@ -188,13 +189,21 @@ export async function getMissionCenterData() {
   const missionCatalog = await getMissionCatalog();
 
   if (!hasSupabaseConfig()) {
-    return missionCatalog;
+    return {
+      ...missionCatalog,
+      userLevel: 1,
+      approvedMissionCount: 0,
+    };
   }
 
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return missionCatalog;
+    return {
+      ...missionCatalog,
+      userLevel: 1,
+      approvedMissionCount: 0,
+    };
   }
 
   const {
@@ -202,7 +211,11 @@ export async function getMissionCenterData() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return missionCatalog;
+    return {
+      ...missionCatalog,
+      userLevel: 1,
+      approvedMissionCount: 0,
+    };
   }
 
   const { data: submissions } = await supabase
@@ -216,10 +229,20 @@ export async function getMissionCenterData() {
       .map((item) => item.mission_slug)
       .filter((slug): slug is string => typeof slug === "string" && slug.length > 0),
   );
+  const approvedMissionCount = completedMissionSlugs.size;
+  const userLevel = getCreatorLevelFromApprovedCount(approvedMissionCount);
 
   return {
     ...missionCatalog,
-    missions: missionCatalog.missions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
+    userLevel,
+    approvedMissionCount,
+    missions: missionCatalog.missions.filter((mission) => {
+      if (completedMissionSlugs.has(mission.slug)) {
+        return false;
+      }
+
+      return getMissionRequiredLevel(mission.difficulty) <= userLevel;
+    }),
   };
 }
 
