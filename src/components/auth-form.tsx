@@ -69,7 +69,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [gender, setGender] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
-  const [accountType, setAccountType] = useState<"creator" | "brand">("creator");
   const [referralCode, setReferralCode] = useState("");
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [registerStep, setRegisterStep] = useState(1);
@@ -100,11 +99,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       regions: "Coverage regions",
       gender: "Gender",
       age: "Age group",
-      accountUse: "How will you use Mission One?",
-      creator: "Creator",
-      creatorDesc: "Join campaigns and earn from views.",
-      brand: "Brand",
-      brandDesc: "Launch campaigns and pay by performance.",
       referral: "Referral code (optional)",
       terms: "I agree to the service terms.",
       needTwoNiches: "Please select at least 2 content niches.",
@@ -138,11 +132,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       regions: "覆蓋地區",
       gender: "性別",
       age: "年齡組別",
-      accountUse: "你會如何使用 Mission One？",
-      creator: "創作者",
-      creatorDesc: "參與活動，按觀看次數賺取收益。",
-      brand: "品牌",
-      brandDesc: "建立活動，按成效付款。",
       referral: "推薦碼（選填）",
       terms: "我同意服務條款",
       needTwoNiches: "請至少選擇 2 個內容範疇。",
@@ -261,7 +250,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
               regions: selectedRegions,
               gender,
               age_group: ageGroup,
-              account_type: accountType,
+              account_type: "creator",
               referral_code: referralCode || null,
             },
           },
@@ -576,28 +565,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                   {registerStep === 5 ? (
                     <>
-                      <div>
-                        <h3 className="text-2xl font-semibold text-slate-900">{t.accountUse}</h3>
-                        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          <button
-                            type="button"
-                            onClick={() => setAccountType("creator")}
-                            className={`rounded-3xl border p-5 text-left transition ${accountType === "creator" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
-                          >
-                            <p className="text-xl font-semibold text-slate-900">{t.creator}</p>
-                            <p className="mt-2 text-sm text-slate-500">{t.creatorDesc}</p>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setAccountType("brand")}
-                            className={`rounded-3xl border p-5 text-left transition ${accountType === "brand" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
-                          >
-                            <p className="text-xl font-semibold text-slate-900">{t.brand}</p>
-                            <p className="mt-2 text-sm text-slate-500">{t.brandDesc}</p>
-                          </button>
-                        </div>
-                      </div>
-
                       <label className="block text-base font-medium text-slate-900">
                         {t.referral}
                         <input value={referralCode} onChange={(event) => setReferralCode(event.target.value)} className={lightInputClassName} placeholder={locale === "en" ? "ABC123" : "輸入推薦碼（例如：ABC123）"} />
