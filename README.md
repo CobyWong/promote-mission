@@ -1,4 +1,4 @@
-# Promote Mission
+# Mission One
 
 A creator mission platform for Hong Kong-style promotional campaigns. Creators browse IG Reels missions, submit proof, earn Coins, climb the leaderboard, and redeem real rewards. The app is now wired for Supabase-powered auth, submission storage, admin review, and coin rewards.
 

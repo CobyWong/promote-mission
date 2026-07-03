@@ -226,7 +226,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
           ) : null}
 
           <p className={`mt-6 text-xs ${textSub}`}>
-            Promote Mission
+            Mission One
           </p>
         </div>
       </aside>

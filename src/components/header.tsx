@@ -92,7 +92,7 @@ export async function Header() {
             PM
           </span>
           <span>
-            Promote Mission
+            Mission One
             <span className={`block text-xs font-normal ${tertiaryTextColor}`}>{t.subtitle}</span>
           </span>
         </Link>

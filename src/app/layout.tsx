@@ -10,7 +10,7 @@ import { getCurrentLocale } from "@/lib/i18n";
 import { getCurrentTheme } from "@/lib/theme";
 
 export const metadata: Metadata = {
-  title: "Promote Mission",
+  title: "Mission One",
   description: "Mission marketplace for creators to post IG Reels, earn Coins, and redeem rewards.",
 };
 

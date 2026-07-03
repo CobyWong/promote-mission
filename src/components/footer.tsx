@@ -8,7 +8,7 @@ export async function Footer() {
     <footer className="mt-16 border-t border-slate-200/80 bg-white/90">
       <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-8 text-sm text-slate-500 sm:px-6 lg:px-8 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="font-semibold text-slate-900">Promote Mission</p>
+          <p className="font-semibold text-slate-900">Mission One</p>
           <p>
             {locale === "en"
               ? "A creator platform for promotional missions, coin rewards, and real redemption."
