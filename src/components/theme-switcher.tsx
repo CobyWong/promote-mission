@@ -11,13 +11,15 @@ type ThemeSwitcherProps = {
 export function ThemeSwitcher({ theme }: ThemeSwitcherProps) {
   const router = useRouter();
 
-  async function toggleTheme() {
-    const newTheme = theme === "light" ? "dark" : "light";
+  async function ensureLightTheme() {
+    if (theme === "light") {
+      return;
+    }
 
     const response = await fetch("/api/theme", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ theme: newTheme }),
+      body: JSON.stringify({ theme: "light" }),
     });
 
     if (response.ok) {
@@ -28,11 +30,11 @@ export function ThemeSwitcher({ theme }: ThemeSwitcherProps) {
   return (
     <button
       type="button"
-      onClick={toggleTheme}
-      className="rounded-full border border-white/20 px-3 py-2 text-xs font-semibold transition hover:border-white/40"
-      title={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+      onClick={ensureLightTheme}
+      className="rounded-full border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+      title="Light mode"
     >
-      {theme === "light" ? "🌙" : "☀️"}
+      ☀️
     </button>
   );
 }

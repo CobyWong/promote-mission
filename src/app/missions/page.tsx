@@ -22,9 +22,9 @@ export default async function MissionsPage() {
         </p>
       </div>
 
-      <div className="mt-8 rounded-3xl bg-slate-900 px-6 py-5 text-white shadow-sm">
-        <p className="text-xs uppercase tracking-[0.22em] text-slate-300">{locale === "en" ? "Campaign Budget" : "Campaign 獎勵池"}</p>
-        <p className="mt-2 text-4xl font-semibold">HK$220,000.00</p>
+      <div className="mt-8 rounded-3xl border border-blue-100 bg-gradient-to-r from-sky-50 via-blue-50 to-cyan-50 px-6 py-5 text-slate-900 shadow-sm">
+        <p className="text-xs uppercase tracking-[0.22em] text-blue-600">{locale === "en" ? "Campaign Budget" : "Campaign 獎勵池"}</p>
+        <p className="mt-2 text-4xl font-semibold text-slate-900">HK$220,000.00</p>
       </div>
 
       {featured ? (
@@ -36,7 +36,7 @@ export default async function MissionsPage() {
               alt={featured.title}
               className="h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-900/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/45 via-slate-900/10 to-transparent" />
             <div className="absolute bottom-5 left-5 right-5">
               <p className="text-sm font-medium text-slate-200">{featured.brand}</p>
               <h2 className="mt-1 text-2xl font-semibold text-white md:text-3xl">{featured.title}</h2>

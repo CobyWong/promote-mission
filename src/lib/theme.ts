@@ -4,8 +4,9 @@ export const THEME_COOKIE_KEY = "pm_theme";
 export const DEFAULT_THEME: Theme = "light";
 
 export function normalizeTheme(theme?: string | null): Theme {
-  if (theme === "light" || theme === "dark") {
-    return theme;
+  // Keep the product light-first for now, even when an older dark cookie exists.
+  if (theme === "light") {
+    return "light";
   }
   return DEFAULT_THEME;
 }
