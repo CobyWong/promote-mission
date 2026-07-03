@@ -94,40 +94,40 @@ export function SupportContactForm({ locale, defaultEmail, supportEmail, support
   }
 
   return (
-    <div className="glass-panel p-8">
-      <h1 className="text-3xl font-semibold text-white">{t.title}</h1>
-      <p className="mt-3 text-slate-300">{t.subtitle}</p>
+    <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+      <h1 className="text-3xl font-semibold text-slate-900">{t.title}</h1>
+      <p className="mt-3 text-slate-600">{t.subtitle}</p>
 
       <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 md:grid-cols-2">
-          <label className="flex flex-col gap-2 text-sm text-slate-300">
+          <label className="flex flex-col gap-2 text-sm text-slate-600">
             <span>{t.name}</span>
             <input
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/40"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300"
             />
           </label>
 
-          <label className="flex flex-col gap-2 text-sm text-slate-300">
+          <label className="flex flex-col gap-2 text-sm text-slate-600">
             <span>{t.email}</span>
             <input
               required
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/40"
+              className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300"
             />
           </label>
         </div>
 
-        <label className="flex flex-col gap-2 text-sm text-slate-300">
+        <label className="flex flex-col gap-2 text-sm text-slate-600">
           <span>{t.category}</span>
           <select
             value={category}
             onChange={(event) => setCategory(event.target.value as (typeof categories)[number])}
-            className="rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/40"
+            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-blue-300"
           >
             {categories.map((item) => (
               <option key={item} value={item} className="text-slate-900">
@@ -137,7 +137,7 @@ export function SupportContactForm({ locale, defaultEmail, supportEmail, support
           </select>
         </label>
 
-        <label className="flex flex-col gap-2 text-sm text-slate-300">
+        <label className="flex flex-col gap-2 text-sm text-slate-600">
           <span>{t.message}</span>
           <textarea
             required
@@ -145,7 +145,7 @@ export function SupportContactForm({ locale, defaultEmail, supportEmail, support
             value={message}
             onChange={(event) => setMessage(event.target.value)}
             placeholder={t.placeholder}
-            className="min-h-36 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-white outline-none transition focus:border-cyan-400/40"
+            className="min-h-36 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-300"
           />
         </label>
 
@@ -153,14 +153,14 @@ export function SupportContactForm({ locale, defaultEmail, supportEmail, support
           <button
             type="submit"
             disabled={state.loading}
-            className="rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-70"
+            className="rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {state.loading ? t.sending : t.submit}
           </button>
 
           <a
             href={`mailto:${supportEmail}`}
-            className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/35"
+            className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
           >
             {supportEmail}
           </a>
@@ -170,7 +170,7 @@ export function SupportContactForm({ locale, defaultEmail, supportEmail, support
               href={supportWhatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/35"
+              className="rounded-full border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400"
             >
               {t.whatsapp}
             </a>
@@ -179,16 +179,16 @@ export function SupportContactForm({ locale, defaultEmail, supportEmail, support
       </form>
 
       {state.error ? (
-        <p className="mt-4 text-sm text-amber-300">{state.error}</p>
+        <p className="mt-4 text-sm text-amber-700">{state.error}</p>
       ) : null}
 
       {state.ticketId ? (
-        <p className="mt-4 text-sm text-cyan-300">
+        <p className="mt-4 text-sm text-blue-700">
           {t.success}: <span className="font-semibold">{state.ticketId}</span>
         </p>
       ) : null}
 
-      <p className="mt-6 text-sm text-slate-400">
+      <p className="mt-6 text-sm text-slate-500">
         {t.fallback} <a className="underline" href={`mailto:${supportEmail}`}>{supportEmail}</a>
       </p>
     </div>
