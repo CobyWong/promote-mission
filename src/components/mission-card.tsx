@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import type { Mission } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
+import { getMissionRequiredLevel } from "@/lib/mission-rules";
 
 const zhBrandMap: Record<string, string> = {
   "Spark Living": "Spark Living 生活選物",
@@ -36,7 +37,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
-  const payoutText = `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`;
+  const requiredLevel = getMissionRequiredLevel(mission.difficulty);
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f8fb] shadow-sm transition hover:border-slate-300 hover:shadow-md">
@@ -67,13 +68,23 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
       <div className="border-t border-slate-200 px-4 py-3">
         <div className="space-y-3">
           <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
-            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Reward per REELS" : "每條 REELS 派發"}</p>
-            <p className="text-xl font-black text-emerald-600">{payoutText}</p>
+            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Top reward" : "最高獎勵"}</p>
+            <p className="text-xl font-black text-emerald-600">HK$600</p>
           </div>
 
           <div className="flex items-center justify-between gap-3">
             <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
             <p className="text-xl font-bold text-slate-800">{difficultyLabel}</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            {locale === "en"
+              ? "Likes ranking payout: #1 HK$600 · #2 HK$300 · #3 HK$100"
+              : "Like 排名派彩：第 1 名 HK$600 · 第 2 名 HK$300 · 第 3 名 HK$100"}
+          </div>
+
+          <div className="pt-1 text-xs font-medium text-blue-700">
+            {locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}
           </div>
 
           {(mission.minParticipants ?? 0) > 0 && (

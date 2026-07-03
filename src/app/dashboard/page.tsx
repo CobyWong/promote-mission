@@ -253,7 +253,7 @@ export default async function DashboardPage() {
                         ) : null}
                       </div>
                       <h3 className="mt-2 text-xl font-semibold text-slate-900">{mission.title}</h3>
-                      <p className="mt-2 text-sm text-slate-500">{t.due}：{mission.eta} · {t.reward}：{mission.points} {locale === "en" ? "Coins" : "金幣"}</p>
+                      <p className="mt-2 text-sm text-slate-500">{t.due}：{mission.eta} · {t.reward}：#1 HK$600 · #2 HK$300 · #3 HK$100</p>
                     </div>
                     <div className="flex gap-3 text-sm font-semibold">
                       <Link href={`/missions/${mission.slug}`} className="text-blue-600 hover:text-blue-700">
