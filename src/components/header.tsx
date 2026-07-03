@@ -67,9 +67,8 @@ export async function Header() {
   const t = linkLabels[locale];
 
   const borderColor = theme === "dark" ? "border-white/10" : "border-slate-200";
-  const bgColor = theme === "dark" ? "bg-slate-950/80" : "bg-white/95 shadow-sm";
+  const bgColor = theme === "dark" ? "bg-slate-950/80" : "bg-slate-50/95";
   const textColor = theme === "dark" ? "text-white" : "text-slate-900";
-  const tertiaryTextColor = theme === "dark" ? "text-slate-400" : "text-slate-500";
 
   const navLinks = [
     ...userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => ({
@@ -86,19 +85,16 @@ export async function Header() {
 
   return (
     <header className={`sticky top-0 z-50 border-b ${borderColor} ${bgColor} backdrop-blur`}>
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
-          <span className={`flex h-10 w-10 items-center justify-center rounded-2xl ${theme === "dark" ? "bg-cyan-400/20" : "bg-cyan-400/10"} text-cyan-400`}>
-            PM
+          <span className={`flex h-10 w-10 items-center justify-center rounded-full ${theme === "dark" ? "bg-cyan-400/20" : "bg-slate-100"} ${theme === "dark" ? "text-cyan-300" : "text-blue-600"}`}>
+            MO
           </span>
-          <span>
-            Mission One
-            <span className={`block text-xs font-normal ${tertiaryTextColor}`}>{t.subtitle}</span>
-          </span>
+          <span className="sr-only">Mission One</span>
         </Link>
 
         {isAuthenticated ? (
-          <>
+          <div className="ml-auto flex items-center gap-3">
             <HeaderMainNav links={navLinks} theme={theme} />
 
             <HeaderSideMenu
@@ -107,9 +103,9 @@ export async function Header() {
               isAuthenticated={isAuthenticated}
               isAdmin={isAdmin}
             />
-          </>
+          </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-3">
             <Link
               href="/login"
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${theme === "dark"
@@ -123,7 +119,7 @@ export async function Header() {
               href="/register"
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${theme === "dark"
                 ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                : "bg-cyan-500 text-white hover:bg-cyan-600"
+                : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
             >
               {t.start}

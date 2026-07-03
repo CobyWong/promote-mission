@@ -96,12 +96,16 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
     <details ref={detailsRef} className="relative z-[80]">
       <summary
         aria-label={links.menu}
-        className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${theme === "dark"
+        className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${theme === "dark"
           ? "border-white/20 text-white hover:border-white/40"
-          : "border-slate-300 text-slate-700 hover:border-slate-400"
+          : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300"
           } list-none cursor-pointer [&::-webkit-details-marker]:hidden`}
       >
-        {links.menu}
+        <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+          <path d="M6.5 8a3.5 3.5 0 1 1 7 0v2.8l1.2 1.5a.8.8 0 0 1-.62 1.3H5.9a.8.8 0 0 1-.62-1.3l1.22-1.5V8Z" stroke="currentColor" strokeWidth="1.6" />
+          <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
+        <span className="sr-only">{links.menu}</span>
       </summary>
 
       <aside
