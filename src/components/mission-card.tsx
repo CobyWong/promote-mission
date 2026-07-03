@@ -114,13 +114,24 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
                 ? `Ranking split: #1 60% (HK$${rewards.first.toLocaleString()}) · #2 30% (HK$${rewards.second.toLocaleString()}) · #3 10% (HK$${rewards.third.toLocaleString()})`
                 : `排名派彩：第 1 名 60%（HK$${rewards.first.toLocaleString()}） · 第 2 名 30%（HK$${rewards.second.toLocaleString()}） · 第 3 名 10%（HK$${rewards.third.toLocaleString()}）`}
             </div>
-            <div className="flex items-center justify-between text-sm text-slate-600">
-              <span>{locale === "en" ? "Top creator" : "頂尖創作者"}</span>
-              <span className="font-semibold text-blue-700">{topCreator}</span>
-            </div>
-            <div className="flex items-center justify-end gap-1 text-sm text-slate-500">
-              <span>◉</span>
-              <span>{topViews}</span>
+            <div className="space-y-2">
+              <p className="text-sm text-slate-600">{locale === "en" ? "Top creators" : "頂尖創作者"}</p>
+              {(mission.rankings && mission.rankings.length > 0 ? mission.rankings : [{ rank: 1, handle: topCreator, views: Number(topViews.replace("K", "000")), reelUrl: `https://instagram.com/${topCreator.replace(/^@/, "")}` }]).map((entry) => (
+                <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-xl bg-white/60 px-3 py-2 text-sm text-slate-700">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-300 text-xs font-bold text-slate-900">{entry.rank}</span>
+                    <a
+                      href={entry.reelUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-800"
+                    >
+                      {entry.handle}
+                    </a>
+                  </div>
+                  <span className="text-slate-500">👁 {entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}</span>
+                </div>
+              ))}
             </div>
           </>
         )}

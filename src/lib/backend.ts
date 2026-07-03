@@ -1,5 +1,5 @@
 import { missions, rewards, sampleRewardRedemptions, leaders } from "@/lib/data";
-import type { CreatorProfile, Leader, Mission, Reward, RewardRedemption, Submission } from "@/lib/data";
+import type { CreatorProfile, Leader, Mission, MissionRankingEntry, Reward, RewardRedemption, Submission } from "@/lib/data";
 import { cache } from "react";
 import { hasAdminSession } from "@/lib/admin-session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -115,6 +115,100 @@ function toSubmission(row: SubmissionRow): Submission {
   };
 }
 
+function withMissionRankings(baseMissions: Mission[], rankingMap: Map<string, MissionRankingEntry[]>) {
+  return baseMissions.map((mission) => ({
+    ...mission,
+    rankings: rankingMap.get(mission.slug) ?? [],
+  }));
+}
+
+async function getMissionRankingMap(missionSlugs: string[]) {
+  if (!hasSupabaseAdminConfig()) {
+    return new Map<string, MissionRankingEntry[]>();
+  }
+
+  const admin = createSupabaseAdminClient();
+
+  if (!admin || missionSlugs.length === 0) {
+    return new Map<string, MissionRankingEntry[]>();
+  }
+
+  const { data: submissionData } = await admin
+    .from("submissions")
+    .select("id, mission_slug, creator_handle, reel_url, status, submitted_at")
+    .in("mission_slug", missionSlugs)
+    .in("status", ["Pending", "Approved"]);
+
+  const submissions = (submissionData ?? []) as Array<Pick<SubmissionRow, "id" | "mission_slug" | "creator_handle" | "reel_url" | "status" | "submitted_at">>;
+
+  if (submissions.length === 0) {
+    return new Map<string, MissionRankingEntry[]>();
+  }
+
+  const submissionIds = submissions.map((item) => item.id);
+
+  const { data: insightData } = await admin
+    .from("reel_insights")
+    .select("submission_id, plays, metric_date, created_at")
+    .in("submission_id", submissionIds);
+
+  const insights = (insightData ?? []) as Array<Pick<ReelInsightRow, "submission_id" | "plays" | "metric_date" | "created_at">>;
+  const latestInsightBySubmission = new Map<string, Pick<ReelInsightRow, "submission_id" | "plays" | "metric_date" | "created_at">>();
+
+  for (const insight of insights) {
+    if (!insight.submission_id) {
+      continue;
+    }
+
+    const existing = latestInsightBySubmission.get(insight.submission_id);
+    if (!existing) {
+      latestInsightBySubmission.set(insight.submission_id, insight);
+      continue;
+    }
+
+    const existingTime = new Date(`${existing.metric_date}T00:00:00Z`).getTime();
+    const currentTime = new Date(`${insight.metric_date}T00:00:00Z`).getTime();
+
+    if (currentTime >= existingTime) {
+      latestInsightBySubmission.set(insight.submission_id, insight);
+    }
+  }
+
+  const rankingMap = new Map<string, MissionRankingEntry[]>();
+
+  for (const slug of missionSlugs) {
+    const missionRows = submissions.filter((item) => item.mission_slug === slug);
+    const ranked = missionRows
+      .map((item) => {
+        const latestInsight = latestInsightBySubmission.get(item.id);
+        return {
+          handle: item.creator_handle?.trim() || "@creator",
+          reelUrl: item.reel_url,
+          views: latestInsight?.plays ?? 0,
+          submittedAt: item.submitted_at,
+        };
+      })
+      .sort((a, b) => {
+        if (b.views !== a.views) {
+          return b.views - a.views;
+        }
+
+        return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
+      })
+      .slice(0, 3)
+      .map((item, index) => ({
+        rank: index + 1,
+        handle: item.handle.startsWith("@") ? item.handle : `@${item.handle}`,
+        reelUrl: item.reelUrl,
+        views: item.views,
+      }));
+
+    rankingMap.set(slug, ranked);
+  }
+
+  return rankingMap;
+}
+
 function getMetaString(user: AuthUserLike | null, key: string): string | null {
   if (!user?.user_metadata || typeof user.user_metadata !== "object") {
     return null;
@@ -204,10 +298,13 @@ export async function getMissionCatalog() {
 
 export async function getMissionCenterData() {
   const missionCatalog = await getMissionCatalog();
+  const rankingMap = await getMissionRankingMap(missionCatalog.missions.map((mission) => mission.slug));
+  const rankedMissions = withMissionRankings(missionCatalog.missions, rankingMap);
 
   if (!hasSupabaseConfig()) {
     return {
       ...missionCatalog,
+      missions: rankedMissions,
       userLevel: 1,
       approvedMissionCount: 0,
     };
@@ -218,6 +315,7 @@ export async function getMissionCenterData() {
   if (!supabase) {
     return {
       ...missionCatalog,
+      missions: rankedMissions,
       userLevel: 1,
       approvedMissionCount: 0,
     };
@@ -230,6 +328,7 @@ export async function getMissionCenterData() {
   if (!user) {
     return {
       ...missionCatalog,
+      missions: rankedMissions,
       userLevel: 1,
       approvedMissionCount: 0,
     };
@@ -253,7 +352,7 @@ export async function getMissionCenterData() {
     ...missionCatalog,
     userLevel,
     approvedMissionCount,
-    missions: missionCatalog.missions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
+    missions: rankedMissions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
   };
 }
 
