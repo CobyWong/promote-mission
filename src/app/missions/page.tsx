@@ -3,7 +3,7 @@ import { getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getMissionRequiredLevel } from "@/lib/mission-rules";
 
-const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。所有任務以 Reels Like 排名派彩：第 1 名 HK$600、第 2 名 HK$300、第 3 名 HK$100。";
+const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。";
 
 export default async function MissionsPage() {
   const locale = await getCurrentLocale();
@@ -21,7 +21,7 @@ export default async function MissionsPage() {
         <h1 className="mt-3 text-4xl font-semibold text-slate-900">{locale === "en" ? "Mission Center" : "任務中心"}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-600">
           {locale === "en"
-            ? "Pick campaigns that fit your audience and content style. Rewards are based on Reel likes ranking: #1 HK$600, #2 HK$300, #3 HK$100."
+            ? "Pick campaigns that fit your audience and content style."
             : zhMissionIntro}
         </p>
         <div className="mt-5 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700">

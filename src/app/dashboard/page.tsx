@@ -6,6 +6,7 @@ import { SupportContactForm } from "@/components/support-contact-form";
 import { rewards } from "@/lib/data";
 import { getDashboardData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
+import { getMissionTotalPrizeByDifficulty } from "@/lib/mission-rules";
 import { getSupportEmail, getSupportWhatsappUrl } from "@/lib/supabase/env";
 
 function getReferralCode(seed?: string | null) {
@@ -224,6 +225,7 @@ export default async function DashboardPage() {
           <>
             <div className="mt-6 space-y-4">
               {activeMissions.map((mission) => {
+                const totalPrize = getMissionTotalPrizeByDifficulty(mission.difficulty);
                 const submissionStatus = dashboard.missionStatusMap?.get(mission.slug);
                 const statusColors: Record<string, string> = {
                     "Approved": "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -253,7 +255,7 @@ export default async function DashboardPage() {
                         ) : null}
                       </div>
                       <h3 className="mt-2 text-xl font-semibold text-slate-900">{mission.title}</h3>
-                      <p className="mt-2 text-sm text-slate-500">{t.due}：{mission.eta} · {t.reward}：#1 HK$600 · #2 HK$300 · #3 HK$100</p>
+                      <p className="mt-2 text-sm text-slate-500">{t.due}：{mission.eta} · {t.reward}：HK${totalPrize.toLocaleString()}（60% / 30% / 10%）</p>
                     </div>
                     <div className="flex gap-3 text-sm font-semibold">
                       <Link href={`/missions/${mission.slug}`} className="text-blue-600 hover:text-blue-700">

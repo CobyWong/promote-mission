@@ -10,6 +10,7 @@ import {
   getMissionAcceptanceStorageKey,
   isMissionAcceptanceValid,
 } from "@/lib/mission-acceptance";
+import { getRankingRewardsByDifficulty } from "@/lib/mission-rules";
 import { hasSupabaseConfig } from "@/lib/supabase/env";
 
 type ProofSubmissionFormProps = {
@@ -38,6 +39,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
   const [acceptedAndValid, setAcceptedAndValid] = useState(false);
   const [acceptanceChecked, setAcceptanceChecked] = useState(false);
   const backendReady = hasSupabaseConfig();
+  const rewards = getRankingRewardsByDifficulty(mission.difficulty);
 
   useEffect(() => {
     const key = getMissionAcceptanceStorageKey(mission.slug);
@@ -74,8 +76,8 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           <h1 className="mt-3 text-3xl font-semibold text-white">{isEnglish ? "Proof submitted successfully" : "proof 已成功提交"}</h1>
           <p className="mt-4 text-base leading-7 text-slate-300">
             {isEnglish
-              ? `Your ${mission.brand} mission is now in the review queue. Rewards are settled by likes ranking: #1 HK$600, #2 HK$300, #3 HK$100.`
-              : `你嘅 ${mission.brand} 任務已進入審核隊列。獎勵會按 Like 排名派發：第 1 名 HK$600、第 2 名 HK$300、第 3 名 HK$100。`}
+              ? `Your ${mission.brand} mission is now in the review queue. Rewards are settled from HK$${rewards.totalPrize.toLocaleString()} by likes ranking: #1 60%, #2 30%, #3 10%.`
+              : `你嘅 ${mission.brand} 任務已進入審核隊列。獎勵會由 HK$${rewards.totalPrize.toLocaleString()} 按 Like 排名派發：第 1 名 60%、第 2 名 30%、第 3 名 10%。`}
           </p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="rounded-2xl bg-white/5 p-4">
@@ -84,7 +86,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
             </div>
             <div className="rounded-2xl bg-white/5 p-4">
               <p className="text-sm text-slate-400">{isEnglish ? "Reward" : "獎勵"}</p>
-              <p className="mt-2 font-semibold text-cyan-300">#1 HK$600 · #2 HK$300 · #3 HK$100</p>
+              <p className="mt-2 font-semibold text-cyan-300">{`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}</p>
             </div>
             <div className="rounded-2xl bg-white/5 p-4">
               <p className="text-sm text-slate-400">{isEnglish ? "Collaborator" : "協作者"}</p>
@@ -281,7 +283,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
               <span>{isEnglish ? "Reward" : "獎勵"}</span>
-              <span className="font-medium text-cyan-300">#1 HK$600 · #2 HK$300 · #3 HK$100</span>
+              <span className="font-medium text-cyan-300">{`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}</span>
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
               <span>{isEnglish ? "Progress" : "進度"}</span>

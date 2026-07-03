@@ -6,7 +6,7 @@ import { MissionAcceptCard } from "@/components/mission-accept-card";
 import { getMissionBySlug } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getMissionImage } from "@/lib/mission-media";
-import { getMissionRequiredLevel } from "@/lib/mission-rules";
+import { getMissionRequiredLevel, getRankingRewardsByDifficulty } from "@/lib/mission-rules";
 
 export default async function MissionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const locale = await getCurrentLocale();
@@ -19,6 +19,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
   const missionImage = mission.imageUrl ?? getMissionImage(mission.slug);
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
+  const rewards = getRankingRewardsByDifficulty(mission.difficulty);
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -55,8 +56,14 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Reward" : "獎勵"}</p>
-              <p className="mt-2 text-2xl font-semibold text-cyan-300">#1 HK$600 · #2 HK$300 · #3 HK$100</p>
-              <p className="mt-2 text-xs text-slate-400">{locale === "en" ? "Ranking by total likes on approved Reels" : "按已審核 Reels 的 Like 數排名"}</p>
+              <p className="mt-2 text-2xl font-semibold text-cyan-300">
+                {`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
+              </p>
+              <p className="mt-2 text-xs text-slate-400">
+                {locale === "en"
+                  ? `Split by likes ranking from total pool HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`
+                  : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`}
+              </p>
             </div>
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Difficulty" : "難度"}</p>
@@ -97,8 +104,8 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {(locale === "en"
-              ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", "Rewards are settled by likes ranking: #1 HK$600, #2 HK$300, #3 HK$100"]
-              : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", "獎勵按 Like 排名派發：第 1 名 HK$600、第 2 名 HK$300、第 3 名 HK$100"]
+              ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", `Rewards are settled by likes ranking from HK$${rewards.totalPrize.toLocaleString()}: #1 60%, #2 30%, #3 10%`]
+              : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", `獎勵按 Like 排名由 HK$${rewards.totalPrize.toLocaleString()} 派發：第 1 名 60%、第 2 名 30%、第 3 名 10%`]
             ).map((step, index) => (
               <div key={step} className="rounded-2xl bg-white/5 p-5">
                 <p className="text-sm text-cyan-300">Step {index + 1}</p>

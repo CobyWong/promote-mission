@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import type { Mission } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
-import { getMissionRequiredLevel } from "@/lib/mission-rules";
+import { getMissionRequiredLevel, getRankingRewardsByDifficulty } from "@/lib/mission-rules";
 
 const zhBrandMap: Record<string, string> = {
   "Spark Living": "Spark Living 生活選物",
@@ -52,7 +52,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
   const isLocked = userLevel < requiredLevel;
-  const totalPrizeHkd = mission.difficulty === "Easy" ? 1000 : mission.difficulty === "Medium" ? 2400 : 3600;
+  const rewards = getRankingRewardsByDifficulty(mission.difficulty);
   const topCreator = topCreatorMap[mission.slug.split("-")[0]] ?? "@missionone.star";
   const topViews = mission.difficulty === "Easy" ? "35K" : mission.difficulty === "Medium" ? "52K" : "78K";
 
@@ -81,11 +81,11 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
       <div className="border-y border-slate-200 px-5 py-4">
         <div className="flex items-end justify-between gap-3">
           <p className="text-2xl font-semibold text-slate-500">{locale === "en" ? "Total prize pool" : "總獎金池"}</p>
-          <p className="text-[2rem] font-black text-emerald-600">{isLocked ? "???" : `HK$${totalPrizeHkd.toLocaleString()}`}</p>
+          <p className="text-[2rem] font-black text-emerald-600">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
         </div>
         <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
           <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Per REELS payout" : "每條 REELS 派發"}</p>
-          <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : "HK$100 - HK$600"}</p>
+          <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : `HK$${rewards.third.toLocaleString()} - HK$${rewards.first.toLocaleString()}`}</p>
         </div>
       </div>
 
@@ -109,8 +109,8 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
           <>
             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
               {locale === "en"
-                ? "Likes ranking payout: #1 HK$600 · #2 HK$300 · #3 HK$100"
-                : "Like 排名派彩：第 1 名 HK$600 · 第 2 名 HK$300 · 第 3 名 HK$100"}
+                ? `Ranking split: #1 60% (HK$${rewards.first.toLocaleString()}) · #2 30% (HK$${rewards.second.toLocaleString()}) · #3 10% (HK$${rewards.third.toLocaleString()})`
+                : `排名派彩：第 1 名 60%（HK$${rewards.first.toLocaleString()}） · 第 2 名 30%（HK$${rewards.second.toLocaleString()}） · 第 3 名 10%（HK$${rewards.third.toLocaleString()}）`}
             </div>
             <div className="flex items-center justify-between text-sm text-slate-600">
               <span>{locale === "en" ? "Top creator" : "頂尖創作者"}</span>
