@@ -66,8 +66,6 @@ export async function Header() {
 
   const t = linkLabels[locale];
 
-  const borderColor = theme === "dark" ? "border-white/10" : "border-slate-200";
-  const bgColor = theme === "dark" ? "bg-slate-950/80" : "bg-slate-50/95";
   const textColor = theme === "dark" ? "text-white" : "text-slate-900";
 
   const navLinks = [
@@ -84,7 +82,7 @@ export async function Header() {
   ];
 
   return (
-    <header className={`sticky top-0 z-50 border-b ${borderColor} ${bgColor} backdrop-blur`}>
+    <header className="sticky top-0 z-50 bg-transparent">
       <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
           <span className={`flex h-10 w-10 items-center justify-center rounded-full ${theme === "dark" ? "bg-cyan-400/20" : "bg-slate-100"} ${theme === "dark" ? "text-cyan-300" : "text-blue-600"}`}>
