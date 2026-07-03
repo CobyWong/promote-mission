@@ -11,8 +11,10 @@ html[data-theme="light"] {
 html[data-theme="light"] body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top, rgba(14, 165, 233, 0.07), transparent 35%),
-    linear-gradient(180deg, #f1f5f9 0%, #f8fafc 40%, #ffffff 100%);
+    radial-gradient(circle at 8% 4%, rgba(14, 165, 233, 0.22), transparent 34%),
+    radial-gradient(circle at 92% 8%, rgba(251, 146, 60, 0.2), transparent 28%),
+    radial-gradient(circle at 55% 90%, rgba(16, 185, 129, 0.15), transparent 30%),
+    linear-gradient(180deg, #eaf1f8 0%, #f2f6fb 42%, #f8fbff 100%);
   color: #0f172a;
   font-family: "Manrope", "Noto Sans TC", "PingFang TC", sans-serif;
 }
@@ -24,8 +26,17 @@ html[data-theme="dark"] {
 html[data-theme="dark"] body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at top, rgba(34, 211, 238, 0.14), transparent 30%),
-    linear-gradient(180deg, #020617 0%, #020617 35%, #0f172a 100%);
+    radial-gradient(circle at 10% 0%, rgba(34, 211, 238, 0.2), transparent 34%),
+    radial-gradient(circle at 90% 5%, rgba(251, 146, 60, 0.18), transparent 26%),
+    radial-gradient(circle at 50% 100%, rgba(56, 189, 248, 0.14), transparent 32%),
+    repeating-linear-gradient(
+      130deg,
+      rgba(15, 23, 42, 0.85) 0,
+      rgba(15, 23, 42, 0.85) 14px,
+      rgba(2, 6, 23, 0.9) 14px,
+      rgba(2, 6, 23, 0.9) 28px
+    ),
+    linear-gradient(180deg, #010409 0%, #020617 32%, #0b1220 100%);
   color: #e2e8f0;
   font-family: "Manrope", "Noto Sans TC", "PingFang TC", sans-serif;
 }
@@ -39,8 +50,8 @@ a {
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.35);
-  color: #f8fafc;
+  background: rgba(251, 146, 60, 0.45);
+  color: #020617;
 }
 
 .section-shell {
@@ -52,13 +63,16 @@ a {
 }
 
 html[data-theme="dark"] .glass-panel {
-  @apply border-white/10 bg-white/5;
+  border-color: rgba(56, 189, 248, 0.26);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(2, 6, 23, 0.82));
+  box-shadow: 0 12px 42px rgba(2, 6, 23, 0.5), inset 0 1px 0 rgba(34, 211, 238, 0.15);
+  backdrop-filter: blur(8px);
 }
 
 html[data-theme="light"] .glass-panel {
-  border-color: rgba(148, 163, 184, 0.22);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+  border-color: rgba(59, 130, 246, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 245, 249, 0.94));
+  box-shadow: 0 12px 34px rgba(30, 64, 175, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
 }
 
@@ -185,7 +199,7 @@ html[data-theme="light"] .border-amber-400\/30 {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #67e8f9, #c084fc 55%, #f9a8d4);
+  background: linear-gradient(120deg, #22d3ee 0%, #38bdf8 35%, #f59e0b 70%, #f97316 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -197,7 +211,7 @@ html[data-theme="light"] .border-amber-400\/30 {
 }
 
 html[data-theme="light"] .gradient-text {
-  background: linear-gradient(135deg, #1e293b, #2563eb 50%, #0ea5e9);
+  background: linear-gradient(120deg, #0f172a 0%, #1d4ed8 40%, #0ea5e9 65%, #ea580c 100%);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

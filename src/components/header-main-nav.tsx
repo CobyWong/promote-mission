@@ -72,15 +72,15 @@ export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
   const pathname = usePathname();
 
   const activeClass = theme === "dark"
-    ? "border-cyan-400/40 bg-cyan-400/15 text-cyan-200"
-    : "border-blue-200 bg-blue-100 text-blue-700 shadow-sm";
+    ? "border-amber-300/70 bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300 text-slate-950 shadow-[0_0_22px_rgba(56,189,248,0.45)]"
+    : "border-sky-300 bg-gradient-to-r from-cyan-100 via-sky-100 to-orange-100 text-blue-800 shadow-[0_6px_20px_rgba(56,189,248,0.2)]";
 
   const inactiveClass = theme === "dark"
-    ? "border-transparent text-slate-300 hover:text-white"
-    : "border-transparent text-slate-500 hover:bg-white hover:text-slate-700";
+    ? "border-transparent text-slate-200 hover:border-cyan-300/40 hover:bg-white/10 hover:text-white"
+    : "border-transparent text-slate-600 hover:border-sky-200 hover:bg-white hover:text-slate-800";
 
   return (
-    <nav className={`hidden items-center rounded-full border p-1 text-sm md:flex ${theme === "dark" ? "border-white/10 bg-slate-900/60" : "border-slate-200 bg-slate-100/90"}`}>
+    <nav className={`hidden items-center rounded-full border p-1 text-sm backdrop-blur md:flex ${theme === "dark" ? "border-cyan-300/20 bg-slate-950/70 shadow-[0_0_22px_rgba(8,47,73,0.55)]" : "border-blue-200/80 bg-white/80 shadow-[0_8px_22px_rgba(148,163,184,0.2)]"}`}>
       {links.map((link) => {
         const isActive = isActivePath(pathname, link.href);
 
