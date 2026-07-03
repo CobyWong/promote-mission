@@ -85,10 +85,7 @@ export async function Header() {
     <header className="sticky top-0 z-50 bg-transparent">
       <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
-          <span className={`flex h-10 w-10 items-center justify-center rounded-full border ${theme === "dark"
-            ? "border-cyan-300/40 bg-gradient-to-br from-cyan-300/30 via-sky-400/20 to-amber-300/30 text-cyan-100"
-            : "border-sky-200 bg-gradient-to-br from-cyan-100 via-blue-100 to-orange-100 text-blue-700"
-            }`}>
+          <span className={`flex h-10 w-10 items-center justify-center rounded-full ${theme === "dark" ? "bg-cyan-400/20" : "bg-slate-100"} ${theme === "dark" ? "text-cyan-300" : "text-blue-600"}`}>
             MO
           </span>
           <span className="sr-only">Mission One</span>
@@ -110,8 +107,8 @@ export async function Header() {
             <Link
               href="/login"
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${theme === "dark"
-                ? "border-cyan-300/35 text-cyan-100 hover:border-cyan-200 hover:bg-cyan-400/10"
-                : "border-sky-300 text-slate-700 hover:border-sky-400 hover:bg-white"
+                ? "border-white/20 text-white hover:border-white/40"
+                : "border-slate-300 text-slate-700 hover:border-slate-400"
                 }`}
             >
               {t.login}
@@ -119,8 +116,8 @@ export async function Header() {
             <Link
               href="/register"
               className={`rounded-full px-4 py-2 text-sm font-semibold transition ${theme === "dark"
-                ? "bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300 text-slate-950 shadow-[0_0_24px_rgba(56,189,248,0.45)] hover:from-cyan-200 hover:to-amber-200"
-                : "bg-gradient-to-r from-blue-600 via-sky-500 to-orange-500 text-white shadow-[0_8px_22px_rgba(59,130,246,0.35)] hover:from-blue-500 hover:to-orange-400"
+                ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
+                : "bg-blue-600 text-white hover:bg-blue-700"
                 }`}
             >
               {t.start}

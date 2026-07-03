@@ -37,17 +37,12 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const payoutText = `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`;
-  const difficultyClassName = mission.difficulty === "Hard"
-    ? "border-rose-200 bg-rose-50 text-rose-700"
-    : mission.difficulty === "Medium"
-      ? "border-amber-200 bg-amber-50 text-amber-700"
-      : "border-emerald-200 bg-emerald-50 text-emerald-700";
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-sky-200/80 bg-gradient-to-b from-white to-slate-50 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:border-cyan-300 hover:shadow-[0_18px_34px_rgba(14,165,233,0.2)]">
+    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f8fb] shadow-sm transition hover:border-slate-300 hover:shadow-md">
       <div className="p-4">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-cyan-200 bg-gradient-to-br from-cyan-100 via-sky-100 to-amber-100 text-sm font-bold text-slate-900">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-300 text-sm font-bold text-slate-900">
             {brandInitial}
           </span>
           <div className="min-w-0">
@@ -57,7 +52,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-cyan-100 px-2.5 py-1 text-xs font-semibold text-cyan-700">
+          <span className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-600">
             {categoryLabel}
           </span>
           <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
@@ -65,9 +60,6 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
           </span>
           <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600">
             UGC
-          </span>
-          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${difficultyClassName}`}>
-            {locale === "en" ? "Difficulty" : "難度"} · {difficultyLabel}
           </span>
         </div>
       </div>
@@ -97,7 +89,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
       <div className="mt-auto border-t border-slate-200 p-4">
         <Link
           href={`/missions/${mission.slug}`}
-          className="flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-blue-600 via-sky-500 to-orange-500 px-5 text-lg font-semibold text-white transition hover:from-blue-500 hover:to-orange-400"
+          className="flex h-12 w-full items-center justify-center rounded-2xl bg-blue-600 px-5 text-lg font-semibold text-white transition hover:bg-blue-700"
         >
           {locale === "en" ? "Join campaign" : "參與活動"}
         </Link>
