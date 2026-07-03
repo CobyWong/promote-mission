@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html[data-theme="light"] {
@@ -10,9 +10,11 @@ html[data-theme="light"] {
 
 html[data-theme="light"] body {
   min-height: 100vh;
-  background: #ffffff;
+  background:
+    radial-gradient(circle at top, rgba(14, 165, 233, 0.07), transparent 35%),
+    linear-gradient(180deg, #f1f5f9 0%, #f8fafc 40%, #ffffff 100%);
   color: #0f172a;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Manrope", "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
 html[data-theme="dark"] {
@@ -25,7 +27,7 @@ html[data-theme="dark"] body {
     radial-gradient(circle at top, rgba(34, 211, 238, 0.14), transparent 30%),
     linear-gradient(180deg, #020617 0%, #020617 35%, #0f172a 100%);
   color: #e2e8f0;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Manrope", "Noto Sans TC", "PingFang TC", sans-serif;
 }
 
 * {
@@ -54,9 +56,9 @@ html[data-theme="dark"] .glass-panel {
 }
 
 html[data-theme="light"] .glass-panel {
-  border-color: rgba(148, 163, 184, 0.35);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  border-color: rgba(148, 163, 184, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
   backdrop-filter: blur(8px);
 }
 
@@ -115,7 +117,7 @@ html[data-theme="light"] .bg-slate-950\/60,
 html[data-theme="light"] .bg-slate-950\/70,
 html[data-theme="light"] .bg-slate-950\/80,
 html[data-theme="light"] .bg-slate-900\/80 {
-  background-color: rgba(241, 245, 249, 0.92) !important;
+  background-color: rgba(248, 250, 252, 0.94) !important;
 }
 
 html[data-theme="light"] .bg-white\/5 {
@@ -138,7 +140,13 @@ html[data-theme="light"] .bg-cyan-400\/20 {
 
 html[data-theme="light"] .bg-cyan-500,
 html[data-theme="light"] .bg-cyan-400 {
-  background-color: #dbeafe !important;
+  background-color: #2563eb !important;
+  color: #eff6ff !important;
+}
+
+html[data-theme="light"] .hover\:bg-cyan-600:hover,
+html[data-theme="light"] .hover\:bg-cyan-300:hover {
+  background-color: #1d4ed8 !important;
   color: #0f172a !important;
 }
 
@@ -189,7 +197,7 @@ html[data-theme="light"] .border-amber-400\/30 {
 }
 
 html[data-theme="light"] .gradient-text {
-  background: linear-gradient(135deg, #0f172a, #334155 55%, #475569);
+  background: linear-gradient(135deg, #1e293b, #2563eb 50%, #0ea5e9);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

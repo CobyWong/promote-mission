@@ -1,7 +1,7 @@
 export type Theme = "light" | "dark";
 
 export const THEME_COOKIE_KEY = "pm_theme";
-export const DEFAULT_THEME: Theme = "dark";
+export const DEFAULT_THEME: Theme = "light";
 
 export function normalizeTheme(theme?: string | null): Theme {
   if (theme === "light" || theme === "dark") {

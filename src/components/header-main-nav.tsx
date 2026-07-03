@@ -28,11 +28,11 @@ export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
 
   const activeClass = theme === "dark"
     ? "border-cyan-400/40 bg-cyan-400/15 text-cyan-200"
-    : "border-cyan-500/35 bg-cyan-500/10 text-cyan-700";
+    : "border-blue-300 bg-blue-50 text-blue-700";
 
   const inactiveClass = theme === "dark"
     ? "border-transparent text-slate-300 hover:text-white"
-    : "border-transparent text-slate-600 hover:text-slate-900";
+    : "border-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900";
 
   return (
     <nav className="hidden items-center gap-3 text-sm md:flex">

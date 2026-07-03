@@ -47,8 +47,8 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const imageUrl = mission.imageUrl ?? getMissionImage(mission.slug);
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl shadow-cyan-950/10 transition hover:-translate-y-1 hover:border-cyan-400/30">
-      <div className="relative h-52 w-full overflow-hidden">
+    <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg">
+      <div className="relative h-52 w-full overflow-hidden bg-slate-100">
         <Image
           src={imageUrl}
           alt={mission.title}
@@ -56,33 +56,33 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
           className="object-cover transition duration-500 group-hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-900/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/65 via-slate-900/15 to-transparent" />
 
         <div className="absolute left-5 top-5">
-          <span className="rounded-full border border-white/30 bg-slate-900/55 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+          <span className="rounded-full border border-white/45 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-800">
             {categoryLabel}
           </span>
         </div>
 
         <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-cyan-200">{brandLabel}</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-slate-200">{brandLabel}</p>
             <h3 className="mt-2 text-xl font-semibold text-white">{mission.title}</h3>
           </div>
-          <span className="shrink-0 rounded-full border border-cyan-400/40 bg-cyan-400/15 px-3 py-1 text-sm font-medium text-cyan-100">
+          <span className="shrink-0 rounded-full border border-white/45 bg-blue-600 px-3 py-1 text-sm font-medium text-white">
             {mission.points} {locale === "en" ? "Coins" : "金幣"}
           </span>
         </div>
       </div>
 
       <div className="p-6">
-        <p className="text-sm leading-6 text-slate-300">{mission.description}</p>
+        <p className="text-sm leading-6 text-slate-600">{mission.description}</p>
 
         {(mission.minParticipants ?? 0) > 0 && (
           <div className={`mt-4 flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs ${
             (mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0)
-              ? "border-green-400/20 bg-green-400/8 text-green-300"
-              : "border-amber-400/20 bg-amber-400/8 text-amber-300"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-amber-200 bg-amber-50 text-amber-700"
           }`}>
             <span>{(mission.currentParticipants ?? 0) >= (mission.minParticipants ?? 0) ? "✅" : "🔒"}</span>
             <span className="font-medium">
@@ -90,22 +90,22 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
                 ? (locale === "en" ? "Open" : "已開放")
                 : (locale === "en" ? "Waiting to open" : "等待人數開放")}
             </span>
-            <span className="ml-auto text-slate-400">
+            <span className="ml-auto text-slate-500">
               {mission.currentParticipants ?? 0} / {mission.minParticipants} {locale === "en" ? "creators" : "人"}
             </span>
           </div>
         )}
 
-        <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-300">
-          <span className="rounded-full bg-white/5 px-3 py-1">{difficultyLabel}</span>
-          <span className="rounded-full bg-white/5 px-3 py-1">{locale === "en" ? "ETA" : "時限"} {etaLabel}</span>
+        <div className="mt-5 flex flex-wrap gap-2 text-xs text-slate-600">
+          <span className="rounded-full bg-slate-100 px-3 py-1">{difficultyLabel}</span>
+          <span className="rounded-full bg-slate-100 px-3 py-1">{locale === "en" ? "ETA" : "時限"} {etaLabel}</span>
         </div>
 
         <div className="mt-6 flex items-center justify-between text-sm">
-          <span className="text-slate-400">{productLabel}</span>
+          <span className="text-slate-500">{productLabel}</span>
           <Link
             href={`/missions/${mission.slug}`}
-            className="font-semibold text-cyan-300 transition group-hover:text-cyan-200"
+            className="font-semibold text-blue-600 transition group-hover:text-blue-700"
           >
             {locale === "en" ? "View details →" : "查看詳情 →"}
           </Link>

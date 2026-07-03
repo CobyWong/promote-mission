@@ -67,7 +67,7 @@ export async function Header() {
   const t = linkLabels[locale];
 
   const borderColor = theme === "dark" ? "border-white/10" : "border-slate-200";
-  const bgColor = theme === "dark" ? "bg-slate-950/80" : "bg-white/80";
+  const bgColor = theme === "dark" ? "bg-slate-950/80" : "bg-white/95 shadow-sm";
   const textColor = theme === "dark" ? "text-white" : "text-slate-900";
   const tertiaryTextColor = theme === "dark" ? "text-slate-400" : "text-slate-500";
 
