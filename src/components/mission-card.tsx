@@ -1,9 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 
 import type { Mission } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
-import { getMissionImage } from "@/lib/mission-media";
 
 const zhBrandMap: Record<string, string> = {
   "Spark Living": "Spark Living 生活選物",
@@ -44,38 +42,23 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const etaLabel = locale === "en" ? mission.eta : (zhEtaMap[mission.eta] ?? mission.eta);
-  const imageUrl = mission.imageUrl ?? getMissionImage(mission.slug);
 
   return (
-    <article className="group overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg">
-      <div className="relative h-52 w-full overflow-hidden bg-slate-100">
-        <Image
-          src={imageUrl}
-          alt={mission.title}
-          fill
-          className="object-cover transition duration-500 group-hover:scale-105"
-          sizes="(max-width: 1024px) 100vw, 50vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/65 via-slate-900/15 to-transparent" />
-
-        <div className="absolute left-5 top-5">
-          <span className="rounded-full border border-white/45 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-800">
+    <article className="group rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-slate-300 hover:shadow-lg">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-600">
             {categoryLabel}
           </span>
+          <p className="mt-4 text-xs uppercase tracking-[0.3em] text-slate-500">{brandLabel}</p>
+          <h3 className="mt-2 text-2xl font-semibold text-slate-900">{mission.title}</h3>
         </div>
-
-        <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-200">{brandLabel}</p>
-            <h3 className="mt-2 text-xl font-semibold text-white">{mission.title}</h3>
-          </div>
-          <span className="shrink-0 rounded-full border border-white/45 bg-blue-600 px-3 py-1 text-sm font-medium text-white">
-            {mission.points} {locale === "en" ? "Coins" : "金幣"}
-          </span>
-        </div>
+        <span className="shrink-0 rounded-full bg-blue-600 px-3 py-1 text-sm font-medium text-white">
+          {mission.points} {locale === "en" ? "Coins" : "金幣"}
+        </span>
       </div>
 
-      <div className="p-6">
+      <div className="mt-5">
         <p className="text-sm leading-6 text-slate-600">{mission.description}</p>
 
         {(mission.minParticipants ?? 0) > 0 && (
