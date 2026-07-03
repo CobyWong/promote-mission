@@ -28,7 +28,7 @@ export default async function MissionsPage() {
 
       <div className="mt-8 grid auto-rows-fr gap-6 lg:grid-cols-3">
         {missionCatalog.missions.map((mission) => (
-          <MissionCard key={mission.slug} mission={mission} locale={locale} />
+          <MissionCard key={mission.slug} mission={mission} locale={locale} userLevel={userLevel} />
         ))}
       </div>
     </section>

@@ -31,13 +31,20 @@ const zhDifficultyMap: Record<string, string> = {
   Hard: "高級",
 };
 
-export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; locale?: Locale }) {
+type MissionCardProps = {
+  mission: Mission;
+  locale?: Locale;
+  userLevel?: number;
+};
+
+export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: MissionCardProps) {
   const brandLabel = locale === "en" ? mission.brand : (zhBrandMap[mission.brand] ?? mission.brand);
   const productLabel = locale === "en" ? mission.product : (zhProductMap[mission.product] ?? mission.product);
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
+  const isLocked = userLevel < requiredLevel;
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f8fb] shadow-sm transition hover:border-slate-300 hover:shadow-md">
@@ -69,7 +76,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
         <div className="space-y-3">
           <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
             <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Top reward" : "最高獎勵"}</p>
-            <p className="text-xl font-black text-emerald-600">HK$600</p>
+            <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : "HK$600"}</p>
           </div>
 
           <div className="flex items-center justify-between gap-3">
@@ -77,11 +84,19 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
             <p className="text-xl font-bold text-slate-800">{difficultyLabel}</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            {locale === "en"
-              ? "Likes ranking payout: #1 HK$600 · #2 HK$300 · #3 HK$100"
-              : "Like 排名派彩：第 1 名 HK$600 · 第 2 名 HK$300 · 第 3 名 HK$100"}
-          </div>
+          {isLocked ? (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+              {locale === "en"
+                ? `Locked mission. Level up to Lv.${requiredLevel} to unlock.`
+                : `任務已鎖定，升級到 Lv.${requiredLevel} 後即可解鎖。`}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+              {locale === "en"
+                ? "Likes ranking payout: #1 HK$600 · #2 HK$300 · #3 HK$100"
+                : "Like 排名派彩：第 1 名 HK$600 · 第 2 名 HK$300 · 第 3 名 HK$100"}
+            </div>
+          )}
 
           <div className="pt-1 text-xs font-medium text-blue-700">
             {locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}
@@ -93,17 +108,33 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
             </div>
           )}
 
-          <p className="line-clamp-2 pt-1 text-xs leading-5 text-slate-500">{productLabel} · {mission.description}</p>
+          <p className="line-clamp-2 pt-1 text-xs leading-5 text-slate-500">
+            {isLocked
+              ? (locale === "en"
+                ? "Details unlock after you level up. Complete current-level missions first."
+                : "完成目前等級任務後升級，即可查看完整獎勵與詳情。")
+              : `${productLabel} · ${mission.description}`}
+          </p>
         </div>
       </div>
 
       <div className="mt-auto border-t border-slate-200 p-4">
-        <Link
-          href={`/missions/${mission.slug}`}
-          className="flex h-12 w-full items-center justify-center rounded-2xl bg-blue-600 px-5 text-lg font-semibold text-white transition hover:bg-blue-700"
-        >
-          {locale === "en" ? "Join campaign" : "參與活動"}
-        </Link>
+        {isLocked ? (
+          <button
+            type="button"
+            disabled
+            className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-slate-300 px-5 text-lg font-semibold text-slate-600"
+          >
+            {locale === "en" ? `Level up to unlock (Lv.${requiredLevel})` : `升級至 Lv.${requiredLevel} 解鎖`}
+          </button>
+        ) : (
+          <Link
+            href={`/missions/${mission.slug}`}
+            className="flex h-12 w-full items-center justify-center rounded-2xl bg-blue-600 px-5 text-lg font-semibold text-white transition hover:bg-blue-700"
+          >
+            {locale === "en" ? "Join campaign" : "參與活動"}
+          </Link>
+        )}
       </div>
     </article>
   );

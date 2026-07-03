@@ -6,7 +6,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromApprovedCount, getMissionRequiredLevel } from "@/lib/mission-rules";
+import { getCreatorLevelFromApprovedCount } from "@/lib/mission-rules";
 
 const fallbackCreatorProfile: CreatorProfile = {
   name: "Chloe Wong",
@@ -236,13 +236,7 @@ export async function getMissionCenterData() {
     ...missionCatalog,
     userLevel,
     approvedMissionCount,
-    missions: missionCatalog.missions.filter((mission) => {
-      if (completedMissionSlugs.has(mission.slug)) {
-        return false;
-      }
-
-      return getMissionRequiredLevel(mission.difficulty) <= userLevel;
-    }),
+    missions: missionCatalog.missions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
   };
 }
 
