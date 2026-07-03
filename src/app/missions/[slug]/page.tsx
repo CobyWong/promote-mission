@@ -21,7 +21,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
   return (
     <section className="section-shell py-12 sm:py-16">
       <Link href="/missions" className="text-sm font-semibold text-cyan-300">
-        {locale === "en" ? "← Back to quest board" : "← 返回任務關卡"}
+        {locale === "en" ? "← Back to missions" : "← 返回任務中心"}
       </Link>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
@@ -64,12 +64,12 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
         <div className="space-y-6">
           <div className="glass-panel p-8">
-            <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-300">{locale === "en" ? "Quest hook" : "關卡切入點"}</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-300">{locale === "en" ? "Suggested Hook" : "建議切入點"}</p>
             <p className="mt-4 text-2xl font-semibold leading-9 text-white">{mission.hook}</p>
           </div>
 
           <div className="glass-panel p-8">
-            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Quest rules" : "關卡規則"}</h2>
+            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
             <ul className="mt-5 space-y-3 text-slate-300">
               {[(locale === "en" ? "Video length must be longer than 60 seconds" : "影片長度需超過 60 秒")].map((item) => (
                 <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
@@ -78,7 +78,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           </div>
 
           <div className="glass-panel p-8">
-            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Quest deliverables" : "關卡交付內容"}</h2>
+            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Deliverables" : "提交內容"}</h2>
             <ul className="mt-5 space-y-3 text-slate-300">
               {mission.deliverables.map((item) => (
                 <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
@@ -90,14 +90,14 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
       <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_0.85fr]">
         <div className="glass-panel p-8">
-          <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Quest clear flow" : "過關流程"}</h2>
+          <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {(locale === "en"
-              ? ["Complete the mission by filming and publishing your IG Reels publicly", "Tag @missionone.hk as collaborator and submit your Reel URL to turn in", "Clear review to claim Coins and unlock your next quest"]
-              : ["完成拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結交任務", "通過審核後獲得 Coins，解鎖下一關"]
+              ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", "Receive Coins after review approval"]
+              : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", "待審核後收 Coins 入帳"]
             ).map((step, index) => (
               <div key={step} className="rounded-2xl bg-white/5 p-5">
-                <p className="text-sm text-cyan-300">{locale === "en" ? `Stage ${index + 1}` : `第 ${index + 1} 關`}</p>
+                <p className="text-sm text-cyan-300">Step {index + 1}</p>
                 <p className="mt-3 text-white">{step}</p>
               </div>
             ))}

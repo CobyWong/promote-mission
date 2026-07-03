@@ -10,10 +10,10 @@ import { HeaderSideMenu } from "@/components/header-side-menu";
 
 const linkLabels: Record<Locale, Record<string, string>> = {
   "zh-HK": {
-    missions: "任務關卡",
-    rewards: "戰利品商店",
+    missions: "任務中心",
+    rewards: "獎賞商城",
     leaderboard: "排行榜",
-    dashboard: "玩家基地",
+    dashboard: "個人檔案",
     support: "客服中心",
     adminReview: "審核後台",
     adminFulfillment: "兌換處理",
@@ -22,13 +22,13 @@ const linkLabels: Record<Locale, Record<string, string>> = {
     brandRewards: "品牌獎賞管理",
     login: "登入",
     start: "免費開始",
-    subtitle: "接關卡・拍 Reels・領戰利品",
+    subtitle: "接任務・拍 Reels・換獎賞",
   },
   en: {
-    missions: "Quest Board",
-    rewards: "Loot Shop",
+    missions: "Missions",
+    rewards: "Rewards",
     leaderboard: "Leaderboard",
-    dashboard: "Player Hub",
+    dashboard: "Profile",
     support: "Support",
     adminReview: "Admin Review",
     adminFulfillment: "Admin Fulfillment",
@@ -37,7 +37,7 @@ const linkLabels: Record<Locale, Record<string, string>> = {
     brandRewards: "Brand Rewards",
     login: "Login",
     start: "Get Started",
-    subtitle: "Take quests • Post Reels • Claim loot",
+    subtitle: "Take missions • Post Reels • Redeem rewards",
   },
 };
 

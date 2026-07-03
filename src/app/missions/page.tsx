@@ -2,7 +2,7 @@ import { MissionCard } from "@/components/mission-card";
 import { getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
 
-const zhMissionIntro = "喺任務關卡揀選最啱你風格嘅挑戰。每個關卡都寫明目標、拍攝提示同可獲金幣獎勵。";
+const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。每個任務都列明交稿要求、內容切入建議同可獲金幣。";
 
 export default async function MissionsPage() {
   const locale = await getCurrentLocale();
@@ -11,11 +11,11 @@ export default async function MissionsPage() {
   return (
     <section className="section-shell py-10 sm:py-12">
       <div className="max-w-4xl">
-        <p className="text-sm uppercase tracking-[0.28em] text-blue-600">{locale === "en" ? "Player Quest Board" : "玩家任務關卡"}</p>
-        <h1 className="mt-3 text-4xl font-semibold text-slate-900">{locale === "en" ? "Choose your next quest" : "揀你下一個關卡"}</h1>
+        <p className="text-sm uppercase tracking-[0.28em] text-blue-600">{locale === "en" ? "Campaign Marketplace" : "任務市集"}</p>
+        <h1 className="mt-3 text-4xl font-semibold text-slate-900">{locale === "en" ? "Mission Center" : "任務中心"}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-600">
           {locale === "en"
-            ? "Pick quests that match your content build. Each quest includes clear objectives, hook ideas, and Coin rewards."
+            ? "Pick campaigns that fit your audience and content style. Every mission includes clear deliverables, hook ideas, and coin rewards."
             : zhMissionIntro}
         </p>
       </div>

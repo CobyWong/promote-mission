@@ -37,11 +37,6 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const payoutText = `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`;
-  const difficultyTone = mission.difficulty === "Hard"
-    ? "border-rose-300 bg-rose-50 text-rose-700"
-    : mission.difficulty === "Medium"
-      ? "border-amber-300 bg-amber-50 text-amber-700"
-      : "border-emerald-300 bg-emerald-50 text-emerald-700";
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f8fb] shadow-sm transition hover:border-slate-300 hover:shadow-md">
@@ -66,21 +61,18 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
           <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600">
             UGC
           </span>
-          <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${difficultyTone}`}>
-            {locale === "en" ? "Quest Level" : "關卡等級"} · {difficultyLabel}
-          </span>
         </div>
       </div>
 
       <div className="border-t border-slate-200 px-4 py-3">
         <div className="space-y-3">
           <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
-            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Quest reward" : "關卡獎勵"}</p>
+            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Reward per REELS" : "每條 REELS 派發"}</p>
             <p className="text-xl font-black text-emerald-600">{payoutText}</p>
           </div>
 
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Challenge" : "挑戰度"}</p>
+            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
             <p className="text-xl font-bold text-slate-800">{difficultyLabel}</p>
           </div>
 
@@ -99,7 +91,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
           href={`/missions/${mission.slug}`}
           className="flex h-12 w-full items-center justify-center rounded-2xl bg-blue-600 px-5 text-lg font-semibold text-white transition hover:bg-blue-700"
         >
-          {locale === "en" ? "Start quest" : "開始關卡"}
+          {locale === "en" ? "Join campaign" : "參與活動"}
         </Link>
       </div>
     </article>

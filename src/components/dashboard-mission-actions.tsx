@@ -40,14 +40,14 @@ export function DashboardMissionActions({ missionSlug, eta, locale }: DashboardM
   if (canSubmit) {
     return (
       <Link href={`/submit/${missionSlug}`} className="text-blue-600 hover:text-blue-700">
-        {locale === "en" ? "Turn in quest →" : "交任務 →"}
+        {locale === "en" ? "Submit proof →" : "提交證明 →"}
       </Link>
     );
   }
 
   return (
     <Link href={`/missions/${missionSlug}`} className="text-amber-600 hover:text-amber-700">
-      {locale === "en" ? "Accept quest first →" : "請先接受關卡 →"}
+      {locale === "en" ? "Accept mission first →" : "請先接受任務 →"}
     </Link>
   );
 }
