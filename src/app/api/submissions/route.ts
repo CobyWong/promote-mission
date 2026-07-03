@@ -2,18 +2,12 @@ import { NextResponse } from "next/server";
 
 import { missions } from "@/lib/data";
 import type { Database } from "@/lib/supabase/database.types";
-import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-function sanitizeFileName(fileName: string) {
-  return fileName.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-");
-}
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
-  const admin = createSupabaseAdminClient();
 
-  if (!supabase || !admin) {
+  if (!supabase) {
     return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
   }
 
@@ -32,9 +26,6 @@ export async function POST(request: Request) {
   const notes = String(formData.get("notes") ?? "") || null;
   const checksRaw = String(formData.get("checks") ?? "{}");
   const checks = JSON.parse(checksRaw) as Record<string, boolean>;
-  const files = formData
-    .getAll("screenshots")
-    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
   const { data: missionRow } = await supabase
     .from("missions")
@@ -60,8 +51,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "A valid reel URL is required." }, { status: 400 });
   }
 
-  if (files.length === 0) {
-    return NextResponse.json({ error: "Please upload at least one screenshot." }, { status: 400 });
+  if (!checks.addedCollaborator) {
+    return NextResponse.json({ error: "Please add @missionone.hk as collaborator before submission." }, { status: 400 });
   }
 
   const { data: profile } = await supabase
@@ -75,26 +66,6 @@ export async function POST(request: Request) {
     "full_name" | "instagram_handle"
   > | null;
 
-  const uploadedPaths: string[] = [];
-
-  for (const [index, file] of files.entries()) {
-    const arrayBuffer = await file.arrayBuffer();
-    const path = `${user.id}/${Date.now()}-${index}-${sanitizeFileName(file.name)}`;
-
-    const { error: uploadError } = await admin.storage
-      .from("mission screenshot")
-      .upload(path, Buffer.from(arrayBuffer), {
-        contentType: file.type || "application/octet-stream",
-        upsert: false,
-      });
-
-    if (uploadError) {
-      return NextResponse.json({ error: uploadError.message }, { status: 400 });
-    }
-
-    uploadedPaths.push(path);
-  }
-
   const submissionPayload: Database["public"]["Tables"]["submissions"]["Insert"] = {
     user_id: user.id,
     mission_slug: mission.slug,
@@ -105,8 +76,8 @@ export async function POST(request: Request) {
     caption_summary: captionSummary,
     notes,
     checklist: checks,
-    screenshot_count: uploadedPaths.length,
-    screenshot_paths: uploadedPaths,
+    screenshot_count: 0,
+    screenshot_paths: [],
     creator_name: profileRow?.full_name ?? user.email ?? "Creator",
     creator_handle: profileRow?.instagram_handle ?? null,
     status: "Pending",
