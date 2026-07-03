@@ -376,7 +376,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       {submitted ? (
         <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Success</p>
-          <h2 className="mt-3 text-4xl font-semibold text-slate-900">
+          <h2 className="mt-3 text-3xl font-semibold text-slate-900">
             {isRegister ? (locale === "en" ? "Account created" : "帳號已建立") : (locale === "en" ? "Signed in" : "已成功登入")}
           </h2>
           <p className="mt-4 text-slate-600">
@@ -402,13 +402,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
           {isRegister ? (
             <>
               <div>
-                <h1 className="text-6xl font-semibold text-slate-900">{t.registerTitle}</h1>
-                <p className="mt-3 text-3xl text-slate-500">{t.registerSubtitle}</p>
+                <h1 className="text-4xl font-semibold text-slate-900">{t.registerTitle}</h1>
+                <p className="mt-3 text-lg text-slate-500">{t.registerSubtitle}</p>
               </div>
 
               <div className="flex items-end justify-between gap-3">
-                <p className="text-3xl text-slate-600">{registerStepLabels[registerStep - 1]}</p>
-                <p className="text-3xl text-slate-500">{t.stepOf} {registerStep} {t.ofTotal}</p>
+                <p className="text-xl text-slate-600">{registerStepLabels[registerStep - 1]}</p>
+                <p className="text-xl text-slate-500">{t.stepOf} {registerStep} {t.ofTotal}</p>
               </div>
               <div className="h-2 rounded-full bg-slate-200">
                 <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(registerStep / 5) * 100}%` }} />
@@ -418,7 +418,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                 <div className="space-y-6 p-8">
                   {registerStep === 1 ? (
                     <>
-                      <label className="block text-2xl font-medium text-slate-900">
+                      <label className="block text-base font-medium text-slate-900">
                         {t.name} <span className="text-rose-500">*</span>
                         <input
                           required
@@ -429,18 +429,18 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                         />
                       </label>
 
-                      <label className="block text-2xl font-medium text-slate-900">
+                      <label className="block text-base font-medium text-slate-900">
                         Email <span className="text-rose-500">*</span>
                         <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={lightInputClassName} placeholder="you@example.com" />
                       </label>
 
-                      <label className="block text-2xl font-medium text-slate-900">
+                      <label className="block text-base font-medium text-slate-900">
                         Password <span className="text-rose-500">*</span>
                         <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={lightInputClassName} placeholder="********" minLength={8} />
                       </label>
 
                       <div>
-                        <p className="text-2xl font-medium text-slate-900">{t.phone}</p>
+                        <p className="text-base font-medium text-slate-900">{t.phone}</p>
                         <div className="mt-2 grid gap-3 sm:grid-cols-[220px_1fr]">
                           <select value={phoneRegion} onChange={(event) => setPhoneRegion(event.target.value)} className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-blue-400">
                             <option>HK (+852)</option>
@@ -452,7 +452,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                         </div>
                       </div>
 
-                      <label className="block text-2xl font-medium text-slate-900">
+                      <label className="block text-base font-medium text-slate-900">
                         {t.bio}
                         <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="mt-2 min-h-36 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder={locale === "en" ? "Tell brands about your style and audience..." : "介紹你的內容風格、受眾，以及你的 Reels 有什麼特色..."} />
                       </label>
@@ -461,9 +461,9 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                   {registerStep === 2 ? (
                     <>
-                      <label className="block text-4xl font-semibold text-slate-900">
+                      <label className="block text-2xl font-semibold text-slate-900">
                         {t.instagram}
-                        <p className="mt-2 text-2xl font-normal text-slate-500">{t.instagramHint}</p>
+                        <p className="mt-2 text-base font-normal text-slate-500">{t.instagramHint}</p>
                         <input value={instagramHandle} onChange={(event) => setInstagramHandle(event.target.value)} className={lightInputClassName} placeholder="yourhandle" />
                       </label>
                     </>
@@ -472,8 +472,8 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                   {registerStep === 3 ? (
                     <>
                       <div>
-                        <h3 className="text-3xl font-semibold text-slate-900">{t.niches}</h3>
-                        <p className="mt-2 text-2xl text-slate-500">{t.nicheHint}</p>
+                        <h3 className="text-xl font-semibold text-slate-900">{t.niches}</h3>
+                        <p className="mt-2 text-sm text-slate-500">{t.nicheHint}</p>
                         <div className="mt-4 flex flex-wrap gap-2">
                           {registerNiches.map((item) => {
                             const label = locale === "en" ? item.labelEn : item.labelZh;
@@ -483,7 +483,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                                 key={item.value}
                                 type="button"
                                 onClick={() => setSelectedNiches((prev) => toggleChip(prev, item.value, 5))}
-                                className={`rounded-full border px-4 py-2 text-xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                                className={`rounded-full border px-4 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
                               >
                                 {label}
                               </button>
@@ -493,7 +493,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                       </div>
 
                       <div>
-                        <h3 className="text-3xl font-semibold text-slate-900">{t.languages}</h3>
+                        <h3 className="text-xl font-semibold text-slate-900">{t.languages}</h3>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {registerLanguages.map((language) => {
                             const selected = selectedLanguages.includes(language);
@@ -502,7 +502,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                                 key={language}
                                 type="button"
                                 onClick={() => setSelectedLanguages((prev) => toggleChip(prev, language))}
-                                className={`rounded-full border px-4 py-2 text-xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                                className={`rounded-full border px-4 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
                               >
                                 {language}
                               </button>
@@ -512,7 +512,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                       </div>
 
                       <div>
-                        <h3 className="text-3xl font-semibold text-slate-900">{t.regions}</h3>
+                        <h3 className="text-xl font-semibold text-slate-900">{t.regions}</h3>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {registerRegions.map((region) => {
                             const selected = selectedRegions.includes(region);
@@ -521,7 +521,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                                 key={region}
                                 type="button"
                                 onClick={() => setSelectedRegions((prev) => toggleChip(prev, region))}
-                                className={`rounded-full border px-4 py-2 text-xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                                className={`rounded-full border px-4 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
                               >
                                 {region}
                               </button>
@@ -535,7 +535,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                   {registerStep === 4 ? (
                     <>
                       <div>
-                        <h3 className="text-3xl font-semibold text-slate-900">{t.gender} <span className="text-rose-500">*</span></h3>
+                        <h3 className="text-xl font-semibold text-slate-900">{t.gender} <span className="text-rose-500">*</span></h3>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {registerGenders.map((item) => {
                             const selected = gender === item;
@@ -544,7 +544,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                                 key={item}
                                 type="button"
                                 onClick={() => setGender(item)}
-                                className={`rounded-full border px-5 py-2 text-2xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                                className={`rounded-full border px-5 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
                               >
                                 {item}
                               </button>
@@ -554,7 +554,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                       </div>
 
                       <div>
-                        <h3 className="text-3xl font-semibold text-slate-900">{t.age} <span className="text-rose-500">*</span></h3>
+                        <h3 className="text-xl font-semibold text-slate-900">{t.age} <span className="text-rose-500">*</span></h3>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {registerAgeGroups.map((item) => {
                             const selected = ageGroup === item;
@@ -563,7 +563,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                                 key={item}
                                 type="button"
                                 onClick={() => setAgeGroup(item)}
-                                className={`rounded-full border px-5 py-2 text-2xl transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                                className={`rounded-full border px-5 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
                               >
                                 {item}
                               </button>
@@ -577,40 +577,40 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                   {registerStep === 5 ? (
                     <>
                       <div>
-                        <h3 className="text-4xl font-semibold text-slate-900">{t.accountUse}</h3>
+                        <h3 className="text-2xl font-semibold text-slate-900">{t.accountUse}</h3>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2">
                           <button
                             type="button"
                             onClick={() => setAccountType("creator")}
                             className={`rounded-3xl border p-5 text-left transition ${accountType === "creator" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
                           >
-                            <p className="text-3xl font-semibold text-slate-900">{t.creator}</p>
-                            <p className="mt-2 text-2xl text-slate-500">{t.creatorDesc}</p>
+                            <p className="text-xl font-semibold text-slate-900">{t.creator}</p>
+                            <p className="mt-2 text-sm text-slate-500">{t.creatorDesc}</p>
                           </button>
                           <button
                             type="button"
                             onClick={() => setAccountType("brand")}
                             className={`rounded-3xl border p-5 text-left transition ${accountType === "brand" ? "border-blue-500 bg-blue-50" : "border-slate-300 bg-white"}`}
                           >
-                            <p className="text-3xl font-semibold text-slate-900">{t.brand}</p>
-                            <p className="mt-2 text-2xl text-slate-500">{t.brandDesc}</p>
+                            <p className="text-xl font-semibold text-slate-900">{t.brand}</p>
+                            <p className="mt-2 text-sm text-slate-500">{t.brandDesc}</p>
                           </button>
                         </div>
                       </div>
 
-                      <label className="block text-2xl font-medium text-slate-900">
+                      <label className="block text-base font-medium text-slate-900">
                         {t.referral}
                         <input value={referralCode} onChange={(event) => setReferralCode(event.target.value)} className={lightInputClassName} placeholder={locale === "en" ? "ABC123" : "輸入推薦碼（例如：ABC123）"} />
                       </label>
 
-                      <label className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-2xl text-slate-700">
+                      <label className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700">
                         <input checked={agreedTerms} onChange={(event) => setAgreedTerms(event.target.checked)} type="checkbox" className="h-5 w-5 rounded border-slate-400" />
                         <span>{t.terms}</span>
                       </label>
                     </>
                   ) : null}
 
-                  {error ? <p className="text-xl text-rose-600">{error}</p> : null}
+                  {error ? <p className="text-sm text-rose-600">{error}</p> : null}
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-8 py-6">
@@ -618,7 +618,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     type="button"
                     onClick={goBackRegisterStep}
                     disabled={registerStep === 1 || loading}
-                    className="text-3xl font-semibold text-slate-700 disabled:opacity-40"
+                    className="text-lg font-semibold text-slate-700 disabled:opacity-40"
                   >
                     {t.back}
                   </button>
@@ -628,7 +628,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                       type="button"
                       onClick={goNextRegisterStep}
                       disabled={loading}
-                      className="rounded-full bg-blue-600 px-6 py-3 text-3xl font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                      className="rounded-full bg-blue-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
                     >
                       {t.continue}
                     </button>
@@ -636,7 +636,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="rounded-full bg-blue-600 px-6 py-3 text-3xl font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+                      className="rounded-full bg-blue-600 px-6 py-3 text-lg font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
                     >
                       {loading ? (locale === "en" ? "Processing..." : "處理中...") : t.create}
                     </button>
@@ -644,7 +644,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                 </div>
               </section>
 
-              <p className="text-center text-xl text-slate-500">
+              <p className="text-center text-sm text-slate-500">
                 {locale === "en" ? "Already have an account?" : "已有帳戶？"}{" "}
                 <Link href="/login" className="font-semibold text-blue-600 hover:text-blue-700">
                   {locale === "en" ? "Login" : "登入"}
@@ -653,25 +653,25 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
             </>
           ) : (
             <section className="mx-auto max-w-2xl rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-              <h1 className="text-5xl font-semibold text-slate-900">{locale === "en" ? "Welcome back" : "歡迎回來"}</h1>
-              <p className="mt-3 text-2xl text-slate-500">
+              <h1 className="text-3xl font-semibold text-slate-900">{locale === "en" ? "Welcome back" : "歡迎回來"}</h1>
+              <p className="mt-3 text-base text-slate-500">
                 {locale === "en" ? "Sign in to continue your mission journey." : "登入後即可繼續管理任務及收益。"}
               </p>
 
               <div className="mt-6 space-y-4">
-                <label className="block text-xl text-slate-700">
+                <label className="block text-sm text-slate-700">
                   Email
                   <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={lightInputClassName} placeholder="you@example.com" />
                 </label>
 
-                <label className="block text-xl text-slate-700">
+                <label className="block text-sm text-slate-700">
                   Password
                   <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={lightInputClassName} placeholder="********" minLength={8} />
                 </label>
 
                 {error ? <p className="text-sm text-rose-600">{error}</p> : null}
 
-                <button disabled={loading} className="w-full rounded-full bg-blue-600 px-5 py-3 text-xl font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
+                <button disabled={loading} className="w-full rounded-full bg-blue-600 px-5 py-3 text-base font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
                   {loading ? (locale === "en" ? "Processing..." : "處理中...") : (locale === "en" ? "Sign in" : "登入平台")}
                 </button>
 

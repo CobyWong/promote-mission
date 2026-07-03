@@ -47,7 +47,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
           </span>
           <div className="min-w-0">
             <p className="truncate text-base font-semibold text-slate-800">{brandLabel}</p>
-            <h3 className="mt-1 line-clamp-2 text-3xl font-bold leading-tight text-slate-900">{mission.title}</h3>
+            <h3 className="mt-1 line-clamp-2 text-2xl font-bold leading-tight text-slate-900">{mission.title}</h3>
           </div>
         </div>
 

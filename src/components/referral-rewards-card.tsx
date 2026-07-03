@@ -64,15 +64,15 @@ export function ReferralRewardsCard({
         </span>
 
         <div>
-          <h2 className="text-4xl font-semibold text-slate-900">{t.title}</h2>
-          <p className="mt-2 text-2xl text-slate-500">{t.subtitle}</p>
+          <h2 className="text-3xl font-semibold text-slate-900">{t.title}</h2>
+          <p className="mt-2 text-base text-slate-500">{t.subtitle}</p>
         </div>
       </div>
 
       <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
-        <p className="text-xl text-slate-500">{t.yourCode}</p>
+        <p className="text-sm text-slate-500">{t.yourCode}</p>
         <div className="mt-2 flex items-center justify-between gap-3">
-          <p className="text-5xl font-bold tracking-[0.14em] text-blue-600">{referralCode}</p>
+          <p className="text-4xl font-bold tracking-[0.1em] text-blue-600">{referralCode}</p>
           <button
             type="button"
             onClick={handleCopy}
@@ -90,22 +90,22 @@ export function ReferralRewardsCard({
 
       <div className="mt-4 grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4">
-          <p className="text-xl text-slate-500">{t.invited}</p>
-          <p className="mt-2 text-5xl font-semibold text-slate-900">{invitedCount}</p>
+          <p className="text-sm text-slate-500">{t.invited}</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">{invitedCount}</p>
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4">
-          <p className="text-xl text-slate-500">{t.batches}</p>
-          <p className="mt-2 text-5xl font-semibold text-slate-900">{paidBatches}</p>
+          <p className="text-sm text-slate-500">{t.batches}</p>
+          <p className="mt-2 text-3xl font-semibold text-slate-900">{paidBatches}</p>
         </div>
 
         <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4">
-          <p className="text-xl text-slate-500">{t.reward}</p>
-          <p className="mt-2 text-5xl font-semibold text-emerald-600">HK${totalRewardHkd.toFixed(2)}</p>
+          <p className="text-sm text-slate-500">{t.reward}</p>
+          <p className="mt-2 text-3xl font-semibold text-emerald-600">HK${totalRewardHkd.toFixed(2)}</p>
         </div>
       </div>
 
-      <button type="button" className="mt-6 text-3xl font-semibold text-blue-600 hover:text-blue-700">
+      <button type="button" className="mt-6 text-lg font-semibold text-blue-600 hover:text-blue-700">
         {t.details} &rarr;
       </button>
     </section>
