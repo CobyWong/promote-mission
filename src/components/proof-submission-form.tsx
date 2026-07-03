@@ -29,13 +29,10 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
   const [checks, setChecks] = useState({
     published: true,
     taggedBrand: false,
-    attachedScreenshots: false,
-    willUploadInsights: false,
+    addedCollaborator: false,
   });
   const [submitted, setSubmitted] = useState(false);
   const [submissionId, setSubmissionId] = useState<string | null>(null);
-  const [uploadedFileNames, setUploadedFileNames] = useState<string[]>([]);
-  const [screenshotFiles, setScreenshotFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [acceptedAndValid, setAcceptedAndValid] = useState(false);
@@ -67,7 +64,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
     [checks],
   );
 
-  const canSubmit = acceptedAndValid && reelUrl.trim().startsWith("http") && completedChecks === 4 && screenshotFiles.length > 0;
+  const canSubmit = acceptedAndValid && reelUrl.trim().startsWith("http") && completedChecks === 3;
 
   if (submitted) {
     return (
@@ -90,8 +87,8 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
               <p className="mt-2 font-semibold text-cyan-300">{mission.points} {isEnglish ? "Coins" : "金幣"}</p>
             </div>
             <div className="rounded-2xl bg-white/5 p-4">
-              <p className="text-sm text-slate-400">{isEnglish ? "Next step" : "下一步"}</p>
-              <p className="mt-2 font-semibold text-white">{isEnglish ? "Upload insights" : "補交 insights"}</p>
+              <p className="text-sm text-slate-400">{isEnglish ? "Collaborator" : "協作者"}</p>
+              <p className="mt-2 font-semibold text-white">@missionone.hk</p>
             </div>
           </div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -109,7 +106,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           <div className="mt-6 space-y-4 text-sm text-slate-300">
             <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Reel URL" : "Reels 連結"}: {reelUrl}</div>
             <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Submission ID" : "提交編號"}: {submissionId ?? (isEnglish ? "Pending assignment" : "等待分配")}</div>
-            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Screenshots" : "截圖"}: {uploadedFileNames.join(", ") || `${screenshotFiles.length} ${isEnglish ? "files" : "個檔案"}`}</div>
+            <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Collaborator" : "協作者"}: @missionone.hk</div>
             <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Caption summary" : "Caption 重點"}: {captionSummary || (isEnglish ? "Submitted" : "已提交")}</div>
             <div className="rounded-2xl bg-white/5 px-4 py-4">{isEnglish ? "Notes" : "備註"}: {notes || (isEnglish ? "None" : "無")}</div>
           </div>
@@ -150,10 +147,6 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           formData.set("notes", notes);
           formData.set("checks", JSON.stringify(checks));
 
-          screenshotFiles.forEach((file) => {
-            formData.append("screenshots", file);
-          });
-
           const response = await fetch("/api/submissions", {
             method: "POST",
             body: formData,
@@ -171,7 +164,6 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           }
 
           setSubmissionId(result.id ?? null);
-          setUploadedFileNames(screenshotFiles.map((file) => file.name));
           setSubmitted(true);
           setLoading(false);
           router.refresh();
@@ -181,8 +173,8 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
         <h1 className="mt-3 text-4xl font-semibold text-white">{isEnglish ? `Submit ${mission.brand} proof` : `提交 ${mission.brand} proof`}</h1>
         <p className="mt-4 text-lg leading-8 text-slate-300">
           {locale === "en"
-            ? "Paste your reels link, complete the checklist, and upload proof screenshots."
-            : "貼上 Reels 連結、勾好 checklist，再模擬上傳截圖。呢個 prototype 會幫你感受成個 creator submission flow。"}
+            ? "Paste your reels link, add @missionone.hk as collaborator, and complete the checklist."
+            : "貼上 Reels 連結，並將 @missionone.hk 加為協作者，完成 checklist 即可交稿。"}
         </p>
 
         {acceptanceChecked && !acceptedAndValid ? (
@@ -193,7 +185,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
                 : "提交 proof 前，你必須先接受呢個任務。"}
             </p>
             <Link href={`/missions/${mission.slug}`} className="mt-3 inline-flex font-semibold text-amber-200 underline decoration-amber-200/40 underline-offset-4">
-              {locale === "en" ? "Go to mission detail to accept →" : "前往任務詳情接受任務 →"}
+              {locale === "en" ? "Go to mission detail to accept ->" : "前往任務詳情接受任務 ->"}
             </Link>
           </div>
         ) : null}
@@ -202,7 +194,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
             {locale === "en"
               ? "Backend mode is disabled. Configure Supabase to persist real submissions."
-              : "Backend mode 未啟用。設定 Supabase 後，提交會真實寫入 `submissions` table。"}
+              : "Backend mode 未啟用。設定 Supabase 後，提交會真實寫入 submissions table。"}
           </div>
         ) : null}
 
@@ -234,39 +226,9 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
               className={`${inputClassName} min-h-24 resize-none`}
-              placeholder="例如：48 小時後會補 insights、已配合品牌指定 caption"
+              placeholder="例如：已將 @missionone.hk 加為協作者"
             />
           </label>
-
-          <label className="block text-sm text-slate-300">
-            {locale === "en" ? "Proof screenshots" : "提交截圖"}
-            <input
-              required
-              multiple
-              accept="image/*"
-              type="file"
-              onChange={(event) => {
-                const files = Array.from(event.target.files ?? []);
-                setScreenshotFiles(files);
-                setChecks((current) => ({
-                  ...current,
-                  attachedScreenshots: files.length > 0,
-                }));
-              }}
-              className="mt-2 block w-full rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-4 text-sm text-slate-300 file:mr-4 file:rounded-full file:border-0 file:bg-cyan-400 file:px-4 file:py-2 file:font-semibold file:text-slate-950"
-            />
-            <span className="mt-2 block text-xs text-slate-500">
-              {locale === "en"
-                ? "Upload at least one image (cover, publish screen, insights, etc.)."
-                : "最少上傳 1 張截圖；可以加封面、發佈畫面、insights。"}
-            </span>
-          </label>
-
-          {screenshotFiles.length > 0 ? (
-            <div className="rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
-              {locale === "en" ? "Selected:" : "已選擇："}{screenshotFiles.map((file) => file.name).join(", ")}
-            </div>
-          ) : null}
 
           <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
             <p className="font-semibold text-white">{isEnglish ? "Checklist" : "檢查清單"}</p>
@@ -274,8 +236,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
               {[
                 { key: "published", label: isEnglish ? "Video is published publicly" : "影片已公開發佈" },
                 { key: "taggedBrand", label: isEnglish ? "Brand account and hashtags are tagged" : "已 tag 品牌帳號同 hashtag" },
-                { key: "attachedScreenshots", label: isEnglish ? "Publish/cover screenshots are prepared" : "已準備發佈截圖 / 封面截圖" },
-                { key: "willUploadInsights", label: isEnglish ? "Will upload insights after 48 hours" : "承諾 48 小時後補交 insights" },
+                { key: "addedCollaborator", label: isEnglish ? "@missionone.hk is added as collaborator" : "已將 @missionone.hk 設為協作者" },
               ].map((item) => (
                 <label key={item.key} className="flex items-start gap-3 rounded-2xl bg-slate-950/60 px-4 py-4">
                   <input
@@ -324,7 +285,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
             </div>
             <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
               <span>{isEnglish ? "Progress" : "進度"}</span>
-              <span className="font-medium text-white">{completedChecks}/4 {isEnglish ? "ready" : "已完成"}</span>
+              <span className="font-medium text-white">{completedChecks}/3 {isEnglish ? "ready" : "已完成"}</span>
             </div>
           </div>
         </div>
@@ -332,7 +293,11 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
         <div className="glass-panel p-8">
           <h2 className="text-2xl font-semibold text-white">{isEnglish ? "Required deliverables" : "必交內容"}</h2>
           <ul className="mt-5 space-y-3 text-slate-300">
-            {mission.deliverables.map((item) => (
+            {[
+              isEnglish ? "Public Instagram Reels URL" : "公開 Instagram Reels 連結",
+              isEnglish ? "Tag brand account and required hashtags" : "已標註品牌帳號及指定 hashtag",
+              isEnglish ? "Add @missionone.hk as collaborator" : "已將 @missionone.hk 加為協作者",
+            ].map((item) => (
               <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
             ))}
           </ul>

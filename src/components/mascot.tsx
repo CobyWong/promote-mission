@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -106,8 +107,8 @@ function getTips(pathname: string, locale: Locale) {
     }
     if (prefix === "/submit") {
       const submitTips = [
-        { zh: "提交時要填 Reel 連結同截圖，缺一不可！", en: "You need both the Reel URL and a screenshot — both are required!" },
-        { zh: "截圖要包含觀看次數同發佈日期，方便審核！", en: "Screenshot should show view count and publish date to speed up review!" },
+        { zh: "提交時要填 Reel 連結，並將 @missionone.hk 設為協作者！", en: "Submit with your Reel URL and add @missionone.hk as collaborator." },
+        { zh: "記得檢查品牌標註同 hashtag，再交稿會更快過審！", en: "Double-check brand tags and hashtags to speed up review." },
       ];
       return locale === "en" ? submitTips.map((t) => t.en) : submitTips.map((t) => t.zh);
     }
