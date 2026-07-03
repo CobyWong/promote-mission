@@ -123,6 +123,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
   }, [query, users]);
 
   const summary = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
     const last30Days = 1000 * 60 * 60 * 24 * 30;
 
@@ -177,7 +178,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
         ].map((item) => (
           <div key={item.label} className="glass-panel p-5">
             <p className="text-sm text-slate-400">{item.label}</p>
-            <p className="mt-2 text-3xl font-semibold text-white">{item.value}</p>
+            <p className="mt-2 text-2xl font-semibold text-white">{item.value}</p>
           </div>
         ))}
       </div>

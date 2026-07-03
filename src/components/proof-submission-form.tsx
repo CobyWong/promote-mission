@@ -71,8 +71,8 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="glass-panel p-8">
           <p className="text-sm uppercase tracking-[0.3em] text-emerald-300">{isEnglish ? "Submission sent" : "已完成提交"}</p>
-          <h1 className="mt-3 text-4xl font-semibold text-white">{isEnglish ? "Proof submitted successfully" : "proof 已成功提交"}</h1>
-          <p className="mt-4 text-lg leading-8 text-slate-300">
+          <h1 className="mt-3 text-3xl font-semibold text-white">{isEnglish ? "Proof submitted successfully" : "proof 已成功提交"}</h1>
+          <p className="mt-4 text-base leading-7 text-slate-300">
             {isEnglish
               ? `Your ${mission.brand} mission is now in the review queue. Once approved, ${mission.points} Coins will be credited to your wallet.`
               : `你嘅 ${mission.brand} 任務已進入審核隊列。管理員確認完成後，會將 ${mission.points} 金幣入返你個 wallet。`}
@@ -170,8 +170,8 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
         }}
       >
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{isEnglish ? "Submission form" : "提交表單"}</p>
-        <h1 className="mt-3 text-4xl font-semibold text-white">{isEnglish ? `Submit ${mission.brand} proof` : `提交 ${mission.brand} proof`}</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">
+        <h1 className="mt-3 text-3xl font-semibold text-white">{isEnglish ? `Submit ${mission.brand} proof` : `提交 ${mission.brand} proof`}</h1>
+        <p className="mt-4 text-base leading-7 text-slate-300">
           {locale === "en"
             ? "Paste your reels link, add @missionone.hk as collaborator, and complete the checklist."
             : "貼上 Reels 連結，並將 @missionone.hk 加為協作者，完成 checklist 即可交稿。"}
