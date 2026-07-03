@@ -5,6 +5,7 @@ create table if not exists public.missions (
   title text not null,
   brand text not null,
   product text not null,
+  mission_image_url text,
   reward_coins integer not null,
   difficulty text not null check (difficulty in ('Easy', 'Medium', 'Hard')),
   eta text not null,
@@ -141,6 +142,15 @@ do $$
 begin
   insert into storage.buckets (id, name, public)
   values ('mission screenshot', 'mission screenshot', false);
+exception when unique_violation then
+  -- Bucket already exists, ignore
+  null;
+end $$;
+
+do $$
+begin
+  insert into storage.buckets (id, name, public)
+  values ('mission-product-images', 'mission-product-images', true);
 exception when unique_violation then
   -- Bucket already exists, ignore
   null;

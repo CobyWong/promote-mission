@@ -44,7 +44,7 @@ export function MissionCard({ mission, locale = "zh-HK" }: { mission: Mission; l
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const etaLabel = locale === "en" ? mission.eta : (zhEtaMap[mission.eta] ?? mission.eta);
-  const imageUrl = getMissionImage(mission.slug);
+  const imageUrl = mission.imageUrl ?? getMissionImage(mission.slug);
 
   return (
     <article className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-2xl shadow-cyan-950/10 transition hover:-translate-y-1 hover:border-cyan-400/30">

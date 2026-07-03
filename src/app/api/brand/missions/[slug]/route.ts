@@ -41,6 +41,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
     title: typeof body.title === "string" ? body.title : undefined,
     brand: typeof body.brand === "string" ? body.brand : undefined,
     product: typeof body.product === "string" ? body.product : undefined,
+    mission_image_url: typeof body.mission_image_url === "string" ? body.mission_image_url : undefined,
     reward_coins: typeof body.reward_coins === "number" ? body.reward_coins : undefined,
     difficulty: typeof body.difficulty === "string" ? body.difficulty : undefined,
     eta: typeof body.eta === "string" ? body.eta : undefined,

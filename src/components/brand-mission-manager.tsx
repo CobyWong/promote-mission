@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Mission } from "@/lib/data";
@@ -26,6 +26,11 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       requirementsPerLine: "Requirements (one per line)",
       deliverablesPerLine: "Deliverables (one per line)",
       tagsComma: "Tags (comma separated)",
+      productPhoto: "Product photo",
+      productPhotoHint: "Upload JPG/PNG/WebP up to 5MB. This photo will be shown on mission cards.",
+      uploadFailed: "Failed to upload mission image.",
+      uploadProcessing: "Uploading image...",
+      photoPreview: "Current preview",
       description: "Description",
       hook: "Hook",
       fieldSlug: "Slug",
@@ -56,6 +61,11 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       requirementsPerLine: "任務要求（每行一項）",
       deliverablesPerLine: "提交內容（每行一項）",
       tagsComma: "標籤（用逗號分隔）",
+      productPhoto: "產品相片",
+      productPhotoHint: "上傳 JPG/PNG/WebP，最多 5MB。此相片會顯示喺任務卡片。",
+      uploadFailed: "上傳任務相片失敗。",
+      uploadProcessing: "相片上傳中...",
+      photoPreview: "目前預覽",
       description: "任務描述",
       hook: "拍片 Hook 建議",
       fieldSlug: "Slug",
@@ -83,6 +93,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
     title: "",
     brand: "",
     product: "",
+    imageUrl: "",
     points: 1000,
     difficulty: "Easy",
     eta: "1 day",
@@ -98,6 +109,35 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
   });
 
   const [editingSlug, setEditingSlug] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const previewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : ""), [imageFile]);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  async function uploadMissionImage(file: File, slug: string) {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("slug", slug || "mission");
+
+    const response = await fetch("/api/brand/missions/upload-image", {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = (await response.json().catch(() => null)) as { imageUrl?: string; error?: string } | null;
+
+    if (!response.ok || !result?.imageUrl) {
+      throw new Error(result?.error ?? t.uploadFailed);
+    }
+
+    return result.imageUrl;
+  }
 
   async function refreshFromServer() {
     const response = await fetch("/api/brand/missions");
@@ -121,6 +161,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       title: form.title,
       brand: form.brand,
       product: form.product,
+      mission_image_url: form.imageUrl || null,
       reward_coins: Number(form.points),
       difficulty: form.difficulty,
       eta: form.eta,
@@ -135,6 +176,16 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       min_participants: Number(form.minParticipants),
       current_participants: Number(form.currentParticipants),
     };
+
+    if (imageFile) {
+      try {
+        payload.mission_image_url = await uploadMissionImage(imageFile, form.slug);
+      } catch (uploadError) {
+        setError(uploadError instanceof Error ? uploadError.message : t.uploadFailed);
+        setLoading(false);
+        return;
+      }
+    }
 
     const response = await fetch(editingSlug ? `/api/brand/missions/${editingSlug}` : "/api/brand/missions", {
       method: editingSlug ? "PATCH" : "POST",
@@ -157,6 +208,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       title: "",
       brand: "",
       product: "",
+      imageUrl: "",
       points: 1000,
       difficulty: "Easy",
       eta: "1 day",
@@ -170,6 +222,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       minParticipants: 0,
       currentParticipants: 0,
     });
+    setImageFile(null);
     setEditingSlug(null);
     setLoading(false);
     await refreshFromServer();
@@ -237,6 +290,30 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
           ))}
         </div>
 
+        <div className="mt-4">
+          <label className="block text-sm text-slate-300">
+            {t.productPhoto}
+            <input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => setImageFile(event.target.files?.[0] ?? null)}
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white"
+            />
+          </label>
+          <p className="mt-2 text-xs text-slate-400">{loading && imageFile ? t.uploadProcessing : t.productPhotoHint}</p>
+          {(form.imageUrl || previewUrl) ? (
+            <div className="mt-3">
+              <p className="mb-2 text-xs uppercase tracking-[0.2em] text-slate-400">{t.photoPreview}</p>
+              <div
+                className="h-36 w-full max-w-md rounded-2xl border border-white/10 bg-cover bg-center"
+                style={{ backgroundImage: `url('${previewUrl || form.imageUrl}')` }}
+                role="img"
+                aria-label="mission preview"
+              />
+            </div>
+          ) : null}
+        </div>
+
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="block text-sm text-slate-300">
             {t.description}
@@ -270,7 +347,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
               type="button"
               onClick={() => {
                 setEditingSlug(null);
-                setForm((current) => ({ ...current, slug: "" }));
+                setForm((current) => ({ ...current, slug: "", imageUrl: "" }));
+                setImageFile(null);
               }}
               className="rounded-full border border-white/20 px-5 py-3 font-semibold text-white"
             >
@@ -288,6 +366,14 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                 <p className="text-sm text-slate-400">{mission.slug}</p>
                 <h3 className="mt-1 text-xl font-semibold text-white">{mission.title}</h3>
                 <p className="mt-2 text-sm text-slate-300">{mission.brand} · {mission.points} {t.coinsUnit} · {mission.category}</p>
+                {mission.imageUrl ? (
+                  <div
+                    className="mt-3 h-20 w-36 rounded-xl border border-white/10 bg-cover bg-center"
+                    style={{ backgroundImage: `url('${mission.imageUrl}')` }}
+                    role="img"
+                    aria-label={mission.title}
+                  />
+                ) : null}
               </div>
               <div className="flex gap-3">
                 <button
@@ -299,6 +385,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                       title: mission.title,
                       brand: mission.brand,
                       product: mission.product,
+                      imageUrl: mission.imageUrl ?? "",
                       points: mission.points,
                       difficulty: mission.difficulty,
                       eta: mission.eta,
@@ -312,6 +399,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                       minParticipants: mission.minParticipants ?? 0,
                       currentParticipants: mission.currentParticipants ?? 0,
                     });
+                    setImageFile(null);
                   }}
                   className="rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200"
                 >

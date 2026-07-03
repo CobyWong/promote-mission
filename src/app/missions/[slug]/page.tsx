@@ -16,7 +16,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const missionImage = getMissionImage(mission.slug);
+  const missionImage = mission.imageUrl ?? getMissionImage(mission.slug);
 
   return (
     <section className="section-shell py-12 sm:py-16">

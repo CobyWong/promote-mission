@@ -89,6 +89,7 @@ export type Database = {
           hook: string;
           is_active: boolean;
           min_participants: number;
+          mission_image_url: string | null;
           product: string;
           requirements: string[];
           reward_coins: number;
@@ -109,6 +110,7 @@ export type Database = {
           hook: string;
           is_active?: boolean;
           min_participants?: number;
+          mission_image_url?: string | null;
           product: string;
           requirements?: string[];
           reward_coins: number;
@@ -129,6 +131,7 @@ export type Database = {
           hook?: string;
           is_active?: boolean;
           min_participants?: number;
+          mission_image_url?: string | null;
           product?: string;
           requirements?: string[];
           reward_coins?: number;

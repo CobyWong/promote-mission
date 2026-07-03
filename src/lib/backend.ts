@@ -54,6 +54,7 @@ function toMission(row: MissionRow): Mission {
     title: row.title,
     brand: row.brand,
     product: row.product,
+    imageUrl: row.mission_image_url ?? undefined,
     points: row.reward_coins,
     difficulty: row.difficulty as Mission["difficulty"],
     eta: row.eta,

@@ -3,6 +3,7 @@ export type Mission = {
   title: string;
   brand: string;
   product: string;
+  imageUrl?: string;
   points: number;
   difficulty: "Easy" | "Medium" | "Hard";
   eta: string;
