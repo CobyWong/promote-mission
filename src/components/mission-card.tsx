@@ -31,6 +31,13 @@ const zhDifficultyMap: Record<string, string> = {
   Hard: "高級",
 };
 
+const topCreatorMap: Record<string, string> = {
+  spark: "@life.in.yummy",
+  fitbyte: "@fit.journey.hk",
+  nova: "@beautybymei",
+  roam: "@tech.with.ken",
+};
+
 type MissionCardProps = {
   mission: Mission;
   locale?: Locale;
@@ -45,77 +52,84 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
   const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
   const isLocked = userLevel < requiredLevel;
+  const totalPrizeHkd = mission.difficulty === "Easy" ? 1000 : mission.difficulty === "Medium" ? 2400 : 3600;
+  const topCreator = topCreatorMap[mission.slug.split("-")[0]] ?? "@missionone.star";
+  const topViews = mission.difficulty === "Easy" ? "35K" : mission.difficulty === "Medium" ? "52K" : "78K";
 
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-[#f7f8fb] shadow-sm transition hover:border-slate-300 hover:shadow-md">
-      <div className="p-4">
+      <div className="space-y-4 p-5">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-300 text-sm font-bold text-slate-900">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-300 text-lg font-bold text-slate-900">
             {brandInitial}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-base font-semibold text-slate-800">{brandLabel}</p>
-            <h3 className="mt-1 line-clamp-2 text-2xl font-bold leading-tight text-slate-900">{mission.title}</h3>
+            <p className="truncate text-[1.75rem] font-semibold leading-none text-slate-800">{brandLabel}</p>
+            <h3 className="mt-2 line-clamp-2 text-2xl font-bold leading-tight text-slate-900">{mission.title}</h3>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-orange-100 px-2.5 py-1 text-xs font-semibold text-orange-600">
-            {categoryLabel}
-          </span>
-          <span className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+        <div className="flex flex-wrap gap-2">
+          <span className="rounded-full bg-orange-100 px-3 py-1 text-sm font-semibold text-orange-600">{categoryLabel}</span>
+          <span className="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-700">
             {locale === "en" ? "On-site experience shoot" : "自費體驗拍攝"}
           </span>
-          <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-600">
-            UGC
-          </span>
+          <span className="rounded-full bg-slate-200 px-3 py-1 text-sm font-semibold text-slate-600">UGC</span>
         </div>
       </div>
 
-      <div className="border-t border-slate-200 px-4 py-3">
-        <div className="space-y-3">
-          <div className="flex items-end justify-between gap-3 border-b border-slate-200 pb-3">
-            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Top reward" : "最高獎勵"}</p>
-            <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : "HK$600"}</p>
-          </div>
+      <div className="border-y border-slate-200 px-5 py-4">
+        <div className="flex items-end justify-between gap-3">
+          <p className="text-2xl font-semibold text-slate-500">{locale === "en" ? "Total prize pool" : "總獎金池"}</p>
+          <p className="text-[2rem] font-black text-emerald-600">{isLocked ? "???" : `HK$${totalPrizeHkd.toLocaleString()}`}</p>
+        </div>
+        <div className="mt-3 flex items-center justify-between border-t border-slate-200 pt-3">
+          <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Per REELS payout" : "每條 REELS 派發"}</p>
+          <p className="text-xl font-black text-emerald-600">{isLocked ? "???" : "HK$100 - HK$600"}</p>
+        </div>
+      </div>
 
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
-            <p className="text-xl font-bold text-slate-800">{difficultyLabel}</p>
-          </div>
+      <div className="space-y-3 px-5 py-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xl font-semibold text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
+          <p className="text-xl font-bold text-slate-800">{difficultyLabel}</p>
+        </div>
 
-          {isLocked ? (
-            <div className="rounded-2xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-              {locale === "en"
-                ? `Locked mission. Level up to Lv.${requiredLevel} to unlock.`
-                : `任務已鎖定，升級到 Lv.${requiredLevel} 後即可解鎖。`}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+        <div className="text-sm font-medium text-blue-700">
+          {locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}
+        </div>
+
+        {isLocked ? (
+          <p className="rounded-2xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
+            {locale === "en"
+              ? `Rewards and details are hidden. Level up to Lv.${requiredLevel} to unlock this mission.`
+              : `獎勵與詳情已隱藏，升級到 Lv.${requiredLevel} 後即可解鎖。`}
+          </p>
+        ) : (
+          <>
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
               {locale === "en"
                 ? "Likes ranking payout: #1 HK$600 · #2 HK$300 · #3 HK$100"
                 : "Like 排名派彩：第 1 名 HK$600 · 第 2 名 HK$300 · 第 3 名 HK$100"}
             </div>
-          )}
-
-          <div className="pt-1 text-xs font-medium text-blue-700">
-            {locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}
-          </div>
-
-          {(mission.minParticipants ?? 0) > 0 && (
-            <div className="pt-1 text-xs text-slate-500">
-              {locale === "en" ? "Creator quota" : "創作者名額"}: {mission.currentParticipants ?? 0} / {mission.minParticipants}
+            <div className="flex items-center justify-between text-sm text-slate-600">
+              <span>{locale === "en" ? "Top creator" : "頂尖創作者"}</span>
+              <span className="font-semibold text-blue-700">{topCreator}</span>
             </div>
-          )}
+            <div className="flex items-center justify-end gap-1 text-sm text-slate-500">
+              <span>◉</span>
+              <span>{topViews}</span>
+            </div>
+          </>
+        )}
 
-          <p className="line-clamp-2 pt-1 text-xs leading-5 text-slate-500">
-            {isLocked
-              ? (locale === "en"
-                ? "Details unlock after you level up. Complete current-level missions first."
-                : "完成目前等級任務後升級，即可查看完整獎勵與詳情。")
-              : `${productLabel} · ${mission.description}`}
-          </p>
-        </div>
+        {(mission.minParticipants ?? 0) > 0 ? (
+          <div className="text-xs text-slate-500">
+            {locale === "en" ? "Creator quota" : "創作者名額"}: {mission.currentParticipants ?? 0} / {mission.minParticipants}
+          </div>
+        ) : null}
+
+        {!isLocked ? <p className="line-clamp-2 text-xs leading-5 text-slate-500">{productLabel} · {mission.description}</p> : null}
       </div>
 
       <div className="mt-auto border-t border-slate-200 p-4">
