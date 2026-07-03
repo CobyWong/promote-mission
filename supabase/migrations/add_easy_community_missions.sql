@@ -1,0 +1,68 @@
+insert into public.missions (
+  slug,
+  title,
+  brand,
+  product,
+  reward_coins,
+  difficulty,
+  eta,
+  category,
+  description,
+  hook,
+  requirements,
+  deliverables,
+  tags,
+  display_order,
+  is_active
+)
+values
+  (
+    'missionone-funny-moment',
+    '搞笑日常 Reels 挑戰',
+    'Mission One Community',
+    'Funny Moment Challenge',
+    1000,
+    'Easy',
+    '1 day',
+    'Entertainment',
+    '拍一條你最有創意嘅搞笑短片，題材可以係日常反差、朋友互動或生活小尷尬。',
+    '用 3 秒笑點開場，越快吸睛越有機會衝上 Like 排行。',
+    array['影片長度 15-45 秒', '內容需原創並公開發佈', '不能包含攻擊性或不當內容', 'Caption 加 #MissionOneFunny'],
+    array['IG Reels 連結', '簡短內容說明'],
+    array['Community', 'Funny', 'Challenge'],
+    21,
+    true
+  ),
+  (
+    'missionone-sing-cover',
+    '唱歌 Reels 翻唱挑戰',
+    'Mission One Community',
+    'Singing Cover Challenge',
+    1000,
+    'Easy',
+    '1 day',
+    'Music',
+    '上載你唱歌嘅 Reels，可以清唱、樂器伴奏或 remix 形式，重點係聲線同表現力。',
+    '首 5 秒直接入歌最精彩段落，提高停留率與 Like 表現。',
+    array['影片長度 20-60 秒', '聲音需清晰可辨識', '內容需符合版權與平台規範', 'Caption 加 #MissionOneSing'],
+    array['IG Reels 連結', '歌曲名稱或主題'],
+    array['Community', 'Singing', 'Music'],
+    22,
+    true
+  )
+on conflict (slug) do update
+set
+  title = excluded.title,
+  brand = excluded.brand,
+  product = excluded.product,
+  reward_coins = excluded.reward_coins,
+  difficulty = excluded.difficulty,
+  eta = excluded.eta,
+  category = excluded.category,
+  description = excluded.description,
+  hook = excluded.hook,
+  requirements = excluded.requirements,
+  deliverables = excluded.deliverables,
+  tags = excluded.tags,
+  display_order = excluded.display_order,
+  is_active = excluded.is_active;

@@ -23,6 +23,8 @@ const zhCategoryMap: Record<string, string> = {
   Beauty: "美妝",
   Fitness: "健身",
   Tech: "科技",
+  Entertainment: "娛樂",
+  Music: "音樂",
 };
 
 const zhDifficultyMap: Record<string, string> = {

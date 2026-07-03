@@ -186,6 +186,52 @@ export const missions: Mission[] = [
       "成效數據截圖"
     ],
     tags: ["Tech", "Home Setup", "Cinematic"]
+  },
+  {
+    slug: "missionone-funny-moment",
+    title: "搞笑日常 Reels 挑戰",
+    brand: "Mission One Community",
+    product: "Funny Moment Challenge",
+    points: 1000,
+    difficulty: "Easy",
+    eta: "1 day",
+    category: "Entertainment",
+    description: "拍一條你最有創意嘅搞笑短片，題材可以係日常反差、朋友互動或生活小尷尬。",
+    hook: "用 3 秒笑點開場，越快吸睛越有機會衝上 Like 排行。",
+    requirements: [
+      "影片長度 15-45 秒",
+      "內容需原創並公開發佈",
+      "不能包含攻擊性或不當內容",
+      "Caption 加 #MissionOneFunny"
+    ],
+    deliverables: [
+      "IG Reels 連結",
+      "簡短內容說明"
+    ],
+    tags: ["Community", "Funny", "Challenge"]
+  },
+  {
+    slug: "missionone-sing-cover",
+    title: "唱歌 Reels 翻唱挑戰",
+    brand: "Mission One Community",
+    product: "Singing Cover Challenge",
+    points: 1000,
+    difficulty: "Easy",
+    eta: "1 day",
+    category: "Music",
+    description: "上載你唱歌嘅 Reels，可以清唱、樂器伴奏或 remix 形式，重點係聲線同表現力。",
+    hook: "首 5 秒直接入歌最精彩段落，提高停留率與 Like 表現。",
+    requirements: [
+      "影片長度 20-60 秒",
+      "聲音需清晰可辨識",
+      "內容需符合版權與平台規範",
+      "Caption 加 #MissionOneSing"
+    ],
+    deliverables: [
+      "IG Reels 連結",
+      "歌曲名稱或主題"
+    ],
+    tags: ["Community", "Singing", "Music"]
   }
 ];
 
