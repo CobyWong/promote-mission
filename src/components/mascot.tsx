@@ -249,7 +249,7 @@ export function Mascot({ locale, userId, theme }: { locale: Locale; userId?: str
       <div className="fixed bottom-6 right-6 z-[80] flex flex-col items-end gap-3">
       {/* Speech bubble */}
       {open && (
-        <div className={`relative w-72 max-w-[calc(100vw-3rem)] rounded-3xl border p-5 shadow-2xl backdrop-blur-md ${bubbleClass}`}>
+        <div className={`relative w-80 max-w-[calc(100vw-2.5rem)] rounded-3xl border p-5 shadow-2xl backdrop-blur-md ${bubbleClass}`}>
           {/* Close */}
           {!onboardingActive ? (
             <button
@@ -280,13 +280,13 @@ export function Mascot({ locale, userId, theme }: { locale: Locale; userId?: str
           {/* Tip text */}
           {onboardingActive ? (
             <>
-              <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${tourLabelClass}`}>
+              <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${tourLabelClass}`}>
                 {locale === "en" ? "First Login Tour" : "首次登入導覽"}
               </p>
-              <p className={`mt-2 text-base font-semibold ${titleClass}`}>
+              <p className={`mt-2 text-lg font-semibold leading-snug ${titleClass}`}>
                 {locale === "en" ? onboardingStep.enTitle : onboardingStep.zhTitle}
               </p>
-              <p className={`mt-2 text-sm leading-relaxed ${bodyClass}`}>
+              <p className={`mt-2 text-base leading-relaxed ${bodyClass}`}>
                 {locale === "en" ? onboardingStep.enDesc : onboardingStep.zhDesc}
               </p>
             </>
@@ -311,7 +311,7 @@ export function Mascot({ locale, userId, theme }: { locale: Locale; userId?: str
                   router.push(ONBOARDING_STEPS[previousIndex].path);
                 }}
                 disabled={onboardingStepIndex === 0}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${neutralButtonClass}`}
+                className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${neutralButtonClass}`}
               >
                 {locale === "en" ? "Back" : "上一步"}
               </button>
@@ -327,7 +327,7 @@ export function Mascot({ locale, userId, theme }: { locale: Locale; userId?: str
                   setOnboardingStepIndex(nextIndex);
                   router.push(ONBOARDING_STEPS[nextIndex].path);
                 }}
-                className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${primaryButtonClass}`}
+                className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${primaryButtonClass}`}
               >
                 {onboardingStepIndex >= ONBOARDING_STEPS.length - 1
                   ? locale === "en" ? "Finish" : "完成"
