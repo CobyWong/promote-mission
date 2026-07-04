@@ -282,7 +282,7 @@ export default async function DashboardPage() {
         referralCode={referralCode}
         invitedCount={0}
         paidBatches={0}
-        totalRewardHkd={0}
+        totalRewardCoins={0}
       />
 
       <div id="support-center" className="mt-8 scroll-mt-28">

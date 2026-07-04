@@ -7,7 +7,7 @@ type ReferralRewardsCardProps = {
   referralCode: string;
   invitedCount: number;
   paidBatches: number;
-  totalRewardHkd: number;
+  totalRewardCoins: number;
 };
 
 export function ReferralRewardsCard({
@@ -15,30 +15,50 @@ export function ReferralRewardsCard({
   referralCode,
   invitedCount,
   paidBatches,
-  totalRewardHkd,
+  totalRewardCoins,
 }: ReferralRewardsCardProps) {
   const [copied, setCopied] = useState(false);
+
+  const rewardTiers = [
+    { invited: 3, coinsPerBatch: 300 },
+    { invited: 10, coinsPerBatch: 500 },
+    { invited: 20, coinsPerBatch: 800 },
+  ];
+
+  const activeTier =
+    rewardTiers.findLast((tier) => invitedCount >= tier.invited) ?? rewardTiers[0];
+  const nextTier = rewardTiers.find((tier) => tier.invited > invitedCount) ?? null;
+  const progressTarget = nextTier?.invited ?? rewardTiers[rewardTiers.length - 1].invited;
+  const progressPercent = Math.min(100, Math.round((invitedCount / progressTarget) * 100));
 
   const t = locale === "en"
     ? {
       title: "Invite creators, earn rewards",
-      subtitle: "When 3 invited creators join, publish videos, and complete their first payout, you receive a reward.",
+      subtitle: "Invite more friends to unlock higher referral reward tiers. More invited creators means more Coins per reward batch.",
       yourCode: "Your referral code",
       invited: "Invited",
       batches: "Paid batches",
       reward: "Rewards earned",
       details: "Reward batches",
+      progress: "Invite progress",
+      currentTier: "Current tier",
+      nextTier: "Next tier",
+      unlocked: "Unlocked max tier",
       copy: "Copy",
       copied: "Copied",
     }
     : {
       title: "邀請創作者，賺取獎勵",
-      subtitle: "當 3 位推薦的創作者加入、發佈短片並完成首次提款後，你便可領取獎勵。",
+      subtitle: "邀請越多朋友，可解鎖更高推薦獎勵等級。推薦人數越高，每個獎勵批次可獲得更多金幣。",
       yourCode: "你的推薦碼",
       invited: "已推薦",
       batches: "已領取批次",
       reward: "已賺取獎勵",
       details: "獎勵批次",
+      progress: "邀請進度",
+      currentTier: "目前等級",
+      nextTier: "下一級",
+      unlocked: "已解鎖最高等級",
       copy: "複製",
       copied: "已複製",
     };
@@ -101,7 +121,25 @@ export function ReferralRewardsCard({
 
         <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4">
           <p className="text-sm text-slate-500">{t.reward}</p>
-          <p className="mt-2 text-3xl font-semibold text-emerald-600">HK${totalRewardHkd.toFixed(2)}</p>
+          <p className="mt-2 text-3xl font-semibold text-emerald-600">{totalRewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4">
+        <div className="flex items-center justify-between gap-3 text-sm text-slate-600">
+          <p className="font-semibold text-slate-700">{t.progress}</p>
+          <p>{invitedCount} / {progressTarget}</p>
+        </div>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+          <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${progressPercent}%` }} />
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600">
+          <p>{t.currentTier}: <span className="font-semibold text-blue-700">{activeTier.invited}+ · {activeTier.coinsPerBatch} {locale === "en" ? "Coins/batch" : "金幣/批次"}</span></p>
+          <p>
+            {nextTier
+              ? `${t.nextTier}: ${nextTier.invited}+ · ${nextTier.coinsPerBatch} ${locale === "en" ? "Coins/batch" : "金幣/批次"}`
+              : t.unlocked}
+          </p>
         </div>
       </div>
 
