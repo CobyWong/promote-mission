@@ -129,31 +129,10 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
 
   return (
     <div className="glass-panel p-8">
-      <h2 className="text-2xl font-semibold text-white">{labels.title}</h2>
-      <p className="mt-4 text-slate-300">{labels.desc}</p>
-
-      <div className="mt-6 space-y-3 text-sm text-slate-300">
-        <div className="rounded-2xl bg-white/5 px-4 py-3">{labels.needIg}</div>
-        <div className="rounded-2xl bg-white/5 px-4 py-3">{labels.styleFit}</div>
-        <div className="rounded-2xl bg-white/5 px-4 py-3">{labels.dailyCap}</div>
-        <div className="rounded-2xl bg-white/5 px-4 py-3">{labels.collaborator}</div>
-      </div>
-
-      <div className="mt-6 rounded-2xl bg-white/5 px-4 py-3">
-        {acceptedAt ? (
-          <>
-            <p className="text-sm text-slate-400">{labels.accepted}</p>
-            <p className="mt-1 text-sm font-semibold text-slate-300">{labels.collaborator}</p>
-          </>
-        ) : (
-          <p className="text-sm text-slate-300">{labels.collaborator}</p>
-        )}
-      </div>
-
       <button
         type="button"
         onClick={acceptMission}
-        className="mt-6 w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300"
+        className="w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300"
       >
         {acceptedAt ? labels.restart : labels.accept}
       </button>

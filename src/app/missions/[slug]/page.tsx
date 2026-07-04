@@ -75,23 +75,9 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
         <div className="space-y-6">
           <div className="glass-panel p-8">
-            <p className="text-sm uppercase tracking-[0.3em] text-fuchsia-300">{locale === "en" ? "Suggested Hook" : "建議切入點"}</p>
-            <p className="mt-4 text-2xl font-semibold leading-9 text-white">{mission.hook}</p>
-          </div>
-
-          <div className="glass-panel p-8">
             <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
             <ul className="mt-5 space-y-3 text-slate-300">
               {[(locale === "en" ? "Video length must be longer than 60 seconds" : "影片長度需超過 60 秒")].map((item) => (
-                <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="glass-panel p-8">
-            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Deliverables" : "提交內容"}</h2>
-            <ul className="mt-5 space-y-3 text-slate-300">
-              {mission.deliverables.map((item) => (
                 <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
               ))}
             </ul>
