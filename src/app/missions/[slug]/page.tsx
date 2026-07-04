@@ -28,8 +28,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
-          <div className="glass-panel p-8">
+        <div className="glass-panel p-8">
           <div className="relative -mx-4 -mt-4 mb-7 h-64 overflow-hidden rounded-3xl border border-white/10 sm:-mx-2">
             <Image
               src={missionImage}
@@ -72,23 +71,6 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               <p className="mt-2 text-xs text-slate-400">{locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}</p>
             </div>
           </div>
-
-          </div>
-
-          <div className="glass-panel p-8">
-            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {(locale === "en"
-                ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", `Rewards are settled by likes ranking from HK$${rewards.totalPrize.toLocaleString()}: #1 60%, #2 30%, #3 10%`]
-                : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", `獎勵按 Like 排名由 HK$${rewards.totalPrize.toLocaleString()} 派發：第 1 名 60%、第 2 名 30%、第 3 名 10%`]
-              ).map((step, index) => (
-                <div key={step} className="rounded-2xl bg-white/5 p-5">
-                  <p className="text-sm text-cyan-300">Step {index + 1}</p>
-                  <p className="mt-3 text-white">{step}</p>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         <div className="space-y-6">
@@ -99,6 +81,21 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
                 <li key={item} className="rounded-2xl bg-white/5 px-4 py-3">• {item}</li>
               ))}
             </ul>
+          </div>
+
+          <div className="glass-panel p-8">
+            <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {(locale === "en"
+                ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", `Rewards are settled by likes ranking from HK$${rewards.totalPrize.toLocaleString()}: #1 60%, #2 30%, #3 10%`]
+                : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", `獎勵按 Like 排名由 HK$${rewards.totalPrize.toLocaleString()} 派發：第 1 名 60%、第 2 名 30%、第 3 名 10%`]
+              ).map((step, index) => (
+                <div key={step} className="rounded-2xl bg-white/5 p-5">
+                  <p className="text-sm text-cyan-300">Step {index + 1}</p>
+                  <p className="mt-3 text-white">{step}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <MissionAcceptCard

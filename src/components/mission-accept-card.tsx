@@ -128,14 +128,12 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
   }
 
   return (
-    <div className="glass-panel p-8">
-      <button
-        type="button"
-        onClick={acceptMission}
-        className="w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300"
-      >
-        {acceptedAt ? labels.restart : labels.accept}
-      </button>
-    </div>
+    <button
+      type="button"
+      onClick={acceptMission}
+      className="w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300"
+    >
+      {acceptedAt ? labels.restart : labels.accept}
+    </button>
   );
 }
