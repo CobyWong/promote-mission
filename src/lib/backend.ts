@@ -18,7 +18,8 @@ const fallbackCreatorProfile: CreatorProfile = {
   handle: "@chloe.creates",
   platform: "Instagram",
   niche: "Lifestyle / Beauty",
-  followers: "12.8K",
+  followersRange: "10K-20K",
+  ageGroup: "25-34",
   joinedAt: "May 2026",
 };
 
@@ -223,12 +224,21 @@ function getMetaString(user: AuthUserLike | null, key: string): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
+function isAgeGroupValue(value: string) {
+  return /^\d{2}\s*-\s*\d{2}$/.test(value) || value === "45+";
+}
+
 function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null = null): CreatorProfile {
   const fallbackNameFromEmail = user?.email?.split("@")[0] ?? fallbackCreatorProfile.name;
   const name = profile?.full_name ?? getMetaString(user, "full_name") ?? fallbackNameFromEmail;
   const handle = profile?.instagram_handle ?? getMetaString(user, "instagram_handle") ?? "@-";
   const niche = profile?.niche ?? getMetaString(user, "niche") ?? "-";
-  const followers = profile?.followers_range ?? getMetaString(user, "followers_range") ?? "-";
+  const rawFollowers = profile?.followers_range ?? getMetaString(user, "followers_range") ?? "-";
+  const normalizedFollowers = rawFollowers.trim();
+  const ageFromMetadata = getMetaString(user, "age_group");
+  const ageFromLegacyFollowers = isAgeGroupValue(normalizedFollowers) ? normalizedFollowers : null;
+  const ageGroup = ageFromMetadata ?? ageFromLegacyFollowers ?? "-";
+  const followersRange = ageFromLegacyFollowers ? "-" : (normalizedFollowers || "-");
   const joinedSource = profile?.created_at ?? user?.created_at;
 
   return {
@@ -236,7 +246,8 @@ function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null 
     handle,
     platform: "Instagram",
     niche,
-    followers,
+    followersRange,
+    ageGroup,
     joinedAt: joinedSource
       ? new Date(joinedSource).toLocaleDateString("en-US", {
         month: "short",

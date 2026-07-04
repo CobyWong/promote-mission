@@ -28,7 +28,8 @@ export default async function DashboardPage() {
       getMore: "Get more missions",
       profileCenter: "Profile Center",
       profileCardTitle: "Profile",
-      followers: "Followers",
+      ageGroup: "Age group",
+      followersRange: "Follower band",
       joinedAt: "Joined",
       earningsTitle: "Earnings",
       earningsDesc: "Your lifetime earnings and available balance.",
@@ -57,7 +58,8 @@ export default async function DashboardPage() {
       getMore: "接更多任務",
       profileCenter: "個人檔案",
       profileCardTitle: "個人資料",
-      followers: "追蹤數",
+      ageGroup: "年齡組別",
+      followersRange: "追蹤數區間",
       joinedAt: "加入時間",
       earningsTitle: "收益",
       earningsDesc: "顯示你嘅累計收益同可提現金額。",
@@ -143,10 +145,14 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.followers}</p>
-            <p className="mt-2 text-xl font-semibold text-slate-900">{dashboard.profile.followers}</p>
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.ageGroup}</p>
+            <p className="mt-2 text-xl font-semibold text-slate-900">{dashboard.profile.ageGroup}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.followersRange}</p>
+            <p className="mt-2 text-xl font-semibold text-slate-900">{dashboard.profile.followersRange}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.joinedAt}</p>
@@ -204,7 +210,7 @@ export default async function DashboardPage() {
             <p className="mt-2 text-xl font-semibold text-slate-900">{dashboard.profile.name} · {dashboard.profile.handle}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-            {locale === "en" ? "Followers" : "追蹤數"} {dashboard.profile.followers} · {locale === "en" ? "Joined" : "加入時間"} {dashboard.profile.joinedAt}
+            {locale === "en" ? "Age" : "年齡"} {dashboard.profile.ageGroup} · {locale === "en" ? "Followers" : "追蹤數"} {dashboard.profile.followersRange} · {locale === "en" ? "Joined" : "加入時間"} {dashboard.profile.joinedAt}
           </div>
         </div>
 

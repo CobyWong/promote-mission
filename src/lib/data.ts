@@ -88,7 +88,8 @@ export type CreatorProfile = {
   handle: string;
   platform: string;
   niche: string;
-  followers: string;
+  followersRange: string;
+  ageGroup: string;
   joinedAt: string;
 };
 

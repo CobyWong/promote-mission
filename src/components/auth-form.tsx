@@ -32,6 +32,7 @@ const registerRegions = ["Hong Kong", "Macau", "Taiwan", "Singapore", "Malaysia"
 
 const registerGenders = ["男", "女", "其他", "不願透露"];
 const registerAgeGroups = ["18-24", "25-34", "35-44", "45+"];
+const registerFollowerBands = ["1K-5K", "5K-10K", "10K-20K", "20K-50K", "50K-100K", "100K+"];
 
 const lightInputClassName =
   "mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400";
@@ -59,7 +60,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [fullName, setFullName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
   const niche = "";
-  const followersRange = "";
   const portfolioUrl = "";
   const [phoneRegion, setPhoneRegion] = useState("HK (+852)");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -69,6 +69,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [gender, setGender] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
+  const [followersRange, setFollowersRange] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [registerStep, setRegisterStep] = useState(1);
@@ -99,12 +100,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       regions: "Coverage regions",
       gender: "Gender",
       age: "Age group",
+      followersBand: "Follower band",
       referral: "Referral code (optional)",
       terms: "I agree to the service terms.",
       needTwoNiches: "Please select at least 2 content niches.",
       needBasic: "Please complete name, email, and password.",
       needInstagram: "Please provide your Instagram username.",
-      needAudience: "Please select gender and age group.",
+      needAudience: "Please select gender, age group, and follower band.",
       needTerms: "Please agree to the service terms.",
     }
     : {
@@ -132,12 +134,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       regions: "覆蓋地區",
       gender: "性別",
       age: "年齡組別",
+      followersBand: "追蹤數區間",
       referral: "推薦碼（選填）",
       terms: "我同意服務條款",
       needTwoNiches: "請至少選擇 2 個內容範疇。",
       needBasic: "請先填妥名稱、電郵及密碼。",
       needInstagram: "請填寫 Instagram 用戶名稱。",
-      needAudience: "請選擇性別及年齡組別。",
+      needAudience: "請選擇性別、年齡組別及追蹤數區間。",
       needTerms: "請先同意服務條款。",
     };
 
@@ -176,7 +179,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
     }
 
     if (registerStep === 4) {
-      if (!gender || !ageGroup) {
+      if (!gender || !ageGroup || !followersRange) {
         setError(t.needAudience);
         return false;
       }
@@ -230,7 +233,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
         const normalizedHandle = getHandleFromInput(instagramHandle);
         const derivedNiche = selectedNiches.join(" / ") || niche;
-        const derivedFollowers = ageGroup || followersRange;
+        const derivedFollowers = followersRange || "-";
 
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -552,6 +555,25 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                                 key={item}
                                 type="button"
                                 onClick={() => setAgeGroup(item)}
+                                className={`rounded-full border px-5 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
+                              >
+                                {item}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xl font-semibold text-slate-900">{t.followersBand} <span className="text-rose-500">*</span></h3>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {registerFollowerBands.map((item) => {
+                            const selected = followersRange === item;
+                            return (
+                              <button
+                                key={item}
+                                type="button"
+                                onClick={() => setFollowersRange(item)}
                                 className={`rounded-full border px-5 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
                               >
                                 {item}
