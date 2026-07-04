@@ -249,7 +249,7 @@ export function Mascot({ locale, userId, theme }: { locale: Locale; userId?: str
       <div className="fixed bottom-6 right-6 z-[80] flex flex-col items-end gap-3">
       {/* Speech bubble */}
       {open && (
-        <div className={`relative w-80 max-w-[calc(100vw-2.5rem)] rounded-3xl border p-5 shadow-2xl backdrop-blur-md ${bubbleClass}`}>
+        <div className={`relative w-[24rem] max-w-[calc(100vw-2rem)] min-h-[14rem] rounded-3xl border p-6 shadow-2xl backdrop-blur-md ${bubbleClass}`}>
           {/* Close */}
           {!onboardingActive ? (
             <button
