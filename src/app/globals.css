@@ -11,6 +11,7 @@
   --hud-subtext: #a4b3c0;
   --hud-accent: #8ea56a;
   --hud-accent-soft: #b7c79b;
+  --hud-guide-line: rgba(175, 194, 208, 0.16);
 }
 
 html[data-theme="light"] {
@@ -22,7 +23,7 @@ html[data-theme="light"] body {
   background:
     linear-gradient(120deg, rgba(142, 165, 106, 0.08) 0%, rgba(142, 165, 106, 0) 30%),
     radial-gradient(circle at 78% 12%, rgba(150, 202, 230, 0.16), transparent 40%),
-    repeating-linear-gradient(0deg, rgba(176, 192, 206, 0.06) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, var(--hud-guide-line) 0 1px, transparent 1px 90px),
     linear-gradient(180deg, #27384a 0%, #223242 45%, #1a2531 100%);
   color: var(--hud-text);
   font-family: "Rajdhani", "Orbitron", "Noto Sans TC", "PingFang TC", sans-serif;
@@ -37,7 +38,7 @@ html[data-theme="dark"] body {
   background:
     linear-gradient(120deg, rgba(142, 165, 106, 0.1) 0%, rgba(142, 165, 106, 0) 30%),
     radial-gradient(circle at 78% 12%, rgba(150, 202, 230, 0.16), transparent 40%),
-    repeating-linear-gradient(0deg, rgba(176, 192, 206, 0.06) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(0deg, var(--hud-guide-line) 0 1px, transparent 1px 90px),
     linear-gradient(180deg, #27384a 0%, #223242 45%, #1a2531 100%);
   color: var(--hud-text);
   font-family: "Rajdhani", "Orbitron", "Noto Sans TC", "PingFang TC", sans-serif;
