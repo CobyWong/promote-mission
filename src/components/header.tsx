@@ -66,7 +66,7 @@ export async function Header() {
 
   const t = linkLabels[locale];
 
-  const textColor = theme === "dark" ? "text-white" : "text-slate-900";
+  const textColor = theme === "dark" ? "text-slate-100" : "text-slate-100";
 
   const navLinks = [
     ...userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => ({
@@ -82,10 +82,10 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-transparent">
+    <header className="sticky top-0 z-50 border-b border-slate-700/70 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
-          <span className={`flex h-10 w-10 items-center justify-center rounded-full ${theme === "dark" ? "bg-cyan-400/20" : "bg-slate-100"} ${theme === "dark" ? "text-cyan-300" : "text-blue-600"}`}>
+          <span className={`flex h-10 w-10 items-center justify-center border border-amber-300/40 bg-amber-300/15 text-amber-200`} style={{ clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}>
             MO
           </span>
           <span className="sr-only">Mission One</span>
@@ -106,19 +106,21 @@ export async function Header() {
           <div className="ml-auto flex items-center gap-3">
             <Link
               href="/login"
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${theme === "dark"
-                ? "border-white/20 text-white hover:border-white/40"
-                : "border-slate-300 text-slate-700 hover:border-slate-400"
+              className={`border px-4 py-2 text-sm font-semibold tracking-wide transition ${theme === "dark"
+                ? "border-slate-500 text-slate-200 hover:border-slate-300"
+                : "border-slate-500 text-slate-200 hover:border-slate-300"
                 }`}
+              style={{ borderRadius: "0.75rem", clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}
             >
               {t.login}
             </Link>
             <Link
               href="/register"
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${theme === "dark"
-                ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+              className={`px-4 py-2 text-sm font-semibold tracking-wide transition ${theme === "dark"
+                ? "bg-amber-400 text-slate-950 hover:bg-amber-300"
+                : "bg-amber-400 text-slate-950 hover:bg-amber-300"
                 }`}
+              style={{ borderRadius: "0.75rem", clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}
             >
               {t.start}
             </Link>

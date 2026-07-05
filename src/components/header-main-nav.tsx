@@ -72,15 +72,15 @@ export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
   const pathname = usePathname();
 
   const activeClass = theme === "dark"
-    ? "border-cyan-400/40 bg-cyan-400/15 text-cyan-200"
-    : "border-blue-200 bg-blue-100 text-blue-700 shadow-sm";
+    ? "border-amber-300/60 bg-amber-300/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
+    : "border-amber-300/60 bg-amber-300/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]";
 
   const inactiveClass = theme === "dark"
-    ? "border-transparent text-slate-300 hover:text-white"
-    : "border-transparent text-slate-500 hover:bg-white hover:text-slate-700";
+    ? "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white"
+    : "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white";
 
   return (
-    <nav className={`hidden items-center rounded-full border p-1 text-sm md:flex ${theme === "dark" ? "border-white/10 bg-slate-900/60" : "border-slate-200 bg-slate-100/90"}`}>
+    <nav className={`hidden items-center border p-1 text-sm md:flex ${theme === "dark" ? "border-slate-600/80 bg-slate-900/80" : "border-slate-600/80 bg-slate-900/80"}`} style={{ borderRadius: "0.9rem", clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}>
       {links.map((link) => {
         const isActive = isActivePath(pathname, link.href);
 
@@ -89,7 +89,8 @@ export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
             key={link.href}
             href={link.href}
             prefetch
-            className={`flex items-center gap-2 rounded-full border px-4 py-2 font-semibold transition ${isActive ? activeClass : inactiveClass}`}
+            className={`flex items-center gap-2 border px-4 py-2 font-semibold tracking-wide transition ${isActive ? activeClass : inactiveClass}`}
+            style={{ borderRadius: "0.75rem", clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}
             aria-current={isActive ? "page" : undefined}
           >
             <NavIcon href={link.href} />
