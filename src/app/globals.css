@@ -2,13 +2,13 @@
 
 :root {
   color-scheme: dark;
-  --hud-bg: #0b1014;
-  --hud-bg-soft: #10171d;
-  --hud-panel: #162028;
-  --hud-panel-2: #1a2732;
-  --hud-border: #2f3e46;
-  --hud-text: #d4dde4;
-  --hud-subtext: #90a0ab;
+  --hud-bg: #1a2531;
+  --hud-bg-soft: #243241;
+  --hud-panel: #2a3a4a;
+  --hud-panel-2: #314456;
+  --hud-border: #4a6072;
+  --hud-text: #dce6ee;
+  --hud-subtext: #a4b3c0;
   --hud-accent: #8ea56a;
   --hud-accent-soft: #b7c79b;
 }
@@ -21,9 +21,9 @@ html[data-theme="light"] body {
   min-height: 100vh;
   background:
     linear-gradient(120deg, rgba(142, 165, 106, 0.08) 0%, rgba(142, 165, 106, 0) 30%),
-    radial-gradient(circle at 78% 12%, rgba(143, 205, 180, 0.06), transparent 36%),
-    repeating-linear-gradient(0deg, rgba(130, 145, 155, 0.045) 0 1px, transparent 1px 44px),
-    linear-gradient(180deg, var(--hud-bg) 0%, #101820 45%, #0b1014 100%);
+    radial-gradient(circle at 78% 12%, rgba(150, 202, 230, 0.16), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(176, 192, 206, 0.06) 0 1px, transparent 1px 44px),
+    linear-gradient(180deg, #27384a 0%, #223242 45%, #1a2531 100%);
   color: var(--hud-text);
   font-family: "Rajdhani", "Orbitron", "Noto Sans TC", "PingFang TC", sans-serif;
 }
@@ -36,9 +36,9 @@ html[data-theme="dark"] body {
   min-height: 100vh;
   background:
     linear-gradient(120deg, rgba(142, 165, 106, 0.1) 0%, rgba(142, 165, 106, 0) 30%),
-    radial-gradient(circle at 78% 12%, rgba(143, 205, 180, 0.06), transparent 36%),
-    repeating-linear-gradient(0deg, rgba(130, 145, 155, 0.045) 0 1px, transparent 1px 44px),
-    linear-gradient(180deg, var(--hud-bg) 0%, #101820 45%, #0b1014 100%);
+    radial-gradient(circle at 78% 12%, rgba(150, 202, 230, 0.16), transparent 40%),
+    repeating-linear-gradient(0deg, rgba(176, 192, 206, 0.06) 0 1px, transparent 1px 44px),
+    linear-gradient(180deg, #27384a 0%, #223242 45%, #1a2531 100%);
   color: var(--hud-text);
   font-family: "Rajdhani", "Orbitron", "Noto Sans TC", "PingFang TC", sans-serif;
 }
@@ -88,14 +88,14 @@ a {
   border: 1px solid var(--hud-border);
   border-radius: 1rem;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-  background: linear-gradient(180deg, rgba(24, 35, 50, 0.95) 0%, rgba(17, 24, 34, 0.95) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 28px rgba(0, 0, 0, 0.28);
+  background: linear-gradient(180deg, rgba(47, 66, 84, 0.82) 0%, rgba(36, 52, 68, 0.82) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 12px 24px rgba(8, 13, 18, 0.2);
 }
 
 .tactical-subcard {
-  border: 1px solid rgba(100, 116, 139, 0.55);
+  border: 1px solid rgba(119, 143, 161, 0.62);
   border-radius: 0.9rem;
-  background: rgba(10, 15, 20, 0.46);
+  background: rgba(35, 52, 68, 0.55);
 }
 
 .tactical-chip {
@@ -189,14 +189,14 @@ a {
 
 html[data-theme="dark"] .glass-panel {
   border-color: var(--hud-border);
-  background: linear-gradient(180deg, rgba(24, 35, 50, 0.92) 0%, rgba(20, 29, 40, 0.92) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 36px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgba(47, 66, 84, 0.84) 0%, rgba(37, 53, 69, 0.84) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 12px 28px rgba(8, 13, 18, 0.22);
 }
 
 html[data-theme="light"] .glass-panel {
   border-color: var(--hud-border);
-  background: linear-gradient(180deg, rgba(24, 35, 50, 0.92) 0%, rgba(20, 29, 40, 0.92) 100%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 36px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, rgba(47, 66, 84, 0.84) 0%, rgba(37, 53, 69, 0.84) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 12px 28px rgba(8, 13, 18, 0.22);
   backdrop-filter: blur(8px);
 }
 

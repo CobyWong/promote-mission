@@ -80,7 +80,7 @@ export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
     : "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white";
 
   return (
-    <nav className={`hidden items-center border p-1 text-sm md:flex ${theme === "dark" ? "border-slate-600/80 bg-slate-900/80" : "border-slate-600/80 bg-slate-900/80"}`} style={{ borderRadius: "0.9rem", clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}>
+    <nav className={`hidden items-center border p-1 text-sm md:flex ${theme === "dark" ? "border-slate-400/60 bg-slate-800/45" : "border-slate-400/60 bg-slate-800/45"}`} style={{ borderRadius: "0.9rem", clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}>
       {links.map((link) => {
         const isActive = isActivePath(pathname, link.href);
 
