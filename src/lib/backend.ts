@@ -107,9 +107,31 @@ function toMission(row: MissionRow): Mission {
     tags: row.tags,
     displayOrder: row.display_order,
     isActive: row.is_active,
+    status: (row.status as Mission["status"]) ?? (row.is_active ? "active" : "paused"),
+    startsAt: row.starts_at,
+    endsAt: row.ends_at,
+    archivedAt: row.archived_at,
     minParticipants: row.min_participants,
     currentParticipants: row.current_participants,
   };
+}
+
+function isMissionVisibleForCreators(row: MissionRow) {
+  const lifecycleStatus = (row.status ?? (row.is_active ? "active" : "paused")).toLowerCase();
+  if (!row.is_active || lifecycleStatus !== "active") {
+    return false;
+  }
+
+  const now = Date.now();
+  if (row.starts_at && new Date(row.starts_at).getTime() > now) {
+    return false;
+  }
+
+  if (row.ends_at && new Date(row.ends_at).getTime() < now) {
+    return false;
+  }
+
+  return true;
 }
 
 function toReward(row: RewardRow): Reward {
@@ -474,9 +496,9 @@ export async function getMissionCatalog() {
     return { mode: "demo" as const, missions };
   }
 
-  const { data } = await supabase.from("missions").select("*").eq("is_active", true).order("display_order", { ascending: true });
+  const { data } = await supabase.from("missions").select("*").order("display_order", { ascending: true });
   const missionRows = (data ?? []) as MissionRow[];
-  const liveMissions = missionRows.map(toMission);
+  const liveMissions = missionRows.filter(isMissionVisibleForCreators).map(toMission);
 
   // Keep live missions as source of truth, but include local fallback missions
   // that are not yet migrated into the database.
@@ -571,10 +593,14 @@ export async function getMissionBySlug(slug: string) {
     return missions.find((mission) => mission.slug === slug) ?? null;
   }
 
-  const { data } = await supabase.from("missions").select("*").eq("slug", slug).eq("is_active", true).maybeSingle();
+  const { data } = await supabase.from("missions").select("*").eq("slug", slug).maybeSingle();
   const missionRow = (data ?? null) as MissionRow | null;
 
-  return missionRow ? toMission(missionRow) : missions.find((mission) => mission.slug === slug) ?? null;
+  if (!missionRow || !isMissionVisibleForCreators(missionRow)) {
+    return missions.find((mission) => mission.slug === slug) ?? null;
+  }
+
+  return toMission(missionRow);
 }
 
 export async function getRewardsCatalog() {

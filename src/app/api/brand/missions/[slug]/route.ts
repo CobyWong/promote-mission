@@ -27,6 +27,34 @@ async function assertBrandAccess() {
   return { admin };
 }
 
+function normalizeLifecycleStatus(value: unknown): Database["public"]["Tables"]["missions"]["Update"]["status"] {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.toLowerCase();
+  return ["draft", "active", "paused", "full", "ended", "archived"].includes(normalized)
+    ? normalized
+    : undefined;
+}
+
+function toIsoOrUndefined(value: unknown) {
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  if (value.trim().length === 0) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
 export async function PATCH(request: Request, context: { params: Promise<{ slug: string }> }) {
   const access = await assertBrandAccess();
 
@@ -51,7 +79,17 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
     requirements: Array.isArray(body.requirements) ? body.requirements : undefined,
     deliverables: Array.isArray(body.deliverables) ? body.deliverables : undefined,
     tags: Array.isArray(body.tags) ? body.tags : undefined,
-    is_active: typeof body.is_active === "boolean" ? body.is_active : undefined,
+    status: normalizeLifecycleStatus(body.status),
+    starts_at: toIsoOrUndefined(body.starts_at),
+    ends_at: toIsoOrUndefined(body.ends_at),
+    archived_at: toIsoOrUndefined(body.archived_at),
+    is_active: typeof body.is_active === "boolean"
+      ? body.is_active
+      : normalizeLifecycleStatus(body.status) === "active"
+        ? true
+        : normalizeLifecycleStatus(body.status)
+          ? false
+          : undefined,
     display_order: typeof body.display_order === "number" ? body.display_order : undefined,
     min_participants: typeof body.min_participants === "number" ? body.min_participants : undefined,
     current_participants: typeof body.current_participants === "number" ? body.current_participants : undefined,

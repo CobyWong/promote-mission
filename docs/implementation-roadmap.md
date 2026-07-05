@@ -80,6 +80,15 @@
 - Brand mission manager: draft/active/paused/full/ended controls.
 - Admin board: bulk approve/reject, filters, SLA badges.
 
+### Status
+- In progress.
+- Implemented mission lifecycle foundation:
+  - migration `supabase/migrations/add_mission_lifecycle_phase3.sql`
+  - lifecycle fields on missions (`status`, `starts_at`, `ends_at`, `archived_at`)
+  - submission ops fields (`assigned_reviewer_id`, `review_due_at`, `sla_breached_at`)
+  - brand transition endpoint `POST /api/brand/missions/[slug]/state`
+  - brand manager UI lifecycle controls and quick status actions
+
 ---
 
 ## Phase 4 - Notifications and observability

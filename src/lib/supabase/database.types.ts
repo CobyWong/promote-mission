@@ -77,6 +77,7 @@ export type Database = {
       };
       missions: {
         Row: {
+          archived_at: string | null;
           brand: string;
           category: string;
           current_participants: number;
@@ -88,16 +89,20 @@ export type Database = {
           eta: string;
           hook: string;
           is_active: boolean;
+          ends_at: string | null;
           min_participants: number;
           mission_image_url: string | null;
           product: string;
           requirements: string[];
           reward_coins: number;
           slug: string;
+          starts_at: string | null;
+          status: string;
           tags: string[];
           title: string;
         };
         Insert: {
+          archived_at?: string | null;
           brand: string;
           category: string;
           current_participants?: number;
@@ -109,16 +114,20 @@ export type Database = {
           eta: string;
           hook: string;
           is_active?: boolean;
+          ends_at?: string | null;
           min_participants?: number;
           mission_image_url?: string | null;
           product: string;
           requirements?: string[];
           reward_coins: number;
           slug: string;
+          starts_at?: string | null;
+          status?: string;
           tags?: string[];
           title: string;
         };
         Update: {
+          archived_at?: string | null;
           brand?: string;
           category?: string;
           current_participants?: number;
@@ -130,12 +139,15 @@ export type Database = {
           eta?: string;
           hook?: string;
           is_active?: boolean;
+          ends_at?: string | null;
           min_participants?: number;
           mission_image_url?: string | null;
           product?: string;
           requirements?: string[];
           reward_coins?: number;
           slug?: string;
+          starts_at?: string | null;
+          status?: string;
           tags?: string[];
           title?: string;
         };
@@ -404,6 +416,7 @@ export type Database = {
       };
       submissions: {
         Row: {
+          assigned_reviewer_id: string | null;
           caption_summary: string | null;
           checklist: Json | null;
           created_at: string;
@@ -418,13 +431,16 @@ export type Database = {
           reviewed_at: string | null;
           reviewed_by: string | null;
           reward_coins: number;
+          review_due_at: string | null;
           screenshot_count: number;
           screenshot_paths: Json;
+          sla_breached_at: string | null;
           status: string;
           submitted_at: string;
           user_id: string;
         };
         Insert: {
+          assigned_reviewer_id?: string | null;
           caption_summary?: string | null;
           checklist?: Json | null;
           created_at?: string;
@@ -439,13 +455,16 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           reward_coins: number;
+          review_due_at?: string | null;
           screenshot_count?: number;
           screenshot_paths?: Json;
+          sla_breached_at?: string | null;
           status?: string;
           submitted_at?: string;
           user_id: string;
         };
         Update: {
+          assigned_reviewer_id?: string | null;
           caption_summary?: string | null;
           checklist?: Json | null;
           created_at?: string;
@@ -460,8 +479,10 @@ export type Database = {
           reviewed_at?: string | null;
           reviewed_by?: string | null;
           reward_coins?: number;
+          review_due_at?: string | null;
           screenshot_count?: number;
           screenshot_paths?: Json;
+          sla_breached_at?: string | null;
           status?: string;
           submitted_at?: string;
           user_id?: string;

@@ -11,6 +11,22 @@ type BrandMissionManagerProps = {
   locale: Locale;
 };
 
+type MissionLifecycleStatus = "draft" | "active" | "paused" | "full" | "ended" | "archived";
+
+function toDateTimeLocal(value?: string | null) {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (input: number) => String(input).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 export function BrandMissionManager({ initialMissions, locale }: BrandMissionManagerProps) {
   const t = locale === "en"
     ? {
@@ -44,6 +60,21 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       fieldDisplayOrder: "Display Order",
       fieldMinParticipants: "Min participants to unlock (0 = no limit)",
       fieldCurrentParticipants: "Current registered participants",
+      fieldLifecycleStatus: "Lifecycle status",
+      fieldStartsAt: "Starts at",
+      fieldEndsAt: "Ends at",
+      lifecycleStatusLabel: "Status",
+      transitionFailed: "Failed to update mission status.",
+      transitionToActive: "Activate",
+      transitionToPaused: "Pause",
+      transitionToEnded: "End",
+      transitionToArchived: "Archive",
+      draft: "Draft",
+      active: "Active",
+      paused: "Paused",
+      full: "Full",
+      ended: "Ended",
+      archived: "Archived",
       coinsUnit: "Coins",
       edit: "Edit",
       delete: "Delete",
@@ -79,6 +110,21 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       fieldDisplayOrder: "顯示排序",
       fieldMinParticipants: "最低開放人數（0＝不限）",
       fieldCurrentParticipants: "目前登記人數",
+      fieldLifecycleStatus: "生命週期狀態",
+      fieldStartsAt: "開始時間",
+      fieldEndsAt: "結束時間",
+      lifecycleStatusLabel: "狀態",
+      transitionFailed: "更新任務狀態失敗。",
+      transitionToActive: "啟用",
+      transitionToPaused: "暫停",
+      transitionToEnded: "結束",
+      transitionToArchived: "封存",
+      draft: "草稿",
+      active: "進行中",
+      paused: "已暫停",
+      full: "已滿額",
+      ended: "已結束",
+      archived: "已封存",
       coinsUnit: "金幣",
       edit: "編輯",
       delete: "刪除",
@@ -104,6 +150,9 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
     deliverables: "",
     tags: "",
     displayOrder: 0,
+    status: "draft" as MissionLifecycleStatus,
+    startsAt: "",
+    endsAt: "",
     minParticipants: 0,
     currentParticipants: 0,
   });
@@ -172,7 +221,11 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       deliverables: form.deliverables.split("\n").map((item) => item.trim()).filter(Boolean),
       tags: form.tags.split(",").map((item) => item.trim()).filter(Boolean),
       display_order: Number(form.displayOrder),
-      is_active: true,
+      status: form.status,
+      starts_at: form.startsAt || null,
+      ends_at: form.endsAt || null,
+      archived_at: null,
+      is_active: form.status === "active",
       min_participants: Number(form.minParticipants),
       current_participants: Number(form.currentParticipants),
     };
@@ -219,6 +272,9 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       deliverables: "",
       tags: "",
       displayOrder: 0,
+      status: "draft",
+      startsAt: "",
+      endsAt: "",
       minParticipants: 0,
       currentParticipants: 0,
     });
@@ -248,6 +304,32 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
     await refreshFromServer();
   }
 
+  async function transitionMissionStatus(slug: string, status: MissionLifecycleStatus) {
+    setLoading(true);
+    setError(null);
+
+    const response = await fetch(`/api/brand/missions/${slug}/state`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      setError(result?.error ?? t.transitionFailed);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(false);
+    await refreshFromServer();
+  }
+
+  const lifecycleOptions: MissionLifecycleStatus[] = ["draft", "active", "paused", "full", "ended", "archived"];
+
   return (
     <div className="space-y-8">
       {error ? (
@@ -269,23 +351,40 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
             { key: "eta", label: t.fieldEta, type: "text" },
             { key: "category", label: t.fieldCategory, type: "text" },
             { key: "displayOrder", label: t.fieldDisplayOrder, type: "number" },
+            { key: "status", label: t.fieldLifecycleStatus, type: "select" },
+            { key: "startsAt", label: t.fieldStartsAt, type: "datetime-local" },
+            { key: "endsAt", label: t.fieldEndsAt, type: "datetime-local" },
             { key: "minParticipants", label: t.fieldMinParticipants, type: "number" },
             { key: "currentParticipants", label: t.fieldCurrentParticipants, type: "number" },
           ].map((field) => (
             <label key={field.key} className="block text-sm text-slate-300">
               {field.label}
-              <input
-                type={field.type}
-                value={String(form[field.key as keyof typeof form])}
-                onChange={(event) =>
-                  setForm((current) => ({
-                    ...current,
-                    [field.key]: field.type === "number" ? Number(event.target.value) : event.target.value,
-                  }))
-                }
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
-                disabled={field.key === "slug" && Boolean(editingSlug)}
-              />
+              {field.type === "select" ? (
+                <select
+                  value={form.status}
+                  onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as MissionLifecycleStatus }))}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                >
+                  {lifecycleOptions.map((option) => (
+                    <option key={option} value={option} className="bg-slate-900 text-white">
+                      {t[option]}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type={field.type}
+                  value={String(form[field.key as keyof typeof form])}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      [field.key]: field.type === "number" ? Number(event.target.value) : event.target.value,
+                    }))
+                  }
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                  disabled={field.key === "slug" && Boolean(editingSlug)}
+                />
+              )}
             </label>
           ))}
         </div>
@@ -366,6 +465,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                 <p className="text-sm text-slate-400">{mission.slug}</p>
                 <h3 className="mt-1 text-xl font-semibold text-white">{mission.title}</h3>
                 <p className="mt-2 text-sm text-slate-300">{mission.brand} · {mission.points} {t.coinsUnit} · {mission.category}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.2em] text-cyan-300">{t.lifecycleStatusLabel}: {t[(mission.status ?? "draft") as keyof typeof t]}</p>
                 {mission.imageUrl ? (
                   <div
                     className="mt-3 h-20 w-36 rounded-xl border border-white/10 bg-cover bg-center"
@@ -376,6 +476,27 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                 ) : null}
               </div>
               <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => transitionMissionStatus(mission.slug, "active")}
+                  className="rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-200"
+                >
+                  {t.transitionToActive}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => transitionMissionStatus(mission.slug, "paused")}
+                  className="rounded-full border border-amber-300/30 bg-amber-400/10 px-4 py-2 text-sm font-semibold text-amber-200"
+                >
+                  {t.transitionToPaused}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => transitionMissionStatus(mission.slug, "ended")}
+                  className="rounded-full border border-slate-300/30 bg-slate-400/10 px-4 py-2 text-sm font-semibold text-slate-200"
+                >
+                  {t.transitionToEnded}
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -396,6 +517,9 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                       deliverables: mission.deliverables.join("\n"),
                       tags: mission.tags.join(", "),
                       displayOrder: mission.displayOrder ?? 0,
+                      status: mission.status ?? "draft",
+                      startsAt: toDateTimeLocal(mission.startsAt),
+                      endsAt: toDateTimeLocal(mission.endsAt),
                       minParticipants: mission.minParticipants ?? 0,
                       currentParticipants: mission.currentParticipants ?? 0,
                     });
@@ -407,8 +531,15 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                 </button>
                 <button
                   type="button"
-                  onClick={() => deleteMission(mission.slug)}
+                  onClick={() => transitionMissionStatus(mission.slug, "archived")}
                   className="rounded-full border border-rose-300/30 bg-rose-400/10 px-4 py-2 text-sm font-semibold text-rose-200"
+                >
+                  {t.transitionToArchived}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteMission(mission.slug)}
+                  className="rounded-full border border-rose-200/20 bg-rose-200/10 px-4 py-2 text-sm font-semibold text-rose-100"
                 >
                   {t.delete}
                 </button>

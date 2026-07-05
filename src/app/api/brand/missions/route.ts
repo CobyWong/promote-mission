@@ -27,6 +27,26 @@ async function assertBrandAccess() {
   return { admin };
 }
 
+function normalizeLifecycleStatus(value: unknown) {
+  if (typeof value !== "string") {
+    return "draft";
+  }
+
+  const normalized = value.toLowerCase();
+  return ["draft", "active", "paused", "full", "ended", "archived"].includes(normalized)
+    ? normalized
+    : "draft";
+}
+
+function toIsoOrNull(value: unknown) {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
+}
+
 export async function GET() {
   const access = await assertBrandAccess();
 
@@ -60,6 +80,10 @@ export async function GET() {
     tags: item.tags,
     displayOrder: item.display_order,
     isActive: item.is_active,
+    status: item.status,
+    startsAt: item.starts_at,
+    endsAt: item.ends_at,
+    archivedAt: item.archived_at,
     minParticipants: item.min_participants,
     currentParticipants: item.current_participants,
   }));
@@ -95,7 +119,11 @@ export async function POST(request: Request) {
     requirements: Array.isArray(body.requirements) ? body.requirements : [],
     deliverables: Array.isArray(body.deliverables) ? body.deliverables : [],
     tags: Array.isArray(body.tags) ? body.tags : [],
-    is_active: body.is_active ?? true,
+    status: normalizeLifecycleStatus(body.status),
+    starts_at: toIsoOrNull(body.starts_at),
+    ends_at: toIsoOrNull(body.ends_at),
+    archived_at: null,
+    is_active: normalizeLifecycleStatus(body.status) === "active",
     display_order: Number(body.display_order ?? 0),
     min_participants: Number(body.min_participants ?? 0),
     current_participants: Number(body.current_participants ?? 0),

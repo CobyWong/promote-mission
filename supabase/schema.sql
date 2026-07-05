@@ -575,6 +575,29 @@ create unique index if not exists coin_transactions_referral_reward_submission_i
   on public.coin_transactions(submission_id)
   where transaction_type = 'referral_reward' and submission_id is not null;
 
+alter table public.missions
+  add column if not exists status text not null default 'draft' check (status in ('draft', 'active', 'paused', 'full', 'ended', 'archived')),
+  add column if not exists starts_at timestamptz,
+  add column if not exists ends_at timestamptz,
+  add column if not exists archived_at timestamptz;
+
+update public.missions
+set status = case
+  when is_active then 'active'
+  else 'paused'
+end
+where status = 'draft';
+
+create index if not exists missions_status_idx on public.missions(status);
+create index if not exists missions_active_window_idx on public.missions(starts_at, ends_at);
+
+alter table public.submissions
+  add column if not exists assigned_reviewer_id uuid references auth.users(id) on delete set null,
+  add column if not exists review_due_at timestamptz,
+  add column if not exists sla_breached_at timestamptz;
+
+create index if not exists submissions_review_due_idx on public.submissions(review_due_at);
+
 create or replace function public.settle_referral_reward(
   approved_submission_id_input uuid
 )

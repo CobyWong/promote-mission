@@ -15,6 +15,10 @@ export type Mission = {
   tags: string[];
   displayOrder?: number;
   isActive?: boolean;
+  status?: "draft" | "active" | "paused" | "full" | "ended" | "archived";
+  startsAt?: string | null;
+  endsAt?: string | null;
+  archivedAt?: string | null;
   minParticipants?: number;
   currentParticipants?: number;
   rankings?: MissionRankingEntry[];
