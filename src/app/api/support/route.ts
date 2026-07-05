@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { createAppLog } from "@/lib/observability";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupportEmail } from "@/lib/supabase/env";
@@ -16,6 +17,13 @@ export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
   if (!body) {
+    await createAppLog({
+      level: "warn",
+      category: "support",
+      event: "support_invalid_payload",
+      message: "Invalid payload.",
+      route: "/api/support",
+    });
     return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
   }
 
@@ -41,6 +49,14 @@ export async function POST(request: Request) {
   const admin = createSupabaseAdminClient();
 
   if (!admin) {
+    await createAppLog({
+      level: "error",
+      category: "support",
+      event: "support_unavailable",
+      message: "Support inbox is temporarily unavailable.",
+      route: "/api/support",
+      context: { email },
+    });
     return NextResponse.json(
       {
         error: "Support inbox is temporarily unavailable.",
@@ -72,6 +88,15 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    await createAppLog({
+      level: "error",
+      category: "support",
+      event: "support_ticket_insert_failed",
+      message: error.message,
+      route: "/api/support",
+      userId: user?.id ?? null,
+      context: { email, category },
+    });
     return NextResponse.json(
       {
         error: "Failed to send support request right now.",

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 
 import type { SubmissionStatus } from "@/lib/data";
 import { hasAdminSession } from "@/lib/admin-session";
+import { createUserNotification } from "@/lib/notifications";
+import { createAppLog } from "@/lib/observability";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/supabase/env";
@@ -86,6 +88,14 @@ export async function PATCH(
   ]);
 
   if (!supabase || !admin) {
+    await createAppLog({
+      level: "error",
+      category: "admin_review",
+      event: "submission_update_unavailable",
+      message: "Supabase admin mode is not configured.",
+      route: "/api/admin/submissions/[id]",
+      context: { submissionId: id },
+    });
     return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
   }
 
@@ -94,10 +104,29 @@ export async function PATCH(
   }] = await Promise.all([hasAdminSession(), supabase.auth.getUser()]);
 
   if (!adminSession && (!user || !isAdminEmail(user.email))) {
+    await createAppLog({
+      level: "warn",
+      category: "auth",
+      event: "admin_submission_forbidden",
+      message: "Admin access required.",
+      route: "/api/admin/submissions/[id]",
+      userId: user?.id ?? null,
+      context: { submissionId: id },
+    });
     return NextResponse.json({ error: "Admin access required." }, { status: 403 });
   }
 
   const reviewerId = user?.id ?? null;
+
+  const { data: existingSubmission } = await admin
+    .from("submissions")
+    .select("id, user_id, mission_title, reward_coins, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!existingSubmission) {
+    return NextResponse.json({ error: "Submission not found." }, { status: 404 });
+  }
 
   const body = await request.json();
   const hasStatus = typeof body.status === "string";
@@ -124,13 +153,58 @@ export async function PATCH(
     const { error } = await admin.rpc("approve_submission", rpcArgs);
 
     if (error) {
+      await createAppLog({
+        level: "error",
+        category: "admin_review",
+        event: "approve_submission_failed",
+        message: error.message,
+        route: "/api/admin/submissions/[id]",
+        userId: reviewerId,
+        context: { submissionId: id },
+      });
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     const settleArgs: Database["public"]["Functions"]["settle_referral_reward"]["Args"] = {
       approved_submission_id_input: id,
     };
-    await admin.rpc("settle_referral_reward", settleArgs);
+    const { data: settleResult } = await admin.rpc("settle_referral_reward", settleArgs);
+
+    await createUserNotification({
+      userId: existingSubmission.user_id,
+      type: "submission_approved",
+      title: "Mission approved",
+      message: `Your submission for \"${existingSubmission.mission_title}\" was approved. +${existingSubmission.reward_coins} Coins credited.`,
+      link: "/dashboard",
+      metadata: {
+        submissionId: id,
+        missionTitle: existingSubmission.mission_title,
+        rewardCoins: existingSubmission.reward_coins,
+      },
+    });
+
+    const settlePayload = (settleResult ?? null) as {
+      settled?: boolean;
+      rewardCoins?: number;
+      inviterUserId?: string;
+      invitedUserId?: string;
+    } | null;
+
+    if (settlePayload?.settled && settlePayload.inviterUserId) {
+      await createUserNotification({
+        userId: settlePayload.inviterUserId,
+        type: "referral_reward",
+        title: "Referral reward credited",
+        message: `Your referral has qualified. +${settlePayload.rewardCoins ?? 0} Coins added to your balance.`,
+        link: "/dashboard",
+        metadata: {
+          submissionId: id,
+          inviterUserId: settlePayload.inviterUserId,
+          invitedUserId: settlePayload.invitedUserId ?? existingSubmission.user_id,
+          rewardCoins: settlePayload.rewardCoins ?? 0,
+        },
+      });
+    }
 
     if (assignedReviewerId !== undefined || reviewDueAt !== undefined) {
       const assignmentPayload: Database["public"]["Tables"]["submissions"]["Update"] = {
@@ -142,6 +216,15 @@ export async function PATCH(
     }
 
     await syncSlaBreachForIds(admin, [id]);
+
+    await createAppLog({
+      level: "info",
+      category: "admin_review",
+      event: "submission_approved",
+      route: "/api/admin/submissions/[id]",
+      userId: reviewerId,
+      context: { submissionId: id },
+    });
 
     return NextResponse.json({ ok: true });
   }
@@ -167,10 +250,42 @@ export async function PATCH(
     .eq("id", id);
 
   if (error) {
+    await createAppLog({
+      level: "error",
+      category: "admin_review",
+      event: "submission_update_failed",
+      message: error.message,
+      route: "/api/admin/submissions/[id]",
+      userId: reviewerId,
+      context: { submissionId: id, status: status ?? null },
+    });
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
   await syncSlaBreachForIds(admin, [id]);
+
+  if (status === "Needs edits") {
+    await createUserNotification({
+      userId: existingSubmission.user_id,
+      type: "submission_needs_edits",
+      title: "Submission needs edits",
+      message: `Your submission for \"${existingSubmission.mission_title}\" needs revisions. Check reviewer notes and resubmit.`,
+      link: "/dashboard",
+      metadata: {
+        submissionId: id,
+        missionTitle: existingSubmission.mission_title,
+      },
+    });
+  }
+
+  await createAppLog({
+    level: "info",
+    category: "admin_review",
+    event: "submission_updated",
+    route: "/api/admin/submissions/[id]",
+    userId: reviewerId,
+    context: { submissionId: id, status: status ?? null },
+  });
 
   return NextResponse.json({ ok: true });
 }

@@ -6,6 +6,7 @@ import { isAdminEmail } from "@/lib/supabase/env";
 import { hasAdminSession } from "@/lib/admin-session";
 import { getCurrentViewer } from "@/lib/backend";
 import { HeaderMainNav } from "@/components/header-main-nav";
+import { HeaderNotificationCenter } from "@/components/header-notification-center";
 import { HeaderSideMenu } from "@/components/header-side-menu";
 
 const linkLabels: Record<Locale, Record<string, string>> = {
@@ -94,6 +95,7 @@ export async function Header() {
         {isAuthenticated ? (
           <div className="ml-auto flex items-center gap-3">
             <HeaderMainNav links={navLinks} theme={theme} />
+            <HeaderNotificationCenter locale={locale} theme={theme} />
 
             <HeaderSideMenu
               locale={locale}

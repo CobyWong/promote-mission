@@ -1,4 +1,5 @@
 import { AdminReviewBoard } from "@/components/admin-review-board";
+import { AdminKpiPanel } from "@/components/admin-kpi-panel";
 import { sampleSubmissions } from "@/lib/data";
 import { getAdminReviewData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
@@ -34,6 +35,8 @@ export default async function AdminReviewsPage() {
       </div>
 
       <div className="mt-10">
+        {reviewData.authorized ? <AdminKpiPanel locale={locale} /> : null}
+
         {reviewData.mode === "demo" ? (
           <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
             {t.demo}

@@ -106,3 +106,23 @@
 ### Platform operations
 - Add structured logging + error monitoring + KPI dashboard.
 - Add integration tests for critical paths.
+
+### Status
+- In progress.
+- Implemented notifications foundation:
+  - migration `supabase/migrations/add_notifications_phase4.sql`
+  - `public.notifications` table with delivery state and owner RLS
+  - APIs: `GET /api/notifications`, `PATCH /api/notifications`, `PATCH /api/notifications/[id]`
+  - header notification center UI
+  - event-driven in-app notifications for:
+    - submission approved / needs edits
+    - reward redemption requested / fulfilled / rejected
+    - referral reward settled
+- Implemented observability slice:
+  - migration `supabase/migrations/add_observability_phase4.sql`
+  - `public.app_logs` structured logging table
+  - shared logger helper `src/lib/observability.ts`
+  - KPI endpoints:
+    - `GET /api/admin/kpi`
+    - `GET /api/admin/kpi/logs`
+  - admin review page KPI panel with recent error feed

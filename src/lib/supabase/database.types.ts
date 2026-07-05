@@ -3,6 +3,45 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      app_logs: {
+        Row: {
+          category: string;
+          context: Json;
+          created_at: string;
+          event: string;
+          id: string;
+          level: string;
+          message: string | null;
+          request_id: string | null;
+          route: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          category: string;
+          context?: Json;
+          created_at?: string;
+          event: string;
+          id?: string;
+          level: string;
+          message?: string | null;
+          request_id?: string | null;
+          route?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          category?: string;
+          context?: Json;
+          created_at?: string;
+          event?: string;
+          id?: string;
+          level?: string;
+          message?: string | null;
+          request_id?: string | null;
+          route?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [];
+      };
       coin_transactions: {
         Row: {
           amount: number;
@@ -150,6 +189,48 @@ export type Database = {
           status?: string;
           tags?: string[];
           title?: string;
+        };
+        Relationships: [];
+      };
+      notifications: {
+        Row: {
+          created_at: string;
+          delivery_status: string;
+          id: string;
+          is_read: boolean;
+          link: string | null;
+          message: string;
+          metadata: Json;
+          read_at: string | null;
+          title: string;
+          type: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          delivery_status?: string;
+          id?: string;
+          is_read?: boolean;
+          link?: string | null;
+          message: string;
+          metadata?: Json;
+          read_at?: string | null;
+          title: string;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          delivery_status?: string;
+          id?: string;
+          is_read?: boolean;
+          link?: string | null;
+          message?: string;
+          metadata?: Json;
+          read_at?: string | null;
+          title?: string;
+          type?: string;
+          user_id?: string;
         };
         Relationships: [];
       };
