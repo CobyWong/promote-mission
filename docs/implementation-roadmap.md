@@ -125,4 +125,6 @@
   - KPI endpoints:
     - `GET /api/admin/kpi`
     - `GET /api/admin/kpi/logs`
+    - `GET /api/admin/kpi/trends` (24h/7d time series)
+    - `GET /api/admin/kpi/logs/export` (CSV export)
   - admin review page KPI panel with recent error feed
