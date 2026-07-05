@@ -874,6 +874,36 @@ export async function getAdminReviewData() {
   ]);
   const submissionRows = (data ?? []) as SubmissionRow[];
 
+  const now = Date.now();
+  const nowIso = new Date(now).toISOString();
+  const toMarkBreached: string[] = [];
+  const toClearBreached: string[] = [];
+
+  for (const row of submissionRows) {
+    const dueTime = row.review_due_at ? new Date(row.review_due_at).getTime() : null;
+    const hasBreach = Boolean(row.sla_breached_at);
+    const isOverdue = row.status !== "Approved" && dueTime !== null && !Number.isNaN(dueTime) && dueTime < now;
+
+    if (isOverdue && !hasBreach) {
+      toMarkBreached.push(row.id);
+      row.sla_breached_at = nowIso;
+      continue;
+    }
+
+    if (!isOverdue && hasBreach) {
+      toClearBreached.push(row.id);
+      row.sla_breached_at = null;
+    }
+  }
+
+  if (toMarkBreached.length > 0) {
+    await admin.from("submissions").update({ sla_breached_at: nowIso }).in("id", toMarkBreached);
+  }
+
+  if (toClearBreached.length > 0) {
+    await admin.from("submissions").update({ sla_breached_at: null }).in("id", toClearBreached);
+  }
+
   const adminEmails = new Set(getAdminEmails());
   const reviewerMap = new Map<string, AdminReviewer>();
 

@@ -17,6 +17,10 @@ type SlaFilter = "all" | "overdue" | "dueSoon" | "none";
 type SlaState = "overdue" | "dueSoon" | "ok" | "none";
 
 function getSlaState(submission: Submission): SlaState {
+  if (submission.slaBreachedAt && submission.status !== "Approved") {
+    return "overdue";
+  }
+
   if (!submission.reviewDueAt || submission.status === "Approved") {
     return "none";
   }
@@ -110,6 +114,8 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       bulkActions: "Bulk actions",
       bulkApplyStatus: "Apply status",
       bulkApplyAssignment: "Apply assignment",
+      bulkApplyNotes: "Apply notes",
+      bulkNotes: "Bulk notes",
       selectAllFiltered: "Select all filtered",
       clearSelection: "Clear",
       saving: "saving...",
@@ -117,6 +123,8 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       sla: "SLA",
       noReviewer: "No reviewer",
       noDueDate: "No due date",
+      workload: "Reviewer workload",
+      openCases: "Open cases",
       bulkUpdateFailed: "Bulk update failed.",
       updateFailed: "Failed to update review status.",
     }
@@ -148,6 +156,8 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       bulkActions: "批次操作",
       bulkApplyStatus: "批次套用狀態",
       bulkApplyAssignment: "批次套用指派",
+      bulkApplyNotes: "批次套用備註",
+      bulkNotes: "批次備註",
       selectAllFiltered: "全選篩選結果",
       clearSelection: "清除",
       saving: "saving...",
@@ -155,6 +165,8 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       sla: "SLA",
       noReviewer: "未指派",
       noDueDate: "未設定期限",
+      workload: "審核者工作量",
+      openCases: "未結案",
       bulkUpdateFailed: "批次更新失敗。",
       updateFailed: "更新審核狀態失敗。",
     };
@@ -170,6 +182,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
   const [bulkStatus, setBulkStatus] = useState<SubmissionStatus>("Pending");
   const [bulkReviewerId, setBulkReviewerId] = useState<string>("");
   const [bulkDueAt, setBulkDueAt] = useState<string>("");
+  const [bulkNotes, setBulkNotes] = useState<string>("");
 
   const reviewerNameMap = useMemo(() => {
     const entries = reviewers.map((reviewer): [string, string] => [reviewer.id, reviewer.email]);
@@ -218,6 +231,46 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
     });
   }, [submissions, statusFilter, reviewerFilter, slaFilter]);
 
+  const reviewerWorkloads = useMemo(() => {
+    const base = reviewers.map((reviewer) => ({
+      reviewerId: reviewer.id,
+      reviewerEmail: reviewer.email,
+      openCount: 0,
+      overdueCount: 0,
+      dueSoonCount: 0,
+    }));
+
+    const map = new Map(base.map((item) => [item.reviewerId, item]));
+
+    for (const submission of submissions) {
+      if (!submission.assignedReviewerId || submission.status === "Approved") {
+        continue;
+      }
+
+      const slot = map.get(submission.assignedReviewerId);
+      if (!slot) {
+        continue;
+      }
+
+      slot.openCount += 1;
+      const sla = getSlaState(submission);
+      if (sla === "overdue") {
+        slot.overdueCount += 1;
+      }
+      if (sla === "dueSoon") {
+        slot.dueSoonCount += 1;
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => {
+      if (b.overdueCount !== a.overdueCount) {
+        return b.overdueCount - a.overdueCount;
+      }
+
+      return b.openCount - a.openCount;
+    });
+  }, [reviewers, submissions]);
+
   function toggleSubmissionSelection(submissionId: string) {
     setSelectedIds((current) => {
       if (current.includes(submissionId)) {
@@ -232,6 +285,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
     status?: SubmissionStatus;
     assignedReviewerId?: string | null;
     reviewDueAt?: string | null;
+    notes?: string;
   }) {
     if (selectedIds.length === 0) {
       return;
@@ -266,6 +320,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
           status: payload.status ?? item.status,
           assignedReviewerId: payload.assignedReviewerId !== undefined ? payload.assignedReviewerId : item.assignedReviewerId,
           reviewDueAt: payload.reviewDueAt !== undefined ? payload.reviewDueAt : item.reviewDueAt,
+          notes: payload.notes !== undefined ? payload.notes : item.notes,
         };
       }),
     );
@@ -330,6 +385,22 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       </div>
 
       <div className="glass-panel p-5">
+        <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.workload}</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {reviewerWorkloads.map((item) => (
+            <div key={item.reviewerId} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              <p className="text-sm text-slate-300">{item.reviewerEmail}</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-cyan-200">{t.openCases}: {item.openCount}</span>
+                <span className="rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-rose-200">{t.overdue}: {item.overdueCount}</span>
+                <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-amber-200">{t.dueSoon}: {item.dueSoonCount}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="glass-panel p-5">
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.bulkActions}</p>
           <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-200">{t.selected}: {selectedIds.length}</span>
@@ -390,6 +461,22 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
               className="w-full rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-200"
             >
               {t.bulkApplyAssignment}
+            </button>
+          </div>
+
+          <div className="space-y-2 md:col-span-3">
+            <label className="text-sm text-slate-300">{t.bulkNotes}</label>
+            <textarea
+              value={bulkNotes}
+              onChange={(event) => setBulkNotes(event.target.value)}
+              className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-white"
+            />
+            <button
+              type="button"
+              onClick={() => runBulkUpdate({ notes: bulkNotes })}
+              className="w-full rounded-full border border-sky-300/30 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-200"
+            >
+              {t.bulkApplyNotes}
             </button>
           </div>
         </div>

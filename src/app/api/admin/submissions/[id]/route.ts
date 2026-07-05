@@ -9,6 +9,55 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const allowedStatuses: SubmissionStatus[] = ["Pending", "Needs edits", "Approved"];
 
+async function syncSlaBreachForIds(
+  admin: ReturnType<typeof createSupabaseAdminClient>,
+  ids: string[],
+) {
+  if (!admin || ids.length === 0) {
+    return;
+  }
+
+  const { data } = await admin
+    .from("submissions")
+    .select("id, status, review_due_at, sla_breached_at")
+    .in("id", ids);
+
+  const rows = (data ?? []) as Array<{
+    id: string;
+    status: string;
+    review_due_at: string | null;
+    sla_breached_at: string | null;
+  }>;
+
+  const now = Date.now();
+  const nowIso = new Date(now).toISOString();
+  const toMarkBreached: string[] = [];
+  const toClearBreached: string[] = [];
+
+  for (const row of rows) {
+    const dueTime = row.review_due_at ? new Date(row.review_due_at).getTime() : null;
+    const hasBreach = Boolean(row.sla_breached_at);
+    const isOverdue = row.status !== "Approved" && dueTime !== null && !Number.isNaN(dueTime) && dueTime < now;
+
+    if (isOverdue && !hasBreach) {
+      toMarkBreached.push(row.id);
+      continue;
+    }
+
+    if (!isOverdue && hasBreach) {
+      toClearBreached.push(row.id);
+    }
+  }
+
+  if (toMarkBreached.length > 0) {
+    await admin.from("submissions").update({ sla_breached_at: nowIso }).in("id", toMarkBreached);
+  }
+
+  if (toClearBreached.length > 0) {
+    await admin.from("submissions").update({ sla_breached_at: null }).in("id", toClearBreached);
+  }
+}
+
 function toIsoOrNull(value: unknown) {
   if (value === null) {
     return null;
@@ -92,6 +141,8 @@ export async function PATCH(
       await admin.from("submissions").update(assignmentPayload).eq("id", id);
     }
 
+    await syncSlaBreachForIds(admin, [id]);
+
     return NextResponse.json({ ok: true });
   }
 
@@ -118,6 +169,8 @@ export async function PATCH(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
+
+  await syncSlaBreachForIds(admin, [id]);
 
   return NextResponse.json({ ok: true });
 }
