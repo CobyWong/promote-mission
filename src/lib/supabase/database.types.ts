@@ -174,6 +174,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      referral_profiles: {
+        Row: {
+          created_at: string;
+          referral_code: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          referral_code: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          referral_code?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
+      referrals: {
+        Row: {
+          created_at: string;
+          id: string;
+          invited_user_id: string;
+          inviter_user_id: string;
+          referral_code_used: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          invited_user_id: string;
+          inviter_user_id: string;
+          referral_code_used: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          invited_user_id?: string;
+          inviter_user_id?: string;
+          referral_code_used?: string;
+        };
+        Relationships: [];
+      };
       reel_insights: {
         Row: {
           comments: number;

@@ -31,6 +31,8 @@ type RewardRow = Database["public"]["Tables"]["rewards_catalog"]["Row"];
 type RewardRedemptionRow = Database["public"]["Tables"]["reward_redemptions"]["Row"];
 type InstagramConnectionRow = Database["public"]["Tables"]["instagram_connections"]["Row"];
 type ReelInsightRow = Database["public"]["Tables"]["reel_insights"]["Row"];
+type ReferralProfileRow = Database["public"]["Tables"]["referral_profiles"]["Row"];
+type ReferralRow = Database["public"]["Tables"]["referrals"]["Row"];
 type SubmissionStatus = Submission["status"];
 
 type AuthUserLike = {
@@ -54,6 +56,28 @@ export type AdminManagedUser = {
   isAdmin: boolean;
   isBrand: boolean;
 };
+
+export type ReferralStats = {
+  referralCode: string;
+  invitedCount: number;
+  paidBatches: number;
+  totalRewardCoins: number;
+};
+
+const referralRewardTiers = [
+  { invited: 3, coinsPerBatch: 300 },
+  { invited: 10, coinsPerBatch: 500 },
+  { invited: 20, coinsPerBatch: 800 },
+];
+
+function getCoinsPerReferralBatch(invitedCount: number) {
+  return referralRewardTiers.findLast((tier) => invitedCount >= tier.invited)?.coinsPerBatch ?? referralRewardTiers[0].coinsPerBatch;
+}
+
+function getFallbackReferralCode(userId: string) {
+  const normalized = userId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  return normalized.slice(0, 8) || "MISSIONON";
+}
 
 function toMission(row: MissionRow): Mission {
   return {
@@ -226,6 +250,104 @@ function getMetaString(user: AuthUserLike | null, key: string): string | null {
 
 function isAgeGroupValue(value: string) {
   return /^\d{2}\s*-\s*\d{2}$/.test(value) || value === "45+";
+}
+
+async function getReferralStatsForUser(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+): Promise<ReferralStats> {
+  if (!supabase) {
+    return {
+      referralCode: getFallbackReferralCode(userId),
+      invitedCount: 0,
+      paidBatches: 0,
+      totalRewardCoins: 0,
+    };
+  }
+
+  const [{ data: referralProfile }, { data: referrals }] = await Promise.all([
+    supabase.from("referral_profiles").select("referral_code").eq("user_id", userId).maybeSingle(),
+    supabase.from("referrals").select("invited_user_id").eq("inviter_user_id", userId),
+  ]);
+
+  const referralProfileRow = (referralProfile ?? null) as Pick<ReferralProfileRow, "referral_code"> | null;
+  const referralRows = (referrals ?? []) as Array<Pick<ReferralRow, "invited_user_id">>;
+  const invitedUserIds = referralRows.map((item) => item.invited_user_id);
+  const invitedCount = invitedUserIds.length;
+
+  let paidBatches = 0;
+
+  if (invitedUserIds.length > 0) {
+    const { data: approvedRows } = await supabase
+      .from("submissions")
+      .select("user_id")
+      .in("user_id", invitedUserIds)
+      .eq("status", "Approved");
+
+    const qualifiedUserIds = new Set((approvedRows ?? []).map((item) => item.user_id));
+    paidBatches = qualifiedUserIds.size;
+  }
+
+  const coinsPerBatch = getCoinsPerReferralBatch(invitedCount);
+
+  return {
+    referralCode: referralProfileRow?.referral_code ?? getFallbackReferralCode(userId),
+    invitedCount,
+    paidBatches,
+    totalRewardCoins: paidBatches * coinsPerBatch,
+  };
+}
+
+export async function getReferralStats() {
+  if (!hasSupabaseConfig()) {
+    return {
+      mode: "demo" as const,
+      isAuthenticated: false,
+      stats: {
+        referralCode: "MISSIONON",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return {
+      mode: "demo" as const,
+      isAuthenticated: false,
+      stats: {
+        referralCode: "MISSIONON",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
+    };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      mode: "live" as const,
+      isAuthenticated: false,
+      stats: {
+        referralCode: "MISSIONON",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
+    };
+  }
+
+  return {
+    mode: "live" as const,
+    isAuthenticated: true,
+    stats: await getReferralStatsForUser(supabase, user.id),
+  };
 }
 
 function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null = null): CreatorProfile {
@@ -482,6 +604,12 @@ export async function getDashboardData() {
       missionStatusMap: new Map<string, SubmissionStatus>(),
       instagramConnection: null as InstagramConnectionRow | null,
       recentInsights: [] as ReelInsightRow[],
+      referralStats: {
+        referralCode: "MISSIONON",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
     };
   }
 
@@ -501,6 +629,12 @@ export async function getDashboardData() {
       missionStatusMap: new Map<string, SubmissionStatus>(),
       instagramConnection: null as InstagramConnectionRow | null,
       recentInsights: [] as ReelInsightRow[],
+      referralStats: {
+        referralCode: "MISSIONON",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
     };
   }
 
@@ -522,15 +656,22 @@ export async function getDashboardData() {
       missionStatusMap: new Map<string, SubmissionStatus>(),
       instagramConnection: null as InstagramConnectionRow | null,
       recentInsights: [] as ReelInsightRow[],
+      referralStats: {
+        referralCode: "MISSIONON",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
     };
   }
 
-  const [{ data: profile }, { data: submissions }, { data: transactions }, { data: instagramConnection }, { data: recentInsights }] = await Promise.all([
+  const [{ data: profile }, { data: submissions }, { data: transactions }, { data: instagramConnection }, { data: recentInsights }, referralStats] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.from("submissions").select("*").eq("user_id", user.id).order("submitted_at", { ascending: false }),
     supabase.from("coin_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
     supabase.from("instagram_connections").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("reel_insights").select("*").eq("user_id", user.id).order("metric_date", { ascending: false }).limit(10),
+    getReferralStatsForUser(supabase, user.id),
   ]);
 
   const profileRow = (profile ?? null) as ProfileRow | null;
@@ -586,6 +727,7 @@ export async function getDashboardData() {
     userEmail: user.email ?? null,
     instagramConnection: instagramConnectionRow,
     recentInsights: recentInsightRows,
+    referralStats,
   };
 }
 

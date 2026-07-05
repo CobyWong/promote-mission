@@ -9,12 +9,6 @@ import { getCurrentLocale } from "@/lib/i18n";
 import { getMissionTotalPrizeByDifficulty } from "@/lib/mission-rules";
 import { getSupportEmail, getSupportWhatsappUrl } from "@/lib/supabase/env";
 
-function getReferralCode(seed?: string | null) {
-  const source = (seed ?? "missionone").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  const normalized = source.length >= 8 ? source : `${source}MISSIONONE`;
-  return normalized.slice(0, 8);
-}
-
 export default async function DashboardPage() {
   const locale = await getCurrentLocale();
   const t = locale === "en"
@@ -84,7 +78,6 @@ export default async function DashboardPage() {
   const nextReward = rewards.find((reward) => reward.cost > dashboard.balance) ?? rewards[rewards.length - 1];
   const pointsToNextReward = Math.max(nextReward.cost - dashboard.balance, 0);
   const avatarInitial = dashboard.profile?.name?.trim().slice(0, 1).toUpperCase() ?? "C";
-  const referralCode = getReferralCode(dashboard.userEmail);
 
   if (dashboard.mode === "unauthenticated") {
     return (
@@ -285,10 +278,10 @@ export default async function DashboardPage() {
 
       <ReferralRewardsCard
         locale={locale}
-        referralCode={referralCode}
-        invitedCount={0}
-        paidBatches={0}
-        totalRewardCoins={0}
+        referralCode={dashboard.referralStats.referralCode}
+        invitedCount={dashboard.referralStats.invitedCount}
+        paidBatches={dashboard.referralStats.paidBatches}
+        totalRewardCoins={dashboard.referralStats.totalRewardCoins}
       />
 
       <div id="support-center" className="mt-8 scroll-mt-28">
