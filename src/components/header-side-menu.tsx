@@ -102,8 +102,9 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
           } list-none cursor-pointer [&::-webkit-details-marker]:hidden`}
       >
         <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
-          <path d="M6.5 8a3.5 3.5 0 1 1 7 0v2.8l1.2 1.5a.8.8 0 0 1-.62 1.3H5.9a.8.8 0 0 1-.62-1.3l1.22-1.5V8Z" stroke="currentColor" strokeWidth="1.6" />
-          <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          <path d="M4.5 6.5h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M4.5 10h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          <path d="M4.5 13.5h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
         </svg>
         <span className="sr-only">{links.menu}</span>
       </summary>

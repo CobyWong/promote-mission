@@ -2,33 +2,24 @@ import Image from "next/image";
 import { getCurrentLocale } from "@/lib/i18n";
 import { LeaderboardClient } from "@/components/leaderboard-client";
 import { getLeaderboardData } from "@/lib/backend";
-import { getCurrentTheme } from "@/lib/theme";
 
 export default async function LeaderboardPage() {
   const locale = await getCurrentLocale();
-  const theme = await getCurrentTheme();
   const data = await getLeaderboardData();
-  const isDark = theme === "dark";
 
-  const bannerClass = isDark
-    ? "border-amber-300/25 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-[#171229]/90 shadow-lg shadow-slate-950/35"
-    : "border-amber-500/20 bg-gradient-to-br from-[#fffaf1] via-[#f7f9ff] to-[#eef6ff] shadow-lg shadow-slate-900/8";
+  const bannerClass = "border-amber-300/25 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-[#171229]/90 shadow-lg shadow-slate-950/35";
 
-  const glowTopClass = isDark ? "bg-cyan-300/10" : "bg-cyan-300/20";
-  const glowBottomClass = isDark ? "bg-amber-300/10" : "bg-amber-300/22";
+  const glowTopClass = "bg-cyan-300/10";
+  const glowBottomClass = "bg-amber-300/10";
 
-  const iconClass = isDark
-    ? "bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 text-slate-950"
-    : "bg-gradient-to-br from-amber-200 via-amber-300 to-orange-300 text-amber-900";
+  const iconClass = "bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 text-slate-950";
 
-  const titleTagClass = isDark ? "text-amber-200/90" : "text-amber-700";
-  const headingClass = isDark ? "text-white" : "text-slate-900";
-  const descClass = isDark ? "text-slate-200/90" : "text-slate-700";
+  const titleTagClass = "text-amber-200/90";
+  const headingClass = "text-white";
+  const descClass = "text-slate-200/90";
 
-  const rewardPillClass = isDark
-    ? "border-amber-300/30 bg-slate-900/70"
-    : "border-amber-400/25 bg-white/75";
-  const rewardLabelClass = isDark ? "text-amber-200" : "text-amber-700";
+  const rewardPillClass = "border-amber-300/30 bg-slate-900/70";
+  const rewardLabelClass = "text-amber-200";
 
   return (
     <section className="section-shell py-12 sm:py-16">
