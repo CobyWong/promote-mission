@@ -195,24 +195,39 @@ export type Database = {
       referrals: {
         Row: {
           created_at: string;
+          first_approved_submission_id: string | null;
           id: string;
           invited_user_id: string;
           inviter_user_id: string;
+          qualified_at: string | null;
           referral_code_used: string;
+          reward_coins: number | null;
+          rewarded_at: string | null;
+          status: string;
         };
         Insert: {
           created_at?: string;
+          first_approved_submission_id?: string | null;
           id?: string;
           invited_user_id: string;
           inviter_user_id: string;
+          qualified_at?: string | null;
           referral_code_used: string;
+          reward_coins?: number | null;
+          rewarded_at?: string | null;
+          status?: string;
         };
         Update: {
           created_at?: string;
+          first_approved_submission_id?: string | null;
           id?: string;
           invited_user_id?: string;
           inviter_user_id?: string;
+          qualified_at?: string | null;
           referral_code_used?: string;
+          reward_coins?: number | null;
+          rewarded_at?: string | null;
+          status?: string;
         };
         Relationships: [];
       };
@@ -471,6 +486,12 @@ export type Database = {
           reward_slug_input: string;
         };
         Returns: string;
+      };
+      settle_referral_reward: {
+        Args: {
+          approved_submission_id_input: string;
+        };
+        Returns: Json;
       };
     };
     Enums: {

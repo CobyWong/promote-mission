@@ -64,6 +64,16 @@ export type ReferralStats = {
   totalRewardCoins: number;
 };
 
+export type ReferralHistoryItem = {
+  id: string;
+  invitedUserId: string;
+  status: string;
+  rewardCoins: number;
+  createdAt: string;
+  qualifiedAt: string | null;
+  rewardedAt: string | null;
+};
+
 const referralRewardTiers = [
   { invited: 3, coinsPerBatch: 300 },
   { invited: 10, coinsPerBatch: 500 },
@@ -265,37 +275,56 @@ async function getReferralStatsForUser(
     };
   }
 
-  const [{ data: referralProfile }, { data: referrals }] = await Promise.all([
+  const [{ data: referralProfile }, { data: referrals }, { data: referralRewardTransactions }] = await Promise.all([
     supabase.from("referral_profiles").select("referral_code").eq("user_id", userId).maybeSingle(),
-    supabase.from("referrals").select("invited_user_id").eq("inviter_user_id", userId),
+    supabase.from("referrals").select("invited_user_id, status").eq("inviter_user_id", userId),
+    supabase.from("coin_transactions").select("amount").eq("user_id", userId).eq("transaction_type", "referral_reward"),
   ]);
 
   const referralProfileRow = (referralProfile ?? null) as Pick<ReferralProfileRow, "referral_code"> | null;
-  const referralRows = (referrals ?? []) as Array<Pick<ReferralRow, "invited_user_id">>;
-  const invitedUserIds = referralRows.map((item) => item.invited_user_id);
-  const invitedCount = invitedUserIds.length;
-
-  let paidBatches = 0;
-
-  if (invitedUserIds.length > 0) {
-    const { data: approvedRows } = await supabase
-      .from("submissions")
-      .select("user_id")
-      .in("user_id", invitedUserIds)
-      .eq("status", "Approved");
-
-    const qualifiedUserIds = new Set((approvedRows ?? []).map((item) => item.user_id));
-    paidBatches = qualifiedUserIds.size;
-  }
-
-  const coinsPerBatch = getCoinsPerReferralBatch(invitedCount);
+  const referralRows = (referrals ?? []) as Array<Pick<ReferralRow, "invited_user_id" | "status">>;
+  const invitedCount = referralRows.length;
+  const paidBatches = referralRows.filter((item) => item.status === "Rewarded").length;
+  const referralRewardRows = (referralRewardTransactions ?? []) as Array<Pick<TransactionRow, "amount">>;
+  const fallbackCoinsPerBatch = getCoinsPerReferralBatch(invitedCount);
+  const totalRewardCoins = referralRewardRows.length > 0
+    ? referralRewardRows.reduce((sum, item) => sum + Math.max(item.amount, 0), 0)
+    : paidBatches * fallbackCoinsPerBatch;
 
   return {
     referralCode: referralProfileRow?.referral_code ?? getFallbackReferralCode(userId),
     invitedCount,
     paidBatches,
-    totalRewardCoins: paidBatches * coinsPerBatch,
+    totalRewardCoins,
   };
+}
+
+async function getReferralHistoryForUser(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  userId: string,
+): Promise<ReferralHistoryItem[]> {
+  if (!supabase) {
+    return [];
+  }
+
+  const { data } = await supabase
+    .from("referrals")
+    .select("id, invited_user_id, status, reward_coins, created_at, qualified_at, rewarded_at")
+    .eq("inviter_user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  const rows = (data ?? []) as Array<Pick<ReferralRow, "id" | "invited_user_id" | "status" | "reward_coins" | "created_at" | "qualified_at" | "rewarded_at">>;
+
+  return rows.map((row) => ({
+    id: row.id,
+    invitedUserId: row.invited_user_id,
+    status: row.status,
+    rewardCoins: row.reward_coins ?? 0,
+    createdAt: new Date(row.created_at).toLocaleString("zh-HK"),
+    qualifiedAt: row.qualified_at ? new Date(row.qualified_at).toLocaleString("zh-HK") : null,
+    rewardedAt: row.rewarded_at ? new Date(row.rewarded_at).toLocaleString("zh-HK") : null,
+  }));
 }
 
 export async function getReferralStats() {
@@ -347,6 +376,43 @@ export async function getReferralStats() {
     mode: "live" as const,
     isAuthenticated: true,
     stats: await getReferralStatsForUser(supabase, user.id),
+  };
+}
+
+export async function getReferralHistory() {
+  if (!hasSupabaseConfig()) {
+    return {
+      mode: "demo" as const,
+      isAuthenticated: false,
+      items: [] as ReferralHistoryItem[],
+    };
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return {
+      mode: "demo" as const,
+      isAuthenticated: false,
+      items: [] as ReferralHistoryItem[],
+    };
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      mode: "live" as const,
+      isAuthenticated: false,
+      items: [] as ReferralHistoryItem[],
+    };
+  }
+
+  return {
+    mode: "live" as const,
+    isAuthenticated: true,
+    items: await getReferralHistoryForUser(supabase, user.id),
   };
 }
 
@@ -610,6 +676,7 @@ export async function getDashboardData() {
         paidBatches: 0,
         totalRewardCoins: 0,
       } as ReferralStats,
+      referralHistory: [] as ReferralHistoryItem[],
     };
   }
 
@@ -635,6 +702,7 @@ export async function getDashboardData() {
         paidBatches: 0,
         totalRewardCoins: 0,
       } as ReferralStats,
+      referralHistory: [] as ReferralHistoryItem[],
     };
   }
 
@@ -662,16 +730,18 @@ export async function getDashboardData() {
         paidBatches: 0,
         totalRewardCoins: 0,
       } as ReferralStats,
+      referralHistory: [] as ReferralHistoryItem[],
     };
   }
 
-  const [{ data: profile }, { data: submissions }, { data: transactions }, { data: instagramConnection }, { data: recentInsights }, referralStats] = await Promise.all([
+  const [{ data: profile }, { data: submissions }, { data: transactions }, { data: instagramConnection }, { data: recentInsights }, referralStats, referralHistory] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.from("submissions").select("*").eq("user_id", user.id).order("submitted_at", { ascending: false }),
     supabase.from("coin_transactions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
     supabase.from("instagram_connections").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("reel_insights").select("*").eq("user_id", user.id).order("metric_date", { ascending: false }).limit(10),
     getReferralStatsForUser(supabase, user.id),
+    getReferralHistoryForUser(supabase, user.id),
   ]);
 
   const profileRow = (profile ?? null) as ProfileRow | null;
@@ -728,6 +798,7 @@ export async function getDashboardData() {
     instagramConnection: instagramConnectionRow,
     recentInsights: recentInsightRows,
     referralStats,
+    referralHistory,
   };
 }
 

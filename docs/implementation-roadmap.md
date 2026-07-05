@@ -35,7 +35,7 @@
 
 ---
 
-## Phase 2 - Qualification + payout settlement
+## Phase 2 - Qualification + payout settlement (implemented)
 
 ### Schema changes
 - Extend `public.referrals` with:
@@ -54,6 +54,11 @@
 ### API endpoints
 - `POST /api/referrals/recalculate` (admin only)
 - `GET /api/referrals/history`
+
+### Status
+- Implemented settlement function `settle_referral_reward` and wired it to admin approval flow.
+- Implemented `GET /api/referrals/history` endpoint.
+- Dashboard now shows referral history timeline and stats based on rewarded settlement state.
 
 ### UI updates
 - Referral history timeline in dashboard.

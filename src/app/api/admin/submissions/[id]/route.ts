@@ -54,6 +54,11 @@ export async function PATCH(
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
+    const settleArgs: Database["public"]["Functions"]["settle_referral_reward"]["Args"] = {
+      approved_submission_id_input: id,
+    };
+    await admin.rpc("settle_referral_reward", settleArgs);
+
     return NextResponse.json({ ok: true });
   }
 

@@ -41,6 +41,13 @@ export default async function DashboardPage() {
       nextReward: "Next redeemable reward",
       pointsAway: "Only",
       pointsAwaySuffix: "Coins to redeem",
+      referralHistory: "Referral reward history",
+      referralStatus: "Status",
+      referralReward: "Reward",
+      referralEmpty: "No referral records yet.",
+      statusInvited: "Invited",
+      statusQualified: "Qualified",
+      statusRewarded: "Rewarded",
     }
     : {
       title: "你嘅創作者個人檔案",
@@ -71,6 +78,13 @@ export default async function DashboardPage() {
       nextReward: "下一個可兌換獎賞",
       pointsAway: "距離兌換只差",
       pointsAwaySuffix: "金幣",
+      referralHistory: "推薦獎勵紀錄",
+      referralStatus: "狀態",
+      referralReward: "獎勵",
+      referralEmpty: "暫時未有推薦紀錄。",
+      statusInvited: "已邀請",
+      statusQualified: "已達資格",
+      statusRewarded: "已派獎",
     };
 
   const dashboard = await getDashboardData();
@@ -78,6 +92,11 @@ export default async function DashboardPage() {
   const nextReward = rewards.find((reward) => reward.cost > dashboard.balance) ?? rewards[rewards.length - 1];
   const pointsToNextReward = Math.max(nextReward.cost - dashboard.balance, 0);
   const avatarInitial = dashboard.profile?.name?.trim().slice(0, 1).toUpperCase() ?? "C";
+  const referralStatusLabel = (status: string) => {
+    if (status === "Rewarded") return t.statusRewarded;
+    if (status === "Qualified") return t.statusQualified;
+    return t.statusInvited;
+  };
 
   if (dashboard.mode === "unauthenticated") {
     return (
@@ -283,6 +302,31 @@ export default async function DashboardPage() {
         paidBatches={dashboard.referralStats.paidBatches}
         totalRewardCoins={dashboard.referralStats.totalRewardCoins}
       />
+
+      <div className="tactical-card mt-8 p-6 sm:p-8">
+        <h2 className="text-2xl font-semibold text-slate-100">{t.referralHistory}</h2>
+        {dashboard.referralHistory.length === 0 ? (
+          <div className="tactical-subcard mt-4 px-4 py-4 text-sm text-slate-300">
+            {t.referralEmpty}
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {dashboard.referralHistory.map((item) => (
+              <div key={item.id} className="tactical-subcard px-4 py-4 text-sm text-slate-300">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="font-semibold text-slate-100">INV-{item.invitedUserId.slice(0, 8).toUpperCase()}</p>
+                  <span className="rounded-full border border-amber-300/40 bg-amber-300/10 px-2 py-1 text-xs font-semibold text-amber-200">
+                    {t.referralStatus}: {referralStatusLabel(item.status)}
+                  </span>
+                </div>
+                <p className="mt-2 text-slate-400">{item.createdAt}</p>
+                <p className="mt-1 text-slate-300">{t.referralReward}: {item.rewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
+                {item.rewardedAt ? <p className="mt-1 text-xs text-slate-400">{locale === "en" ? "Rewarded at" : "派獎時間"}: {item.rewardedAt}</p> : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div id="support-center" className="mt-8 scroll-mt-28">
         <SupportContactForm
