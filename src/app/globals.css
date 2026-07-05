@@ -280,8 +280,13 @@ html[data-theme="light"] .border-cyan-400\/40 {
   border-color: rgba(100, 116, 139, 0.24) !important;
   border-color: rgba(245, 158, 11, 0.45) !important;
 
-
+}
 html[data-theme="light"] .bg-white,
+html[data-theme="light"] .border-fuchsia-400\/20,
+html[data-theme="light"] .border-fuchsia-400\/30 {
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
 html[data-theme="light"] .bg-slate-50,
 html[data-theme="light"] .bg-slate-100 {
   background-color: rgba(20, 29, 40, 0.9) !important;
@@ -311,10 +316,6 @@ html[data-theme="light"] .hover\:bg-blue-600:hover {
   background-color: #fbbf24 !important;
   color: #111827 !important;
 }
-html[data-theme="light"] .border-fuchsia-400\/20,
-html[data-theme="light"] .border-fuchsia-400\/30 {
-  background: linear-gradient(135deg, #fde68a, #f59e0b 55%, #f97316);
-}
 
 html[data-theme="light"] .bg-amber-400\/10,
 html[data-theme="light"] .bg-amber-400\/15,
@@ -329,7 +330,7 @@ html[data-theme="light"] .border-amber-400\/30 {
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #67e8f9, #c084fc 55%, #f9a8d4);
+  background: linear-gradient(135deg, #fde68a, #f59e0b 55%, #f97316);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

@@ -325,7 +325,8 @@ export const creatorProfile: CreatorProfile = {
   handle: "@chloe.creates",
   platform: "Instagram",
   niche: "Lifestyle / Beauty",
-  followers: "12.8K",
+  followersRange: "10K-20K",
+  ageGroup: "25-34",
   joinedAt: "May 2026"
 };
 
