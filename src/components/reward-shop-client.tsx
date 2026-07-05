@@ -63,29 +63,29 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
   return (
     <div className="space-y-8">
       <div className="grid gap-4 lg:grid-cols-[0.75fr_1.25fr]">
-        <div className="glass-panel p-6">
+        <div className="tactical-card p-6">
           <p className="text-sm text-slate-400">{locale === "en" ? "Available Coins" : "可用金幣"}</p>
-          <p className="mt-2 text-4xl font-semibold text-white">{balance.toLocaleString()}</p>
+          <p className="mt-2 text-4xl font-semibold text-amber-200">{balance.toLocaleString()}</p>
           <p className="mt-3 text-sm text-slate-300">
             {isAuthenticated
               ? locale === "en" ? "Pick your reward and redeem instantly." : "揀中心儀獎賞即刻兌換。"
               : locale === "en" ? "Log in to use live redemption." : "登入後先可以使用真實兌換流程。"}
           </p>
           {!isAuthenticated ? (
-            <Link href="/login?next=/rewards" className="mt-5 inline-flex rounded-full bg-cyan-400 px-5 py-3 font-semibold text-slate-950">
+            <Link href="/login?next=/rewards" className="tactical-btn-primary mt-5 px-5 py-3">
               {locale === "en" ? "Log in to redeem" : "登入後兌換"}
             </Link>
           ) : null}
         </div>
 
-        <div className="glass-panel p-6">
-          <h2 className="text-xl font-semibold text-white">{locale === "en" ? "Recent Redemptions" : "最近兌換紀錄"}</h2>
+        <div className="tactical-card p-6">
+          <h2 className="text-xl font-semibold text-slate-100">{locale === "en" ? "Recent Redemptions" : "最近兌換紀錄"}</h2>
           <div className="mt-4 space-y-3">
             {redemptions.length > 0 ? (
               redemptions.map((redemption) => (
-                <div key={redemption.id} className="rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
+                <div key={redemption.id} className="tactical-subcard px-4 py-4 text-sm text-slate-300">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="font-medium text-white">{redemption.rewardName}</span>
+                    <span className="font-medium text-slate-100">{redemption.rewardName}</span>
                     <span>{statusLabel(redemption.status)}</span>
                   </div>
                   <p className="mt-2">{redemption.createdAt} · {redemption.costCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
@@ -93,7 +93,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
+              <div className="tactical-subcard px-4 py-4 text-sm text-slate-300">
                 {locale === "en" ? "No redemption history yet." : "未有兌換紀錄。完成任務後可以返嚟兌換。"}
               </div>
             )}
@@ -101,8 +101,8 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
         </div>
       </div>
 
-      {error ? <div className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-4 py-4 text-sm text-rose-100">{error}</div> : null}
-      {success ? <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-sm text-emerald-100">{success}</div> : null}
+      {error ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 px-4 py-4 text-sm text-rose-100">{error}</div> : null}
+      {success ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-4 text-sm text-emerald-100">{success}</div> : null}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {rewards.map((reward) => {
@@ -111,27 +111,27 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
           const canRedeem = hasEnoughCoins && hasStock;
 
           return (
-            <article key={reward.slug} className="rounded-3xl border border-white/10 bg-slate-900/80 p-6">
+            <article key={reward.slug} className="tactical-card p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-white">{reward.name}</h3>
+                  <h3 className="text-lg font-semibold text-slate-100">{reward.name}</h3>
                   <p className="mt-3 text-sm leading-6 text-slate-300">{reward.description}</p>
                 </div>
                 {reward.badge ? (
-                  <span className="rounded-full border border-amber-500/40 bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800 dark:border-amber-300/30 dark:bg-amber-400/10 dark:text-amber-200">
+                  <span className="tactical-chip">
                     {reward.badge}
                   </span>
                 ) : null}
               </div>
               <div className="mt-6 flex items-center justify-between text-sm">
                 <span className="text-slate-400">{reward.eta ?? (locale === "en" ? "1-3 business days" : "1-3 個工作天")} · {locale === "en" ? "Stock" : "庫存"} {reward.stock ?? "∞"}</span>
-                <span className="font-semibold text-cyan-300">{reward.cost.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</span>
+                <span className="font-semibold text-amber-200">{reward.cost.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</span>
               </div>
               <button
                 type="button"
                 disabled={!canRedeem || pendingSlug === reward.slug}
                 onClick={() => handleRedeem(reward)}
-                className="mt-6 w-full rounded-full bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition enabled:hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+                className="tactical-btn-primary mt-6 w-full px-5 py-3 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
               >
                 {pendingSlug === reward.slug
                   ? locale === "en" ? "Redeeming..." : "兌換中..."
