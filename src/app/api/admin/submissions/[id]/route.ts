@@ -9,6 +9,23 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 const allowedStatuses: SubmissionStatus[] = ["Pending", "Needs edits", "Approved"];
 
+function toIsoOrNull(value: unknown) {
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  if (!value.trim()) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
+}
+
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -34,11 +51,18 @@ export async function PATCH(
   const reviewerId = user?.id ?? null;
 
   const body = await request.json();
-  const status = String(body.status ?? "Pending") as SubmissionStatus;
-  const notes = String(body.notes ?? "") || null;
+  const hasStatus = typeof body.status === "string";
+  const status = (hasStatus ? String(body.status) : undefined) as SubmissionStatus | undefined;
+  const notes = typeof body.notes === "string" ? (String(body.notes) || null) : undefined;
+  const assignedReviewerId = typeof body.assignedReviewerId === "string" ? body.assignedReviewerId : body.assignedReviewerId === null ? null : undefined;
+  const reviewDueAt = toIsoOrNull(body.reviewDueAt);
 
-  if (!allowedStatuses.includes(status)) {
+  if (status && !allowedStatuses.includes(status)) {
     return NextResponse.json({ error: "Invalid submission status." }, { status: 400 });
+  }
+
+  if (body.reviewDueAt !== undefined && reviewDueAt === undefined) {
+    return NextResponse.json({ error: "Invalid review due time." }, { status: 400 });
   }
 
   if (status === "Approved") {
@@ -59,15 +83,32 @@ export async function PATCH(
     };
     await admin.rpc("settle_referral_reward", settleArgs);
 
+    if (assignedReviewerId !== undefined || reviewDueAt !== undefined) {
+      const assignmentPayload: Database["public"]["Tables"]["submissions"]["Update"] = {
+        assigned_reviewer_id: assignedReviewerId,
+        review_due_at: reviewDueAt,
+      };
+
+      await admin.from("submissions").update(assignmentPayload).eq("id", id);
+    }
+
     return NextResponse.json({ ok: true });
   }
 
   const updatePayload: Database["public"]["Tables"]["submissions"]["Update"] = {
-    status,
-    notes,
-    reviewed_at: new Date().toISOString(),
-    reviewed_by: reviewerId,
+    assigned_reviewer_id: assignedReviewerId,
+    review_due_at: reviewDueAt,
   };
+
+  if (status) {
+    updatePayload.status = status;
+    updatePayload.reviewed_at = new Date().toISOString();
+    updatePayload.reviewed_by = reviewerId;
+  }
+
+  if (notes !== undefined) {
+    updatePayload.notes = notes;
+  }
 
   const { error } = await admin
     .from("submissions")

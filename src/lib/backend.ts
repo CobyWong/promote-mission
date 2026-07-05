@@ -1,5 +1,5 @@
 import { missions, rewards, sampleRewardRedemptions, leaders } from "@/lib/data";
-import type { CreatorProfile, Leader, Mission, MissionRankingEntry, Reward, RewardRedemption, Submission } from "@/lib/data";
+import type { AdminReviewer, CreatorProfile, Leader, Mission, MissionRankingEntry, Reward, RewardRedemption, Submission } from "@/lib/data";
 import { cache } from "react";
 import { hasAdminSession } from "@/lib/admin-session";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -168,11 +168,16 @@ function toSubmission(row: SubmissionRow): Submission {
     missionTitle: row.mission_title,
     platform: "Instagram Reels",
     submittedAt: new Date(row.submitted_at).toLocaleString("zh-HK"),
+    submittedAtIso: row.submitted_at,
     reelUrl: row.reel_url,
     screenshotCount: row.screenshot_count,
     status: row.status as SubmissionStatus,
     coins: row.reward_coins,
     notes: row.notes ?? "",
+    assignedReviewerId: row.assigned_reviewer_id,
+    reviewedBy: row.reviewed_by,
+    reviewDueAt: row.review_due_at,
+    slaBreachedAt: row.sla_breached_at,
     screenshotPaths: Array.isArray(row.screenshot_paths) ? row.screenshot_paths.filter((item): item is string => typeof item === "string") : [],
   };
 }
@@ -833,6 +838,7 @@ export async function getAdminReviewData() {
     return {
       mode: "demo" as const,
       submissions: [],
+      reviewers: [] as AdminReviewer[],
       authorized: false,
     };
   }
@@ -844,6 +850,7 @@ export async function getAdminReviewData() {
     return {
       mode: "demo" as const,
       submissions: [],
+      reviewers: [] as AdminReviewer[],
       authorized: false,
     };
   }
@@ -856,12 +863,41 @@ export async function getAdminReviewData() {
     return {
       mode: "live" as const,
       submissions: [],
+      reviewers: [] as AdminReviewer[],
       authorized: false,
     };
   }
 
-  const { data } = await admin.from("submissions").select("*").order("submitted_at", { ascending: false }).limit(20);
+  const [{ data }, reviewerResponse] = await Promise.all([
+    admin.from("submissions").select("*").order("submitted_at", { ascending: false }).limit(50),
+    admin.auth.admin.listUsers({ page: 1, perPage: 500 }),
+  ]);
   const submissionRows = (data ?? []) as SubmissionRow[];
+
+  const adminEmails = new Set(getAdminEmails());
+  const reviewerMap = new Map<string, AdminReviewer>();
+
+  for (const authUser of reviewerResponse.data?.users ?? []) {
+    if (!authUser.id || !authUser.email) {
+      continue;
+    }
+
+    if (!adminEmails.has(authUser.email.toLowerCase())) {
+      continue;
+    }
+
+    reviewerMap.set(authUser.id, {
+      id: authUser.id,
+      email: authUser.email,
+    });
+  }
+
+  if (user?.id && user.email) {
+    reviewerMap.set(user.id, {
+      id: user.id,
+      email: user.email,
+    });
+  }
 
   const allScreenshotPaths = submissionRows.flatMap((row) =>
     Array.isArray(row.screenshot_paths)
@@ -886,6 +922,7 @@ export async function getAdminReviewData() {
 
   return {
     mode: "live" as const,
+    reviewers: Array.from(reviewerMap.values()).sort((a, b) => a.email.localeCompare(b.email)),
     submissions: submissionRows.map((row) => {
       const parsedSubmission = toSubmission(row);
       return {

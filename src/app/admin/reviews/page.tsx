@@ -48,7 +48,11 @@ export default async function AdminReviewsPage() {
             </p>
           </div>
         ) : (
-          <AdminReviewBoard initialSubmissions={reviewData.authorized ? reviewData.submissions : sampleSubmissions} locale={locale} />
+          <AdminReviewBoard
+            initialSubmissions={reviewData.authorized ? reviewData.submissions : sampleSubmissions}
+            initialReviewers={reviewData.authorized ? reviewData.reviewers : []}
+            locale={locale}
+          />
         )}
       </div>
     </section>

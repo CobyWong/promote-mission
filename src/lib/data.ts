@@ -66,13 +66,23 @@ export type Submission = {
   missionTitle: string;
   platform: string;
   submittedAt: string;
+  submittedAtIso?: string;
   reelUrl: string;
   screenshotCount: number;
   status: SubmissionStatus;
   coins: number;
   notes: string;
+  assignedReviewerId?: string | null;
+  reviewedBy?: string | null;
+  reviewDueAt?: string | null;
+  slaBreachedAt?: string | null;
   screenshotPaths?: string[];
   screenshotSignedUrls?: string[];
+};
+
+export type AdminReviewer = {
+  id: string;
+  email: string;
 };
 
 export type RewardRedemptionStatus = "Pending" | "Fulfilled" | "Rejected";
