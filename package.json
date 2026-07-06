@@ -6,7 +6,11 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "mobile:start": "npm --prefix apps/mobile run start",
+    "mobile:ios": "npm --prefix apps/mobile run ios",
+    "mobile:android": "npm --prefix apps/mobile run android",
+    "mobile:web": "npm --prefix apps/mobile run web"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

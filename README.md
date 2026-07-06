@@ -47,6 +47,35 @@ npm run dev
 
 Open `http://localhost:3000` to view the site.
 
+## Mobile app (Phase 5)
+
+The repository now includes an Expo React Native app at [apps/mobile](apps/mobile).
+
+Setup:
+
+1. Copy [apps/mobile/.env.example](apps/mobile/.env.example) to `.env.local` inside `apps/mobile`.
+2. Set `EXPO_PUBLIC_API_BASE_URL`:
+	- iOS simulator: `http://localhost:3000`
+	- Android emulator: `http://10.0.2.2:3000`
+	- Physical device: `http://<your-lan-ip>:3000`
+3. Set Supabase values for mobile auth:
+	- `EXPO_PUBLIC_SUPABASE_URL`
+	- `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+Run mobile app from repo root:
+
+```bash
+npm run mobile:start
+npm run mobile:ios
+npm run mobile:android
+```
+
+Phase 5 batch 1 mobile APIs:
+
+- `GET /api/mobile/missions`
+- `GET /api/mobile/missions/[slug]`
+- `GET /api/mobile/me` (bearer token)
+
 ## Pages
 
 - `/` landing page
