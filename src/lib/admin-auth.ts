@@ -1,11 +1,18 @@
-import { getAdminEmails } from "@/lib/supabase/env";
+import { getAdminEmails, getAdminPassword, hasAdminPasswordConfig } from "@/lib/supabase/env";
 
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "admin123";
 export const ADMIN_SESSION_COOKIE = "pm_admin_session";
 const ADMIN_SESSION_VALUE = "active";
 
 export function isAdminCredential(email: string, password: string) {
-  return getAdminEmails().includes(email.trim().toLowerCase()) && password === ADMIN_PASSWORD;
+  if (!hasAdminPasswordConfig()) {
+    return false;
+  }
+
+  return getAdminEmails().includes(email.trim().toLowerCase()) && password === getAdminPassword();
+}
+
+export function hasAdminCredentialConfig() {
+  return hasAdminPasswordConfig() && getAdminEmails().length > 0;
 }
 
 export function getAdminSessionCookieValue() {

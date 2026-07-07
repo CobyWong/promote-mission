@@ -3,6 +3,9 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supportEmail = process.env.NEXT_PUBLIC_SUPPORT_EMAIL;
 const supportWhatsappUrl = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP_URL;
+const adminPassword = process.env.ADMIN_PASSWORD;
+const errorMonitorWebhookUrl = process.env.ERROR_MONITOR_WEBHOOK_URL;
+const rateLimitSalt = process.env.RATE_LIMIT_SALT;
 
 export function hasSupabaseConfig() {
   return Boolean(supabaseUrl && supabaseAnonKey);
@@ -66,4 +69,20 @@ export function getSupportEmail() {
 
 export function getSupportWhatsappUrl() {
   return supportWhatsappUrl?.trim() || null;
+}
+
+export function hasAdminPasswordConfig() {
+  return Boolean(adminPassword && adminPassword.trim().length >= 12 && adminPassword !== "admin123");
+}
+
+export function getAdminPassword() {
+  return adminPassword?.trim() ?? "";
+}
+
+export function getErrorMonitorWebhookUrl() {
+  return errorMonitorWebhookUrl?.trim() || null;
+}
+
+export function getRateLimitSalt() {
+  return rateLimitSalt?.trim() || "dev-rate-limit-salt";
 }

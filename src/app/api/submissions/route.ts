@@ -4,8 +4,29 @@ import { missions } from "@/lib/data";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limiter = evaluateRateLimit({
+    namespace: "web-submission-create",
+    key: getClientFingerprint(request),
+    max: 20,
+    windowMs: 60_000,
+  });
+
+  if (!limiter.allowed) {
+    const retryAfter = getRetryAfterSeconds(limiter.resetAt);
+    return NextResponse.json(
+      { error: "Too many submissions. Please wait and try again." },
+      {
+        status: 429,
+        headers: {
+          "retry-after": String(retryAfter),
+        },
+      },
+    );
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
