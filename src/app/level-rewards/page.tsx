@@ -10,23 +10,25 @@ export default async function LevelRewardsPage() {
   const t = locale === "en"
     ? {
       kicker: "Game Pass",
-      title: "Level Rewards Table",
-      lead: "See exactly how many bonus Coins you earn at each level-up from Lv.1 to Lv.30.",
+      title: "Free Pass Reward Track",
+      lead: "Free Pass only. Scroll horizontally to preview every level reward from Lv.1 to Lv.30.",
       backDashboard: "Back to dashboard",
+      freePass: "Free Pass",
       level: "Level",
-      reward: "Level-up reward",
-      note: "Milestone bonus (+250 Coins) is applied at every 5 levels.",
-      milestone: "Milestone bonus",
+      reward: "Reward",
+      note: "Milestone levels (every 5 levels) include an extra +250 Coins bonus.",
+      swipeHint: "Swipe to view more levels",
     }
     : {
       kicker: "Game Pass",
-      title: "等級獎勵表",
-      lead: "清楚列出 Lv.1 到 Lv.30 每次升級可獲得嘅 Coins 獎勵。",
+      title: "免費通行證獎勵軌道",
+      lead: "只保留 Free Pass。左右滑動可查看 Lv.1 至 Lv.30 每級獎勵。",
       backDashboard: "返回個人檔案",
+      freePass: "免費通行證",
       level: "等級",
-      reward: "升級獎勵",
-      note: "每逢 5 級會有里程碑加成（+250 Coins）。",
-      milestone: "里程碑加成",
+      reward: "獎勵",
+      note: "每逢 5 級屬里程碑，已包含額外 +250 Coins 加成。",
+      swipeHint: "左右滑動查看更多等級",
     };
 
   return (
@@ -42,25 +44,53 @@ export default async function LevelRewardsPage() {
       </div>
 
       <div className="tactical-card mt-8 overflow-hidden p-0">
-        <div className="grid grid-cols-[0.5fr_1fr_1fr] border-b border-white/10 bg-slate-900/70 px-5 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">
-          <p>{t.level}</p>
-          <p>{t.reward}</p>
-          <p>{t.milestone}</p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/70 px-5 py-4 sm:px-6">
+          <span className="rounded-xl border border-cyan-300/45 bg-cyan-300/15 px-4 py-2 text-sm font-bold uppercase tracking-[0.1em] text-cyan-200">
+            {t.freePass}
+          </span>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{t.swipeHint}</p>
         </div>
 
-        <div className="divide-y divide-white/10">
-          {rewards.map((item) => {
-            const isMilestone = item.level % 5 === 0;
-            return (
-              <div key={item.level} className="grid grid-cols-[0.5fr_1fr_1fr] items-center px-5 py-4 text-sm">
-                <p className="font-semibold text-slate-100">Lv.{item.level}</p>
-                <p className="font-semibold text-amber-200">+{item.coins.toLocaleString()} Coins</p>
-                <p className={isMilestone ? "text-emerald-300" : "text-slate-500"}>
-                  {isMilestone ? "+250" : "-"}
-                </p>
-              </div>
-            );
-          })}
+        <div className="overflow-x-auto px-4 py-8 sm:px-6">
+          <div className="relative min-w-[4200px]">
+            <div className="pointer-events-none absolute left-0 right-0 top-[7.1rem] h-1 rounded-full bg-slate-700/70" />
+
+            <div className="relative flex gap-3">
+              {rewards.map((item) => {
+                const isMilestone = item.level % 5 === 0;
+                return (
+                  <article
+                    key={item.level}
+                    className={`w-32 shrink-0 rounded-2xl border p-3 ${isMilestone
+                      ? "border-amber-300/60 bg-amber-300/15"
+                      : "border-cyan-300/35 bg-cyan-300/10"
+                      }`}
+                  >
+                    <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg ${isMilestone
+                      ? "bg-amber-300/25 text-amber-100"
+                      : "bg-cyan-300/20 text-cyan-100"
+                      }`}>
+                      ◎
+                    </div>
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-slate-300">{t.reward}</p>
+                    <p className="mt-1 text-base font-black text-white">+{item.coins.toLocaleString()}</p>
+                    <p className="mt-2 text-[11px] text-slate-300">Coins</p>
+                  </article>
+                );
+              })}
+            </div>
+
+            <div className="relative mt-4 flex gap-3">
+              {rewards.map((item) => (
+                <div key={`lv-${item.level}`} className="w-32 shrink-0 text-center">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-500 bg-slate-800 text-xs font-bold text-slate-200">
+                    {item.level}
+                  </span>
+                  <p className="mt-1 text-[11px] font-semibold text-slate-400">{t.level}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
