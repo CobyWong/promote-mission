@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   FlatList,
   Pressable,
+  RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -14,6 +15,7 @@ import {
 
 import { API_BASE_URL, fetchJson, postJson } from "./src/lib/api";
 import { hasSupabaseMobileConfig, supabase } from "./src/lib/supabase";
+import { mobileTheme } from "./src/theme/mobile";
 
 type MobileMissionListItem = {
   slug: string;
@@ -71,6 +73,7 @@ export default function App() {
   const [selectedMission, setSelectedMission] = useState<MobileMissionDetail | null>(null);
   const [loadingList, setLoadingList] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const selectedItem = useMemo(
@@ -85,7 +88,7 @@ export default function App() {
     try {
       const data = await fetchJson<{ missions: MobileMissionListItem[] }>("/api/mobile/missions");
       setMissions(data.missions);
-      if (data.missions.length > 0) {
+      if (data.missions.length > 0 && !selectedSlug) {
         setSelectedSlug(data.missions[0].slug);
       }
     } catch (requestError) {
@@ -93,7 +96,7 @@ export default function App() {
     } finally {
       setLoadingList(false);
     }
-  }, []);
+  }, [selectedSlug]);
 
   const loadMissionDetail = useCallback(async (slug: string) => {
     setLoadingDetail(true);
@@ -111,7 +114,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    void loadMissions();
+    const timer = setTimeout(() => {
+      void loadMissions();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [loadMissions]);
 
   const loadProfile = useCallback(async (token: string) => {
@@ -138,13 +147,38 @@ export default function App() {
     };
 
     void restoreSession();
+
+    const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      const token = session?.access_token ?? null;
+      setAccessToken(token);
+
+      if (!token) {
+        setProfile(null);
+        return;
+      }
+
+      void loadProfile(token).catch(() => {
+        setProfile(null);
+      });
+    });
+
+    return () => {
+      authSubscription.subscription.unsubscribe();
+    };
   }, [loadProfile]);
 
   useEffect(() => {
     if (!selectedSlug) {
       return;
     }
-    void loadMissionDetail(selectedSlug);
+
+    const timer = setTimeout(() => {
+      void loadMissionDetail(selectedSlug);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, [loadMissionDetail, selectedSlug]);
 
   const handleSignIn = useCallback(async () => {
@@ -202,10 +236,37 @@ export default function App() {
     }
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadMissions();
+      if (selectedSlug) {
+        await loadMissionDetail(selectedSlug);
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadMissionDetail, loadMissions, selectedSlug]);
+
+  const errorHint = useMemo(() => {
+    if (!error) {
+      return null;
+    }
+
+    if (error.includes("Session expired")) {
+      return "Please sign in again to continue.";
+    }
+
+    return "Tap retry after checking your connection.";
+  }, [error]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={mobileTheme.colors.accent} />}
+      >
         <Text style={styles.title}>Mission One Mobile</Text>
         <Text style={styles.subtitle}>Phase 5 preview: Auth + Missions list + detail from backend API</Text>
 
@@ -260,6 +321,7 @@ export default function App() {
               data={missions}
               keyExtractor={(item) => item.slug}
               contentContainerStyle={styles.listContent}
+              scrollEnabled={false}
               renderItem={({ item }) => {
                 const isActive = selectedItem?.slug === item.slug;
                 return (
@@ -295,6 +357,19 @@ export default function App() {
         </View>
 
         {error ? <Text style={styles.error}>Error: {error}</Text> : null}
+        {error && errorHint ? <Text style={styles.hint}>{errorHint}</Text> : null}
+
+        {error ? (
+          <Pressable
+            onPress={() => {
+              setError(null);
+              void handleRefresh();
+            }}
+            style={styles.secondaryButton}
+          >
+            <Text style={styles.secondaryButtonText}>Retry</Text>
+          </Pressable>
+        ) : null}
 
         <Text style={styles.footer}>API base URL: {API_BASE_URL}</Text>
       </ScrollView>
@@ -305,30 +380,30 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#020617",
+    backgroundColor: mobileTheme.colors.background,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    gap: 12,
+    paddingHorizontal: mobileTheme.spacing.md,
+    paddingVertical: mobileTheme.spacing.lg,
+    gap: mobileTheme.spacing.sm,
   },
   title: {
-    color: "#f8fafc",
-    fontSize: 24,
+    color: mobileTheme.colors.text,
+    fontSize: mobileTheme.type.title,
     fontWeight: "700",
   },
   subtitle: {
-    color: "#94a3b8",
-    fontSize: 13,
+    color: mobileTheme.colors.textMuted,
+    fontSize: mobileTheme.type.bodySm,
+    lineHeight: 20,
   },
   panel: {
-    backgroundColor: "#0f172a",
-    borderColor: "rgba(148, 163, 184, 0.25)",
+    backgroundColor: mobileTheme.colors.panel,
+    borderColor: mobileTheme.colors.border,
     borderWidth: 1,
-    borderRadius: 14,
-    padding: 12,
-    maxHeight: 280,
+    borderRadius: mobileTheme.radius.md,
+    padding: mobileTheme.spacing.sm,
   },
   authForm: {
     gap: 8,
@@ -338,42 +413,47 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.25)",
-    backgroundColor: "#111827",
-    color: "#f8fafc",
-    borderRadius: 10,
+    borderColor: mobileTheme.colors.border,
+    backgroundColor: mobileTheme.colors.panelMuted,
+    color: mobileTheme.colors.text,
+    borderRadius: mobileTheme.radius.sm,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 14,
+    paddingVertical: 12,
+    minHeight: mobileTheme.tapTarget.minHeight,
+    fontSize: 16,
   },
   primaryButton: {
-    backgroundColor: "#22d3ee",
-    borderRadius: 10,
+    backgroundColor: mobileTheme.colors.accent,
+    borderRadius: mobileTheme.radius.sm,
+    minHeight: mobileTheme.tapTarget.minHeight,
     paddingVertical: 10,
     alignItems: "center",
     marginTop: 4,
+    justifyContent: "center",
   },
   primaryButtonText: {
-    color: "#082f49",
+    color: mobileTheme.colors.accentText,
     fontWeight: "700",
-    fontSize: 14,
+    fontSize: mobileTheme.type.body,
   },
   secondaryButton: {
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.25)",
-    borderRadius: 10,
+    borderColor: mobileTheme.colors.border,
+    borderRadius: mobileTheme.radius.sm,
+    minHeight: mobileTheme.tapTarget.minHeight,
     paddingVertical: 10,
     alignItems: "center",
     marginTop: 6,
+    justifyContent: "center",
   },
   secondaryButtonText: {
     color: "#cbd5e1",
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: mobileTheme.type.body,
   },
   panelTitle: {
     color: "#e2e8f0",
-    fontSize: 14,
+    fontSize: mobileTheme.type.body,
     fontWeight: "600",
     marginBottom: 8,
   },
@@ -381,26 +461,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   missionRow: {
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 10,
-    borderRadius: 10,
+    borderRadius: mobileTheme.radius.sm,
     borderWidth: 1,
-    borderColor: "rgba(148, 163, 184, 0.25)",
-    backgroundColor: "#111827",
+    borderColor: mobileTheme.colors.border,
+    backgroundColor: mobileTheme.colors.panelMuted,
     gap: 3,
+    minHeight: mobileTheme.tapTarget.minHeight,
   },
   missionRowActive: {
     borderColor: "#22d3ee",
     backgroundColor: "rgba(34, 211, 238, 0.12)",
   },
   missionTitle: {
-    color: "#f8fafc",
-    fontSize: 14,
+    color: mobileTheme.colors.text,
+    fontSize: mobileTheme.type.body,
     fontWeight: "600",
   },
   missionMeta: {
-    color: "#94a3b8",
-    fontSize: 12,
+    color: mobileTheme.colors.textMuted,
+    fontSize: mobileTheme.type.caption,
   },
   detailContent: {
     gap: 8,
@@ -412,19 +493,19 @@ const styles = StyleSheet.create({
   },
   detailDescription: {
     color: "#cbd5e1",
-    fontSize: 13,
+    fontSize: mobileTheme.type.bodySm,
     lineHeight: 20,
   },
   hint: {
-    color: "#94a3b8",
-    fontSize: 12,
+    color: mobileTheme.colors.textMuted,
+    fontSize: mobileTheme.type.caption,
   },
   error: {
-    color: "#fca5a5",
-    fontSize: 13,
+    color: mobileTheme.colors.danger,
+    fontSize: mobileTheme.type.bodySm,
   },
   footer: {
-    color: "#64748b",
+    color: mobileTheme.colors.textSoft,
     fontSize: 11,
   },
 });
