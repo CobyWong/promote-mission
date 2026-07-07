@@ -59,6 +59,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       menu: "Menu",
       missions: "Missions",
       rewards: "Rewards",
+      levelRewards: "Level Rewards",
       dashboard: "Profile",
       support: "Support",
       login: "Login",
@@ -75,6 +76,7 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       menu: "選單",
       missions: "任務中心",
       rewards: "獎賞商城",
+      levelRewards: "等級獎勵表",
       dashboard: "個人檔案",
       support: "客服中心",
       login: "登入",
@@ -137,6 +139,12 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.rewards}
+                </Link>
+                <Link href="/level-rewards" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.levelRewards}
                 </Link>
                 <Link href="/leaderboard" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"

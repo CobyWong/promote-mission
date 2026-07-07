@@ -8,6 +8,16 @@ type LevelReward = {
   coins: number;
 };
 
+export function getAllGamePassLevelRewards(): LevelReward[] {
+  return Array.from({ length: MAX_CREATOR_LEVEL }, (_, index) => {
+    const level = index + 1;
+    return {
+      level,
+      coins: getGamePassLevelRewardCoins(level),
+    };
+  });
+}
+
 export function getGamePassLevelRewardCoins(level: number) {
   const safeLevel = Math.max(1, Math.min(level, MAX_CREATOR_LEVEL));
   const baseReward = 120 + (safeLevel - 1) * 20;

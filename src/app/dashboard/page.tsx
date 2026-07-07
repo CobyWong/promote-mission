@@ -5,6 +5,7 @@ import { ReferralRewardsCard } from "@/components/referral-rewards-card";
 import { SupportContactForm } from "@/components/support-contact-form";
 import { rewards } from "@/lib/data";
 import { getDashboardData } from "@/lib/backend";
+import { getGamePassLevelRewardCoins } from "@/lib/game-pass";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getLevelProgressFromTotalExp, getMissionTotalPrizeByDifficulty, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { getSupportEmail, getSupportWhatsappUrl } from "@/lib/supabase/env";
@@ -52,6 +53,8 @@ export default async function DashboardPage() {
       levelMaxed: "Max level reached",
       expToNext: "EXP to next level",
       totalExp: "Total EXP",
+      nextLevelReward: "Next level reward",
+      viewLevelRewards: "View level rewards",
     }
     : {
       title: "你嘅創作者個人檔案",
@@ -93,6 +96,8 @@ export default async function DashboardPage() {
       levelMaxed: "已達最高等級",
       expToNext: "升級尚欠 EXP",
       totalExp: "總 EXP",
+      nextLevelReward: "下一級獎勵",
+      viewLevelRewards: "查看等級獎勵表",
     };
 
   const dashboard = await getDashboardData();
@@ -109,6 +114,7 @@ export default async function DashboardPage() {
     .filter((item) => item.status === "Approved")
     .reduce((sum, item) => sum + Math.max(item.coins ?? 0, 0), 0);
   const levelProgress = getLevelProgressFromTotalExp(approvedExp);
+  const nextLevelCoins = levelProgress.isMaxLevel ? 0 : getGamePassLevelRewardCoins(levelProgress.level + 1);
 
   if (dashboard.mode === "unauthenticated") {
     return (
@@ -190,6 +196,15 @@ export default async function DashboardPage() {
               {levelProgress.isMaxLevel
                 ? <span>{t.levelMaxed}</span>
                 : <span>{t.expToNext}: {levelProgress.expToNextLevel.toLocaleString()} / {levelProgress.expForNextLevel.toLocaleString()}</span>}
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-xs text-slate-300">
+              <span>
+                {t.nextLevelReward}: {levelProgress.isMaxLevel ? t.levelMaxed : `+${nextLevelCoins.toLocaleString()} Coins`}
+              </span>
+              <Link href="/level-rewards" className="font-semibold text-cyan-200 hover:text-cyan-100">
+                {t.viewLevelRewards} →
+              </Link>
             </div>
           </div>
 
