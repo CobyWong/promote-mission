@@ -51,7 +51,6 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
   const productLabel = locale === "en" ? mission.product : (zhProductMap[mission.product] ?? mission.product);
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
-  const brandInitial = mission.brand.trim().charAt(0).toUpperCase() || "M";
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
   const isLocked = userLevel < requiredLevel;
   const rewards = getRankingRewardsByDifficulty(mission.difficulty);
@@ -61,21 +60,13 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
   return (
     <article className="tactical-card group flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5">
       <div className="space-y-4 p-5">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-md border border-amber-300/50 bg-amber-300/20 text-lg font-bold text-amber-200">
-            {brandInitial}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-[1.55rem] font-semibold leading-none text-slate-200">{brandLabel}</p>
-            <h3 className="mt-2 line-clamp-2 text-2xl font-bold leading-tight text-slate-100">{mission.title}</h3>
-          </div>
+        <div className="min-w-0">
+          <p className="truncate text-[1.55rem] font-semibold leading-none text-slate-200">{brandLabel}</p>
+          <h3 className="mt-2 line-clamp-2 text-2xl font-bold leading-tight text-slate-100">{mission.title}</h3>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <span className="tactical-chip">{categoryLabel}</span>
-          <span className="tactical-chip">
-            {locale === "en" ? "On-site experience shoot" : "自費體驗拍攝"}
-          </span>
           <span className="rounded-full border border-slate-500/70 bg-slate-800/70 px-3 py-1 text-sm font-semibold text-slate-300">UGC</span>
         </div>
       </div>

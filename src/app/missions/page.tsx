@@ -1,7 +1,7 @@
 import { MissionCard } from "@/components/mission-card";
 import { getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
-import { DIFFICULTY_REQUIRED_LEVEL, getLevelAccessSummary, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { DIFFICULTY_REQUIRED_LEVEL, getMissionRequiredLevel } from "@/lib/mission-rules";
 
 const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。";
 
@@ -31,11 +31,6 @@ export default async function MissionsPage() {
             ? "Pick campaigns that fit your audience and content style."
             : zhMissionIntro}
         </p>
-        <div className="mt-5 inline-flex items-center rounded-full border border-amber-300/50 bg-amber-300/10 px-4 py-2 text-sm font-semibold text-amber-200">
-          {locale === "en"
-            ? `Your level: Lv.${userLevel}/${MAX_CREATOR_LEVEL} (${getLevelAccessSummary(userLevel, "en")})`
-            : `你目前等級：Lv.${userLevel}/${MAX_CREATOR_LEVEL}（${getLevelAccessSummary(userLevel, "zh-HK")}）`}
-        </div>
       </div>
 
       <div className="mt-8 space-y-10">
