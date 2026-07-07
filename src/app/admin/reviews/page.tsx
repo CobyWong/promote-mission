@@ -1,5 +1,6 @@
 import { AdminReviewBoard } from "@/components/admin-review-board";
 import { AdminKpiPanel } from "@/components/admin-kpi-panel";
+import { AdminReferralHoldBoard } from "@/components/admin-referral-hold-board";
 import { sampleSubmissions } from "@/lib/data";
 import { getAdminReviewData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
@@ -51,11 +52,14 @@ export default async function AdminReviewsPage() {
             </p>
           </div>
         ) : (
-          <AdminReviewBoard
-            initialSubmissions={reviewData.authorized ? reviewData.submissions : sampleSubmissions}
-            initialReviewers={reviewData.authorized ? reviewData.reviewers : []}
-            locale={locale}
-          />
+          <>
+            <AdminReviewBoard
+              initialSubmissions={reviewData.authorized ? reviewData.submissions : sampleSubmissions}
+              initialReviewers={reviewData.authorized ? reviewData.reviewers : []}
+              locale={locale}
+            />
+            {reviewData.authorized ? <AdminReferralHoldBoard locale={locale} /> : null}
+          </>
         )}
       </div>
     </section>

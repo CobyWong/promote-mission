@@ -35,6 +35,7 @@ export default async function DashboardPage() {
       noWithdrawal: "No withdrawals yet.",
       activeMissions: "Active missions",
       pendingReviews: "Pending reviews",
+      userId: "User ID",
       demoNotice: "Showing demo data for now. After Supabase setup, this section will reflect your real account.",
       due: "Due",
       reward: "Reward",
@@ -78,6 +79,7 @@ export default async function DashboardPage() {
       noWithdrawal: "未有提現紀錄。",
       activeMissions: "進行中任務",
       pendingReviews: "待審核提交",
+      userId: "用戶編號",
       demoNotice: "暫時顯示示範資料。設定 Supabase 後，呢度會改為你實際帳號資料。",
       due: "截止",
       reward: "獎勵",
@@ -172,6 +174,7 @@ export default async function DashboardPage() {
               <p className="text-2xl font-semibold text-slate-100">{dashboard.profile.name}</p>
               <p className="mt-1 text-slate-300">{dashboard.profile.handle}</p>
               <p className="mt-1 text-sm text-slate-400">{dashboard.userEmail ?? "-"}</p>
+              <p className="mt-1 text-xs font-semibold tracking-[0.08em] text-cyan-200">{t.userId}: {dashboard.profile.userId}</p>
             </div>
           </div>
         </div>

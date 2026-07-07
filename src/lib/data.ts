@@ -99,6 +99,7 @@ export type RewardRedemption = {
 };
 
 export type CreatorProfile = {
+  userId: string;
   name: string;
   handle: string;
   platform: string;
@@ -386,6 +387,7 @@ export const perks = [
 ];
 
 export const creatorProfile: CreatorProfile = {
+  userId: "USR-DEMO001",
   name: "Chloe Wong",
   handle: "@chloe.creates",
   platform: "Instagram",

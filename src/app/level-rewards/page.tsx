@@ -13,7 +13,6 @@ export default async function LevelRewardsPage() {
       title: "Free Pass Reward Track",
       lead: "Free Pass only. Scroll horizontally to preview every level reward from Lv.1 to Lv.30.",
       backDashboard: "Back to dashboard",
-      freePass: "Free Pass",
       level: "Level",
       reward: "Reward",
       note: "Milestone levels (every 5 levels) include an extra +250 Coins bonus.",
@@ -24,7 +23,6 @@ export default async function LevelRewardsPage() {
       title: "免費通行證獎勵軌道",
       lead: "只保留 Free Pass。左右滑動可查看 Lv.1 至 Lv.30 每級獎勵。",
       backDashboard: "返回個人檔案",
-      freePass: "免費通行證",
       level: "等級",
       reward: "獎勵",
       note: "每逢 5 級屬里程碑，已包含額外 +250 Coins 加成。",
@@ -45,9 +43,6 @@ export default async function LevelRewardsPage() {
 
       <div className="tactical-card mt-8 overflow-hidden p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-slate-900/70 px-5 py-4 sm:px-6">
-          <span className="rounded-xl border border-cyan-300/45 bg-cyan-300/15 px-4 py-2 text-sm font-bold uppercase tracking-[0.1em] text-cyan-200">
-            {t.freePass}
-          </span>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-400">{t.swipeHint}</p>
         </div>
 

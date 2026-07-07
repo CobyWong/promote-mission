@@ -14,6 +14,7 @@ const hiddenMissionSlugs = new Set([
 ]);
 
 const fallbackCreatorProfile: CreatorProfile = {
+  userId: "USR-DEMO001",
   name: "Chloe Wong",
   handle: "@chloe.creates",
   platform: "Instagram",
@@ -42,6 +43,11 @@ type AuthUserLike = {
   id?: string;
   user_metadata?: Record<string, unknown> | null;
 };
+
+function formatPublicUserId(rawId?: string | null) {
+  const normalized = (rawId ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  return `USR-${(normalized || "00000000").slice(0, 8)}`;
+}
 
 export type AdminManagedUser = {
   id: string;
@@ -458,6 +464,7 @@ function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null 
   const joinedSource = profile?.created_at ?? user?.created_at;
 
   return {
+    userId: profile?.public_user_id ?? formatPublicUserId(user?.id),
     name,
     handle,
     platform: "Instagram",

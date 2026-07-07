@@ -5,6 +5,7 @@ import { hasAdminSession } from "@/lib/admin-session";
 import { awardGamePassLevelUpRewards } from "@/lib/game-pass";
 import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
+import { handleReferralPostSettlement } from "@/lib/referral-growth";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/supabase/env";
@@ -213,7 +214,12 @@ export async function PATCH(request: Request) {
         rewardCoins?: number;
         inviterUserId?: string;
         invitedUserId?: string;
+        submissionId?: string;
       } | null;
+
+      if (settlePayload) {
+        settlePayload.submissionId = id;
+      }
 
       if (settlePayload?.settled && settlePayload.inviterUserId) {
         await createUserNotification({
@@ -230,6 +236,11 @@ export async function PATCH(request: Request) {
           },
         });
       }
+
+      await handleReferralPostSettlement({
+        admin,
+        settlePayload,
+      });
 
       const approvedExpAfter = approvedExpBefore + Math.max(target.reward_coins ?? 0, 0);
       const levelUpRewards = await awardGamePassLevelUpRewards({
