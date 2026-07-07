@@ -32,6 +32,7 @@ export default async function RewardsPage() {
           balance={rewardsPageData.balance}
           redemptions={rewardsPageData.redemptions}
           isAuthenticated={rewardsPageData.isAuthenticated}
+          userLevel={rewardsPageData.userLevel ?? 1}
           locale={locale}
         />
       </div>

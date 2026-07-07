@@ -4,6 +4,7 @@ import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCreatorLevelFromApprovedCount, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -39,6 +40,21 @@ export async function POST(request: Request) {
 
   if (!rewardSlug) {
     return NextResponse.json({ error: "Reward slug is required." }, { status: 400 });
+  }
+
+  const requiredLevel = getRewardRequiredLevel(rewardSlug);
+  const { data: approvedSubmissions } = await supabase
+    .from("submissions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("status", "Approved");
+  const userLevel = getCreatorLevelFromApprovedCount((approvedSubmissions ?? []).length);
+
+  if (userLevel < requiredLevel) {
+    return NextResponse.json(
+      { error: `This reward unlocks at level ${requiredLevel}. Your current level is ${userLevel}/${MAX_CREATOR_LEVEL}.` },
+      { status: 403 },
+    );
   }
 
   const { data, error } = await supabase.rpc("redeem_reward", {

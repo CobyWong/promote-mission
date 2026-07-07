@@ -6,7 +6,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromApprovedCount } from "@/lib/mission-rules";
+import { getCreatorLevelFromApprovedCount, getRewardRequiredLevel } from "@/lib/mission-rules";
 
 const hiddenMissionSlugs = new Set([
   "spark-hydration-bottle",
@@ -139,6 +139,7 @@ function toReward(row: RewardRow): Reward {
     slug: row.slug,
     name: row.name,
     cost: row.cost,
+    minLevel: getRewardRequiredLevel(row.slug),
     badge: row.badge ?? undefined,
     description: row.description,
     eta: row.fulfillment_eta,
@@ -638,6 +639,7 @@ export async function getRewardsPageData() {
       balance: 6840,
       redemptions: sampleRewardRedemptions,
       isAuthenticated: false,
+      userLevel: 1,
     };
   }
 
@@ -650,6 +652,7 @@ export async function getRewardsPageData() {
       balance: 6840,
       redemptions: sampleRewardRedemptions,
       isAuthenticated: false,
+      userLevel: 1,
     };
   }
 
@@ -664,16 +667,19 @@ export async function getRewardsPageData() {
       balance: 0,
       redemptions: [] as RewardRedemption[],
       isAuthenticated: false,
+      userLevel: 1,
     };
   }
 
-  const [{ data: transactions }, { data: redemptions }] = await Promise.all([
+  const [{ data: transactions }, { data: redemptions }, { data: approvedSubmissions }] = await Promise.all([
     supabase.from("coin_transactions").select("*").eq("user_id", user.id),
     supabase.from("reward_redemptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
+    supabase.from("submissions").select("id").eq("user_id", user.id).eq("status", "Approved"),
   ]);
 
   const transactionRows = (transactions ?? []) as TransactionRow[];
   const redemptionRows = (redemptions ?? []) as RewardRedemptionRow[];
+  const userLevel = getCreatorLevelFromApprovedCount((approvedSubmissions ?? []).length);
 
   return {
     mode: "live" as const,
@@ -681,6 +687,7 @@ export async function getRewardsPageData() {
     balance: transactionRows.reduce((sum, item) => sum + item.amount, 0),
     redemptions: redemptionRows.map(toRewardRedemption),
     isAuthenticated: true,
+    userLevel,
   };
 }
 

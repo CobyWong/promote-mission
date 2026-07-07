@@ -1,8 +1,17 @@
 export const DIFFICULTY_REQUIRED_LEVEL = {
   Easy: 1,
-  Medium: 2,
-  Hard: 3,
+  Medium: 10,
+  Hard: 20,
 } as const;
+
+export const MAX_CREATOR_LEVEL = 30;
+
+const rewardRequiredLevelBySlug: Record<string, number> = {
+  "parknshop-voucher-100": 1,
+  "usdt-50": 10,
+  "airpods-pro": 20,
+  "sony-wh-1000xm5": 25,
+};
 
 export const MISSION_TOTAL_PRIZE_POOL_HKD = {
   Easy: 1000,
@@ -25,15 +34,24 @@ export function getMissionRequiredLevel(difficulty: string): number {
 }
 
 export function getCreatorLevelFromApprovedCount(approvedCount: number): number {
-  if (approvedCount >= 8) {
-    return 3;
+  const safeApprovedCount = Math.max(0, approvedCount);
+  return Math.min(MAX_CREATOR_LEVEL, safeApprovedCount + 1);
+}
+
+export function getRewardRequiredLevel(rewardSlug: string): number {
+  return rewardRequiredLevelBySlug[rewardSlug] ?? 1;
+}
+
+export function getLevelAccessSummary(level: number, locale: "en" | "zh-HK" = "en"): string {
+  if (level >= DIFFICULTY_REQUIRED_LEVEL.Hard) {
+    return locale === "en" ? "All mission difficulties unlocked" : "已解鎖所有任務難度";
   }
 
-  if (approvedCount >= 3) {
-    return 2;
+  if (level >= DIFFICULTY_REQUIRED_LEVEL.Medium) {
+    return locale === "en" ? "Easy + Medium missions unlocked" : "已解鎖 Easy + Medium 任務";
   }
 
-  return 1;
+  return locale === "en" ? "Easy missions only" : "只可接 Easy 任務";
 }
 
 export function getMissionTotalPrizeByDifficulty(difficulty: string): number {

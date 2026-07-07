@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { missions } from "@/lib/data";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromApprovedCount, getMissionRequiredLevel } from "@/lib/mission-rules";
+import { getCreatorLevelFromApprovedCount, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
   if (creatorLevel < missionRequiredLevel) {
     return NextResponse.json(
-      { error: `This mission requires level ${missionRequiredLevel}. Your current level is ${creatorLevel}.` },
+      { error: `This mission requires level ${missionRequiredLevel}. Your current level is ${creatorLevel}/${MAX_CREATOR_LEVEL}.` },
       { status: 403 },
     );
   }

@@ -12,10 +12,11 @@ type RewardShopClientProps = {
   balance: number;
   redemptions: RewardRedemption[];
   isAuthenticated: boolean;
+  userLevel: number;
   locale?: Locale;
 };
 
-export function RewardShopClient({ rewards, balance, redemptions, isAuthenticated, locale = "zh-HK" }: RewardShopClientProps) {
+export function RewardShopClient({ rewards, balance, redemptions, isAuthenticated, userLevel, locale = "zh-HK" }: RewardShopClientProps) {
   const router = useRouter();
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +67,9 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
         <div className="tactical-card p-6">
           <p className="text-sm text-slate-400">{locale === "en" ? "Available Coins" : "可用金幣"}</p>
           <p className="mt-2 text-4xl font-semibold text-amber-200">{balance.toLocaleString()}</p>
+          <p className="mt-2 text-sm font-semibold text-cyan-200">
+            {locale === "en" ? `Current level: Lv.${userLevel}` : `目前等級：Lv.${userLevel}`}
+          </p>
           <p className="mt-3 text-sm text-slate-300">
             {isAuthenticated
               ? locale === "en" ? "Pick your reward and redeem instantly." : "揀中心儀獎賞即刻兌換。"
@@ -106,9 +110,11 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
       <div className="grid gap-6 lg:grid-cols-2">
         {rewards.map((reward) => {
+          const minLevel = reward.minLevel ?? 1;
           const hasStock = reward.stock === null || reward.stock === undefined || reward.stock > 0;
           const hasEnoughCoins = balance >= reward.cost;
-          const canRedeem = hasEnoughCoins && hasStock;
+          const hasRequiredLevel = userLevel >= minLevel;
+          const canRedeem = hasEnoughCoins && hasStock && hasRequiredLevel;
 
           return (
             <article key={reward.slug} className="tactical-card p-6">
@@ -123,6 +129,11 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                   </span>
                 ) : null}
               </div>
+
+              <div className="mt-4 inline-flex rounded-full border border-cyan-300/35 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+                {locale === "en" ? `Unlock level: Lv.${minLevel}` : `解鎖等級：Lv.${minLevel}`}
+              </div>
+
               <div className="mt-6 flex items-center justify-between text-sm">
                 <span className="text-slate-400">{reward.eta ?? (locale === "en" ? "1-3 business days" : "1-3 個工作天")} · {locale === "en" ? "Stock" : "庫存"} {reward.stock ?? "∞"}</span>
                 <span className="font-semibold text-amber-200">{reward.cost.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</span>
@@ -138,7 +149,9 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                   : canRedeem
                     ? locale === "en" ? "Redeem now" : "立即兌換"
                     : isAuthenticated
-                      ? !hasStock
+                      ? !hasRequiredLevel
+                        ? locale === "en" ? `Locked until Lv.${minLevel}` : `Lv.${minLevel} 先可兌換`
+                        : !hasStock
                         ? locale === "en" ? "Sold out" : "已售罄"
                         : !hasEnoughCoins
                           ? locale === "en" ? "Insufficient Coins" : "金幣不足"

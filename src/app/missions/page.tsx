@@ -1,7 +1,7 @@
 import { MissionCard } from "@/components/mission-card";
 import { getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
-import { getMissionRequiredLevel } from "@/lib/mission-rules";
+import { DIFFICULTY_REQUIRED_LEVEL, getLevelAccessSummary, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 
 const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。";
 
@@ -10,9 +10,15 @@ export default async function MissionsPage() {
   const missionCatalog = await getMissionCenterData();
   const userLevel = missionCatalog.userLevel ?? 1;
 
-  const levelSections = [1, 2, 3].map((level) => ({
-    level,
-    missions: missionCatalog.missions.filter((mission) => getMissionRequiredLevel(mission.difficulty) === level),
+  const difficultySections = [
+    { key: "Easy", requiredLevel: DIFFICULTY_REQUIRED_LEVEL.Easy },
+    { key: "Medium", requiredLevel: DIFFICULTY_REQUIRED_LEVEL.Medium },
+    { key: "Hard", requiredLevel: DIFFICULTY_REQUIRED_LEVEL.Hard },
+  ] as const;
+
+  const levelSections = difficultySections.map((section) => ({
+    ...section,
+    missions: missionCatalog.missions.filter((mission) => getMissionRequiredLevel(mission.difficulty) === section.requiredLevel),
   }));
 
   return (
@@ -27,28 +33,28 @@ export default async function MissionsPage() {
         </p>
         <div className="mt-5 inline-flex items-center rounded-full border border-amber-300/50 bg-amber-300/10 px-4 py-2 text-sm font-semibold text-amber-200">
           {locale === "en"
-            ? `Your level: Lv.${userLevel} (${userLevel === 1 ? "Easy missions only" : userLevel === 2 ? "Easy + Medium missions" : "All missions unlocked"})`
-            : `你目前等級：Lv.${userLevel}（${userLevel === 1 ? "只可接 Easy 任務" : userLevel === 2 ? "可接 Easy + Medium 任務" : "已解鎖全部任務"}）`}
+            ? `Your level: Lv.${userLevel}/${MAX_CREATOR_LEVEL} (${getLevelAccessSummary(userLevel, "en")})`
+            : `你目前等級：Lv.${userLevel}/${MAX_CREATOR_LEVEL}（${getLevelAccessSummary(userLevel, "zh-HK")}）`}
         </div>
       </div>
 
       <div className="mt-8 space-y-10">
         {levelSections.map((section) => (
-          <section key={section.level}>
+          <section key={section.key}>
             <div className="mb-4 flex flex-wrap items-center gap-3">
               <h2 className="text-2xl font-semibold text-slate-100">
-                {locale === "en" ? `Level ${section.level} missions` : `Lv.${section.level} 任務`}
+                {locale === "en" ? `${section.key} missions` : `${section.key} 任務`}
               </h2>
               <span
                 className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  userLevel >= section.level
+                  userLevel >= section.requiredLevel
                     ? "border border-emerald-300/40 bg-emerald-300/10 text-emerald-200"
                     : "border border-amber-300/50 bg-amber-300/10 text-amber-200"
                 }`}
               >
-                {userLevel >= section.level
+                {userLevel >= section.requiredLevel
                   ? (locale === "en" ? "Unlocked" : "已解鎖")
-                  : (locale === "en" ? `Locked (need Lv.${section.level})` : `未解鎖（需 Lv.${section.level}）`)}
+                  : (locale === "en" ? `Locked (need Lv.${section.requiredLevel})` : `未解鎖（需 Lv.${section.requiredLevel}）`)}
               </span>
             </div>
 

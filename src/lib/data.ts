@@ -35,6 +35,7 @@ export type Reward = {
   slug: string;
   name: string;
   cost: number;
+  minLevel?: number;
   badge?: string;
   description: string;
   eta?: string;
@@ -309,6 +310,7 @@ export const rewards: Reward[] = [
     slug: "parknshop-voucher-100",
     name: "百佳禮券 HK$100",
     cost: 2000,
+    minLevel: 1,
     badge: "熱門",
     description: "最受歡迎日常獎賞，適合新手創作者快速兌換。",
     eta: "1-3 個工作天",
@@ -318,6 +320,7 @@ export const rewards: Reward[] = [
     slug: "usdt-50",
     name: "USDT 50 等值",
     cost: 5000,
+    minLevel: 10,
     badge: "現金級",
     description: "完成幾個中型任務就可以直接兌換。",
     eta: "1-2 個工作天",
@@ -327,6 +330,7 @@ export const rewards: Reward[] = [
     slug: "airpods-pro",
     name: "AirPods Pro",
     cost: 28000,
+    minLevel: 20,
     badge: "人氣",
     description: "給長期穩定交稿嘅創作者升級日常裝備。",
     eta: "5-7 個工作天",
@@ -336,6 +340,7 @@ export const rewards: Reward[] = [
     slug: "sony-wh-1000xm5",
     name: "Sony WH-1000XM5",
     cost: 45000,
+    minLevel: 25,
     description: "高價值兌換選項，適合排行榜前列玩家。",
     eta: "5-7 個工作天",
     stock: 8
