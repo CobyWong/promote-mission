@@ -66,65 +66,100 @@ export function ReferralRewardsCard({
   const nextTier = rewardTiers.find((tier) => tier.invited > effectiveInvitedCount) ?? null;
   const progressTarget = nextTier?.invited ?? rewardTiers[rewardTiers.length - 1].invited;
   const progressPercent = Math.min(100, Math.round((effectiveInvitedCount / progressTarget) * 100));
+  const stageProgress = Math.min(100, Math.round((effectiveInvitedCount / rewardTiers[rewardTiers.length - 1].invited) * 100));
+  const funnelInvited = center?.funnel.invited ?? effectiveInvitedCount;
+  const funnelRegistered = center?.funnel.registered ?? 0;
+  const funnelSubmitted = center?.funnel.firstSubmission ?? 0;
+  const funnelApproved = center?.funnel.firstApproved ?? 0;
+  const funnelRewarded = center?.funnel.rewarded ?? effectivePaidBatches;
+  const funnelPending = center?.funnel.pendingReview ?? 0;
+
+  function ratio(current: number, total: number) {
+    if (total <= 0) {
+      return 0;
+    }
+
+    return Math.max(0, Math.min(100, Math.round((current / total) * 100)));
+  }
+
+  const regRate = ratio(funnelRegistered, funnelInvited);
+  const submitRate = ratio(funnelSubmitted, Math.max(funnelRegistered, 1));
+  const approveRate = ratio(funnelApproved, Math.max(funnelSubmitted, 1));
+  const rewardRate = ratio(funnelRewarded, Math.max(funnelApproved, 1));
+  const tierLabel = effectiveInvitedCount >= 20 ? "MASTER" : effectiveInvitedCount >= 10 ? "ELITE" : "ROOKIE";
 
   const t = locale === "en"
     ? {
       title: "Invite creators, earn rewards",
-      subtitle: "Track referral conversion, send reminders, and push to higher bonus tiers.",
+      subtitle: "Run your referral squad like a game season and climb tier rewards.",
       yourCode: "Your referral code",
       invited: "Invited",
       batches: "Rewarded invites",
       reward: "Rewards earned",
-      details: "Reward batches",
+      details: "Open full leaderboard",
       progress: "Invite progress",
       currentTier: "Current tier",
       nextTier: "Next tier",
       unlocked: "Unlocked max tier",
       copy: "Copy",
       copied: "Copied",
-      funnelTitle: "Conversion funnel",
+      funnelTitle: "Quest funnel",
       reminder: "Remind pending referrals",
       reminderSending: "Sending...",
       reminderResult: "Reminders sent",
-      growthTitle: "Growth",
-      shareTitle: "Share kit",
+      growthTitle: "Power-ups",
+      shareTitle: "Share arsenal",
       copyLink: "Copy invite link",
       copyWhatsApp: "Copy WhatsApp text",
       copyTelegram: "Copy Telegram text",
       copyInstagram: "Copy Instagram text",
-      leaderboardTitle: "Season leaderboard",
+      leaderboardTitle: "Season arena",
       leaderboardMore: "See full board",
       nextMilestone: "Next milestone",
       noMilestone: "All milestones completed",
+      missionTrack: "Mission track",
+      tier: "Tier",
+      toNext: "to next tier",
+      commandDeck: "Referral Command Deck",
+      combo: "Weekly combo",
+      loading: "Syncing data...",
+      noData: "No competitors yet.",
     }
     : {
-      title: "邀請創作者，賺取獎勵",
-      subtitle: "追蹤推薦轉換、發送提醒，逐級解鎖更高推薦獎勵。",
+      title: "推薦戰場",
+      subtitle: "用遊戲方式經營你嘅推薦隊伍，衝刺季榜同里程碑獎勵。",
       yourCode: "你的推薦碼",
       invited: "已推薦",
       batches: "已派獎推薦",
       reward: "已賺取獎勵",
-      details: "獎勵批次",
-      progress: "邀請進度",
+      details: "查看完整季榜",
+      progress: "推進進度",
       currentTier: "目前等級",
       nextTier: "下一級",
       unlocked: "已解鎖最高等級",
       copy: "複製",
       copied: "已複製",
-      funnelTitle: "轉換漏斗",
+      funnelTitle: "任務漏斗",
       reminder: "提醒未完成朋友",
       reminderSending: "傳送中...",
       reminderResult: "已送出提醒",
-      growthTitle: "成長進度",
-      shareTitle: "Share Kit",
+      growthTitle: "成長強化",
+      shareTitle: "分享武器庫",
       copyLink: "複製邀請連結",
       copyWhatsApp: "複製 WhatsApp 文案",
       copyTelegram: "複製 Telegram 文案",
       copyInstagram: "複製 Instagram 文案",
-      leaderboardTitle: "推薦季榜",
+      leaderboardTitle: "推薦競技場",
       leaderboardMore: "查看完整榜單",
       nextMilestone: "下一里程碑",
       noMilestone: "已完成全部里程碑",
+      missionTrack: "關卡軌道",
+      tier: "段位",
+      toNext: "升級尚欠",
+      commandDeck: "推薦指揮台",
+      combo: "每週連擊",
+      loading: "同步資料中...",
+      noData: "暫時未有對手上榜。",
     };
 
   useEffect(() => {
@@ -192,146 +227,189 @@ export function ReferralRewardsCard({
   }
 
   return (
-    <section className="tactical-card mt-8 p-6 sm:p-8">
-      <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-amber-300/50 bg-amber-300/10 text-amber-200">
-          <svg viewBox="0 0 20 20" fill="none" className="h-6 w-6" aria-hidden="true">
-            <path d="M10 3.5v13M3.5 10h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            <rect x="4" y="6" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.4" />
-          </svg>
-        </span>
-
-        <div>
-          <h2 className="text-3xl font-semibold text-slate-100">{t.title}</h2>
-          <p className="mt-2 text-base text-slate-400">{t.subtitle}</p>
-        </div>
-      </div>
-
-      <div className="tactical-subcard mt-6 px-4 py-4 sm:px-5">
-        <p className="text-sm text-slate-400">{t.yourCode}</p>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <p className="text-4xl font-bold tracking-[0.1em] text-amber-200">{referralCode}</p>
-          <button
-            type="button"
-            onClick={() => copyText(referralCode)}
-            className="tactical-btn-ghost flex h-12 w-12 shrink-0 rounded-xl"
-            title={copied ? t.copied : t.copy}
-            aria-label={copied ? t.copied : t.copy}
-          >
-            <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
-              <rect x="7" y="4" width="9" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
-              <path d="M4 7V16h9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
-        <div className="tactical-subcard px-5 py-4">
-          <p className="text-sm text-slate-400">{t.invited}</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-100">{effectiveInvitedCount}</p>
-        </div>
-
-        <div className="tactical-subcard px-5 py-4">
-          <p className="text-sm text-slate-400">{t.batches}</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-100">{effectivePaidBatches}</p>
-        </div>
-
-        <div className="tactical-subcard px-5 py-4">
-          <p className="text-sm text-slate-400">{t.reward}</p>
-          <p className="mt-2 text-3xl font-semibold text-amber-200">{totalRewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
-        </div>
-      </div>
-
-      <div className="tactical-subcard mt-5 px-5 py-4">
-        <div className="flex items-center justify-between gap-3 text-sm text-slate-300">
-          <p className="font-semibold text-slate-200">{t.progress}</p>
-          <p>{effectiveInvitedCount} / {progressTarget}</p>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-700/80">
-          <div className="h-full rounded-full bg-amber-300 transition-all" style={{ width: `${progressPercent}%` }} />
-        </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
-          <p>{t.currentTier}: <span className="font-semibold text-amber-200">{activeTier.invited}+ · {activeTier.coinsPerBatch} {locale === "en" ? "Coins/batch" : "金幣/批次"}</span></p>
-          <p>
-            {nextTier
-              ? `${t.nextTier}: ${nextTier.invited}+ · ${nextTier.coinsPerBatch} ${locale === "en" ? "Coins/batch" : "金幣/批次"}`
-              : t.unlocked}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-4 xl:grid-cols-2">
-        <div className="tactical-subcard px-5 py-4">
-          <h3 className="text-base font-semibold text-slate-100">{t.funnelTitle}</h3>
-          <div className="mt-3 grid grid-cols-2 gap-3 text-sm text-slate-300">
-            <p>Invited: <span className="font-semibold text-slate-100">{center?.funnel.invited ?? effectiveInvitedCount}</span></p>
-            <p>Registered: <span className="font-semibold text-slate-100">{center?.funnel.registered ?? effectiveInvitedCount}</span></p>
-            <p>Submitted: <span className="font-semibold text-slate-100">{center?.funnel.firstSubmission ?? 0}</span></p>
-            <p>Approved: <span className="font-semibold text-slate-100">{center?.funnel.firstApproved ?? 0}</span></p>
-            <p>Rewarded: <span className="font-semibold text-slate-100">{center?.funnel.rewarded ?? effectivePaidBatches}</span></p>
-            <p>In review: <span className="font-semibold text-amber-200">{center?.funnel.pendingReview ?? 0}</span></p>
+    <section className="tactical-card mt-8 overflow-hidden p-0">
+      <div className="border-b border-white/10 bg-[radial-gradient(circle_at_15%_20%,rgba(142,165,106,0.24),transparent_35%),radial-gradient(circle_at_90%_15%,rgba(129,177,206,0.3),transparent_32%),linear-gradient(180deg,rgba(24,35,48,0.95),rgba(20,29,40,0.92))] px-5 py-6 sm:px-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.22em] text-cyan-200">{t.commandDeck}</p>
+            <h2 className="mt-2 text-3xl font-bold text-slate-100">{t.title}</h2>
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">{t.subtitle}</p>
           </div>
 
-          <button
-            type="button"
-            onClick={sendReminders}
-            disabled={sendingReminder}
-            className="tactical-btn-ghost mt-4 px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {sendingReminder ? t.reminderSending : t.reminder}
-          </button>
-          {reminderResult !== null ? <p className="mt-2 text-xs text-cyan-200">{t.reminderResult}: {reminderResult}</p> : null}
+          <div className="rounded-xl border border-amber-300/40 bg-amber-300/10 px-4 py-3 text-right">
+            <p className="text-[11px] uppercase tracking-[0.18em] text-amber-200">{t.tier}</p>
+            <p className="mt-1 text-2xl font-bold text-amber-200">{tierLabel}</p>
+            <p className="text-xs text-slate-300">{t.currentTier}: {activeTier.invited}+</p>
+          </div>
         </div>
 
-        <div className="tactical-subcard px-5 py-4">
-          <h3 className="text-base font-semibold text-slate-100">{t.growthTitle}</h3>
-          <p className="mt-3 text-sm text-slate-300">7d streak count: <span className="font-semibold text-slate-100">{center?.growth.streak7d ?? 0}</span></p>
-          <p className="mt-1 text-sm text-slate-300">Season rewards: <span className="font-semibold text-slate-100">{center?.growth.rewardedThisSeason ?? 0}</span></p>
-          <p className="mt-1 text-sm text-slate-300">
-            {t.nextMilestone}: <span className="font-semibold text-amber-200">
-              {center?.growth.nextMilestone
-                ? `${center.growth.nextMilestone} (${center.growth.nextMilestoneRemaining} left)`
-                : t.noMilestone}
-            </span>
-          </p>
-
-          <h3 className="mt-5 text-base font-semibold text-slate-100">{t.shareTitle}</h3>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.inviteUrl ?? "")}>{t.copyLink}</button>
-            <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.whatsappText ?? "")}>{t.copyWhatsApp}</button>
-            <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.telegramText ?? "")}>{t.copyTelegram}</button>
-            <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.instagramCaption ?? "")}>{t.copyInstagram}</button>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-300">{t.invited}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-100">{effectiveInvitedCount}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-300">{t.batches}</p>
+            <p className="mt-2 text-3xl font-bold text-slate-100">{effectivePaidBatches}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-300">{t.reward}</p>
+            <p className="mt-2 text-3xl font-bold text-amber-200">{totalRewardCoins.toLocaleString()}</p>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-white/8 p-4 backdrop-blur-sm">
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-300">{t.yourCode}</p>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <p className="text-xl font-bold tracking-[0.08em] text-cyan-200">{referralCode}</p>
+              <button
+                type="button"
+                onClick={() => copyText(referralCode)}
+                className="tactical-btn-ghost px-3 py-1 text-xs"
+                title={copied ? t.copied : t.copy}
+                aria-label={copied ? t.copied : t.copy}
+              >
+                {copied ? t.copied : t.copy}
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="tactical-subcard mt-5 px-5 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-base font-semibold text-slate-100">{t.leaderboardTitle}</h3>
-          <Link href="/referrals/leaderboard" className="text-xs font-semibold text-cyan-200 hover:text-cyan-100">
-            {t.leaderboardMore} {"->"}
-          </Link>
+      <div className="px-5 py-5 sm:px-8 sm:py-6">
+        <div className="tactical-subcard px-4 py-4 sm:px-5">
+          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
+            <p className="font-semibold text-slate-200">{t.missionTrack}</p>
+            <p>
+              {effectiveInvitedCount}/{progressTarget} · {progressPercent}%
+            </p>
+          </div>
+
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-700/80">
+            <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300 transition-all" style={{ width: `${stageProgress}%` }} />
+          </div>
+
+          <div className="mt-4 flex items-center justify-between gap-2 text-xs">
+            {rewardTiers.map((tier) => {
+              const unlocked = effectiveInvitedCount >= tier.invited;
+              return (
+                <div key={tier.invited} className={`rounded-full border px-3 py-1 ${unlocked ? "border-amber-300/40 bg-amber-300/10 text-amber-200" : "border-white/20 bg-white/5 text-slate-300"}`}>
+                  {tier.invited}+ / +{tier.coinsPerBatch}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
+            <p>{t.currentTier}: <span className="font-semibold text-amber-200">{activeTier.invited}+ · {activeTier.coinsPerBatch} {locale === "en" ? "Coins/batch" : "金幣/批次"}</span></p>
+            <p>
+              {nextTier
+                ? `${t.nextTier}: ${nextTier.invited}+ · ${nextTier.coinsPerBatch} ${locale === "en" ? "Coins/batch" : "金幣/批次"} (${nextTier.invited - effectiveInvitedCount} ${t.toNext})`
+                : t.unlocked}
+            </p>
+          </div>
         </div>
 
-        {loadingCenter ? (
-          <p className="mt-3 text-sm text-slate-400">Loading...</p>
-        ) : (
-          <div className="mt-3 space-y-2">
-            {(center?.leaderboard ?? []).slice(0, 5).map((item) => (
-              <div key={`${item.rank}-${item.name}`} className="flex items-center justify-between text-sm text-slate-300">
-                <p>#{item.rank} {item.name}</p>
-                <p className="font-semibold text-slate-100">{item.rewardedInvites}</p>
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          <div className="tactical-subcard px-5 py-4">
+            <h3 className="text-base font-semibold text-slate-100">{t.funnelTitle}</h3>
+            <div className="mt-3 space-y-3 text-sm text-slate-300">
+              {[
+                { label: "Invited", value: funnelInvited, rate: 100 },
+                { label: "Registered", value: funnelRegistered, rate: regRate },
+                { label: "Submitted", value: funnelSubmitted, rate: submitRate },
+                { label: "Approved", value: funnelApproved, rate: approveRate },
+                { label: "Rewarded", value: funnelRewarded, rate: rewardRate },
+              ].map((row) => (
+                <div key={row.label}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p>{row.label}: <span className="font-semibold text-slate-100">{row.value}</span></p>
+                    <p className="text-xs text-cyan-200">{row.rate}%</p>
+                  </div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-700/70">
+                    <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-emerald-300" style={{ width: `${row.rate}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-2 rounded-lg border border-amber-300/25 bg-amber-300/10 px-3 py-2 text-xs text-amber-200">
+              <span>In review: {funnelPending}</span>
+              <button
+                type="button"
+                onClick={sendReminders}
+                disabled={sendingReminder}
+                className="tactical-btn-ghost px-3 py-1 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {sendingReminder ? t.reminderSending : t.reminder}
+              </button>
+            </div>
+            {reminderResult !== null ? <p className="mt-2 text-xs text-cyan-200">{t.reminderResult}: {reminderResult}</p> : null}
+          </div>
+
+          <div className="tactical-subcard px-5 py-4">
+            <h3 className="text-base font-semibold text-slate-100">{t.growthTitle}</h3>
+            <div className="mt-3 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <p className="text-xs text-slate-300">{t.combo}</p>
+                <p className="mt-1 text-xl font-bold text-cyan-200">{center?.growth.streak7d ?? 0}</p>
               </div>
-            ))}
-            {(center?.leaderboard ?? []).length === 0 ? <p className="text-sm text-slate-400">No data yet.</p> : null}
-          </div>
-        )}
-      </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <p className="text-xs text-slate-300">Season</p>
+                <p className="mt-1 text-xl font-bold text-slate-100">{center?.growth.rewardedThisSeason ?? 0}</p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-center">
+                <p className="text-xs text-slate-300">Milestone</p>
+                <p className="mt-1 text-xl font-bold text-amber-200">
+                  {center?.growth.nextMilestone ? center.growth.nextMilestone : "MAX"}
+                </p>
+              </div>
+            </div>
 
-      <button type="button" className="tactical-link mt-6 text-lg">
-        {t.details} {"->"}
-      </button>
+            <p className="mt-3 text-sm text-slate-300">
+              {t.nextMilestone}: <span className="font-semibold text-amber-200">
+                {center?.growth.nextMilestone
+                  ? `${center.growth.nextMilestone} (${center.growth.nextMilestoneRemaining} ${t.toNext})`
+                  : t.noMilestone}
+              </span>
+            </p>
+
+            <h3 className="mt-5 text-base font-semibold text-slate-100">{t.shareTitle}</h3>
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.inviteUrl ?? "")}>{t.copyLink}</button>
+              <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.whatsappText ?? "")}>{t.copyWhatsApp}</button>
+              <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.telegramText ?? "")}>{t.copyTelegram}</button>
+              <button type="button" className="tactical-btn-ghost px-3 py-2 text-xs" onClick={() => copyText(center?.shareKit.instagramCaption ?? "")}>{t.copyInstagram}</button>
+            </div>
+          </div>
+        </div>
+
+        <div className="tactical-subcard mt-5 px-5 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-base font-semibold text-slate-100">{t.leaderboardTitle}</h3>
+            <Link href="/referrals/leaderboard" className="text-xs font-semibold text-cyan-200 hover:text-cyan-100">
+              {t.leaderboardMore} {"->"}
+            </Link>
+          </div>
+
+          {loadingCenter ? (
+            <p className="mt-3 text-sm text-slate-400">{t.loading}</p>
+          ) : (
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {(center?.leaderboard ?? []).slice(0, 3).map((item) => (
+                <div key={`${item.rank}-${item.name}`} className="rounded-xl border border-white/10 bg-white/5 p-3 text-center">
+                  <p className={`text-xs font-bold ${item.rank === 1 ? "text-amber-200" : item.rank === 2 ? "text-cyan-200" : "text-emerald-200"}`}>#{item.rank}</p>
+                  <p className="mt-1 truncate text-sm font-semibold text-slate-100">{item.name}</p>
+                  <p className="mt-1 text-xs text-slate-300">{item.rewardedInvites} invites</p>
+                </div>
+              ))}
+              {(center?.leaderboard ?? []).length === 0 ? <p className="text-sm text-slate-400">{t.noData}</p> : null}
+            </div>
+          )}
+        </div>
+
+        <Link href="/referrals/leaderboard" className="tactical-link mt-6 inline-flex text-lg">
+          {t.details} {"->"}
+        </Link>
+      </div>
     </section>
   );
 }
