@@ -44,9 +44,10 @@ type MissionCardProps = {
   mission: Mission;
   locale?: Locale;
   userLevel?: number;
+  compactMobile?: boolean;
 };
 
-export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: MissionCardProps) {
+export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactMobile = false }: MissionCardProps) {
   const brandLabel = locale === "en" ? mission.brand : (zhBrandMap[mission.brand] ?? mission.brand);
   const productLabel = locale === "en" ? mission.product : (zhProductMap[mission.product] ?? mission.product);
   const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
@@ -59,39 +60,39 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
 
   return (
     <article className="tactical-card group flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5">
-      <div className="space-y-4 p-5">
+      <div className="space-y-3 p-4 sm:space-y-4 sm:p-5">
         <div className="min-w-0">
-          <p className="truncate text-[1.55rem] font-semibold leading-none text-slate-200">{brandLabel}</p>
-          <h3 className="mt-2 line-clamp-2 text-2xl font-bold leading-tight text-slate-100">{mission.title}</h3>
+          <p className="truncate text-[1.1rem] font-semibold leading-none text-slate-200 sm:text-[1.55rem]">{brandLabel}</p>
+          <h3 className="mt-1.5 line-clamp-2 text-xl font-bold leading-tight text-slate-100 sm:mt-2 sm:text-2xl">{mission.title}</h3>
         </div>
 
         <div className="flex flex-wrap gap-2">
           <span className="tactical-chip">{categoryLabel}</span>
-          <span className="rounded-full border border-slate-500/70 bg-slate-800/70 px-3 py-1 text-sm font-semibold text-slate-300">UGC</span>
+          <span className="rounded-full border border-slate-500/70 bg-slate-800/70 px-3 py-1 text-xs font-semibold text-slate-300 sm:text-sm">UGC</span>
         </div>
       </div>
 
-      <div className="border-y border-slate-700/80 px-5 py-4">
+      <div className="border-y border-slate-700/80 px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex items-end justify-between gap-3">
-          <p className="text-xl font-semibold text-slate-400">{locale === "en" ? "Total prize pool" : "總獎金池"}</p>
-          <p className="text-[2rem] font-black text-amber-300">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
+          <p className="text-base font-semibold text-slate-400 sm:text-xl">{locale === "en" ? "Total prize pool" : "總獎金池"}</p>
+          <p className="text-[1.65rem] font-black text-amber-300 sm:text-[2rem]">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
         </div>
-        <div className="mt-3 flex items-center justify-between border-t border-slate-700/80 pt-3">
-          <p className="text-lg font-semibold text-slate-400">{locale === "en" ? "Participation reward" : "參加獎勵"}</p>
-          <p className="text-xl font-black text-amber-200">{isLocked ? "???" : `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`}</p>
+        <div className="mt-2.5 flex items-center justify-between border-t border-slate-700/80 pt-2.5 sm:mt-3 sm:pt-3">
+          <p className="text-sm font-semibold text-slate-400 sm:text-lg">{locale === "en" ? "Participation reward" : "參加獎勵"}</p>
+          <p className="text-lg font-black text-amber-200 sm:text-xl">{isLocked ? "???" : `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`}</p>
         </div>
-        <p className="mt-2 text-xs text-slate-400">
+        <p className="mt-2 text-[11px] text-slate-400 sm:text-xs">
           {locale === "en" ? "Coins can be used to redeem rewards in the reward shop." : "金幣可用於獎賞商城兌換獎勵。"}
         </p>
       </div>
 
-      <div className="space-y-3 px-5 py-4">
+      <div className="space-y-3 px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex items-center justify-between">
-          <p className="text-lg font-semibold text-slate-400">{locale === "en" ? "Difficulty" : "難度"}</p>
-          <p className="text-xl font-bold text-slate-100">{difficultyLabel}</p>
+          <p className="text-base font-semibold text-slate-400 sm:text-lg">{locale === "en" ? "Difficulty" : "難度"}</p>
+          <p className="text-lg font-bold text-slate-100 sm:text-xl">{difficultyLabel}</p>
         </div>
 
-        <div className="text-sm font-medium text-amber-200">
+        <div className="text-xs font-medium text-amber-200 sm:text-sm">
           {locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}
         </div>
 
@@ -103,12 +104,12 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
           </p>
         ) : (
           <>
-            <div className="tactical-subcard px-3 py-2 text-sm text-slate-300">
+            <div className={`${compactMobile ? "hidden sm:block" : "block"} tactical-subcard px-3 py-2 text-sm text-slate-300`}>
               {locale === "en"
                 ? `Ranking split: #1 60% (HK$${rewards.first.toLocaleString()}) · #2 30% (HK$${rewards.second.toLocaleString()}) · #3 10% (HK$${rewards.third.toLocaleString()})`
                 : `排名派彩：第 1 名 60%（HK$${rewards.first.toLocaleString()}） · 第 2 名 30%（HK$${rewards.second.toLocaleString()}） · 第 3 名 10%（HK$${rewards.third.toLocaleString()}）`}
             </div>
-            <div className="space-y-2">
+            <div className={`${compactMobile ? "hidden sm:block" : "block"} space-y-2`}>
               <p className="text-sm text-slate-400">{locale === "en" ? "Top creators" : "頂尖創作者"}</p>
               {(mission.rankings && mission.rankings.length > 0 ? mission.rankings : [{ rank: 1, handle: topCreator, views: Number(topViews.replace("K", "000")), reelUrl: `https://instagram.com/${topCreator.replace(/^@/, "")}` }]).map((entry) => (
                 <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-300">
@@ -127,6 +128,13 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
                 </div>
               ))}
             </div>
+            {compactMobile ? (
+              <div className="rounded-xl border border-slate-600/60 bg-slate-900/45 px-3 py-2.5 text-xs text-slate-300 sm:hidden">
+                {locale === "en"
+                  ? `Top creator: ${topCreator} · ${topViews} views`
+                  : `頂尖創作者：${topCreator} · ${topViews} 觀看`}
+              </div>
+            ) : null}
           </>
         )}
 
@@ -136,22 +144,22 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1 }: Missio
           </div>
         ) : null}
 
-        {!isLocked ? <p className="line-clamp-2 text-xs leading-5 text-slate-400">{productLabel} · {mission.description}</p> : null}
+        {!isLocked ? <p className={`${compactMobile ? "line-clamp-1 sm:line-clamp-2" : "line-clamp-2"} text-xs leading-5 text-slate-400`}>{productLabel} · {mission.description}</p> : null}
       </div>
 
-      <div className="mt-auto border-t border-slate-700/80 p-4">
+      <div className="mt-auto border-t border-slate-700/80 p-3.5 sm:p-4">
         {isLocked ? (
           <button
             type="button"
             disabled
-            className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-600 bg-slate-800 px-5 text-lg font-semibold text-slate-500"
+            className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-600 bg-slate-800 px-4 text-base font-semibold text-slate-500 sm:h-12 sm:px-5 sm:text-lg"
           >
             {locale === "en" ? `Level up to unlock (Lv.${requiredLevel})` : `升級至 Lv.${requiredLevel} 解鎖`}
           </button>
         ) : (
           <Link
             href={`/missions/${mission.slug}`}
-            className="tactical-btn-primary flex h-12 w-full px-5 text-lg"
+            className="tactical-btn-primary flex h-10 w-full px-4 text-base sm:h-12 sm:px-5 sm:text-lg"
           >
             {locale === "en" ? "Join campaign" : "參與活動"}
           </Link>

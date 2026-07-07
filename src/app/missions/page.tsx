@@ -33,7 +33,7 @@ export default async function MissionsPage() {
         </p>
       </div>
 
-      <div className="mt-8 space-y-10">
+      <div className="mt-6 space-y-7 sm:mt-8 sm:space-y-10">
         {levelSections.map((section) => (
           <section key={section.key}>
             <div className="mb-4 flex flex-wrap items-center gap-3">
@@ -58,9 +58,15 @@ export default async function MissionsPage() {
                 {locale === "en" ? "No missions in this level right now." : "目前此等級暫時未有任務。"}
               </div>
             ) : (
-              <div className="grid auto-rows-fr gap-6 lg:grid-cols-3">
+              <div className="grid auto-rows-fr gap-3 sm:gap-5 lg:grid-cols-3">
                 {section.missions.map((mission) => (
-                  <MissionCard key={mission.slug} mission={mission} locale={locale} userLevel={userLevel} />
+                  <MissionCard
+                    key={mission.slug}
+                    mission={mission}
+                    locale={locale}
+                    userLevel={userLevel}
+                    compactMobile
+                  />
                 ))}
               </div>
             )}
