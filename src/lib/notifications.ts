@@ -5,6 +5,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 export type NotificationType =
   | "submission_approved"
   | "submission_needs_edits"
+  | "level_up_reward"
   | "redemption_requested"
   | "redemption_fulfilled"
   | "redemption_rejected"

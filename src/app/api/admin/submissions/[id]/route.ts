@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import type { SubmissionStatus } from "@/lib/data";
 import { hasAdminSession } from "@/lib/admin-session";
+import { awardGamePassLevelUpRewards } from "@/lib/game-pass";
 import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
 import type { Database } from "@/lib/supabase/database.types";
@@ -144,6 +145,13 @@ export async function PATCH(
   }
 
   if (status === "Approved") {
+    const { data: approvedBeforeRows } = await admin
+      .from("submissions")
+      .select("reward_coins")
+      .eq("user_id", existingSubmission.user_id)
+      .eq("status", "Approved");
+    const approvedExpBefore = (approvedBeforeRows ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+
     const rpcArgs: Database["public"]["Functions"]["approve_submission"]["Args"] = {
       submission_id_input: id,
       reviewer_id_input: reviewerId,
@@ -206,6 +214,33 @@ export async function PATCH(
       });
     }
 
+    const approvedExpAfter = approvedExpBefore + Math.max(existingSubmission.reward_coins ?? 0, 0);
+    const levelUpRewards = await awardGamePassLevelUpRewards({
+      admin,
+      userId: existingSubmission.user_id,
+      submissionId: id,
+      previousExp: approvedExpBefore,
+      nextExp: approvedExpAfter,
+    });
+
+    if (levelUpRewards.length > 0) {
+      const totalBonusCoins = levelUpRewards.reduce((sum, item) => sum + item.coins, 0);
+      const levelSummary = levelUpRewards.map((item) => `Lv.${item.level}`).join(", ");
+
+      await createUserNotification({
+        userId: existingSubmission.user_id,
+        type: "level_up_reward",
+        title: "Game Pass level up!",
+        message: `You reached ${levelSummary}. +${totalBonusCoins} bonus Coins credited.`,
+        link: "/dashboard",
+        metadata: {
+          submissionId: id,
+          totalBonusCoins,
+          levels: levelUpRewards.map((item) => item.level),
+        },
+      });
+    }
+
     if (assignedReviewerId !== undefined || reviewDueAt !== undefined) {
       const assignmentPayload: Database["public"]["Tables"]["submissions"]["Update"] = {
         assigned_reviewer_id: assignedReviewerId,
@@ -223,7 +258,10 @@ export async function PATCH(
       event: "submission_approved",
       route: "/api/admin/submissions/[id]",
       userId: reviewerId,
-      context: { submissionId: id },
+      context: {
+        submissionId: id,
+        levelUpRewardCount: levelUpRewards.length,
+      },
     });
 
     return NextResponse.json({ ok: true });
