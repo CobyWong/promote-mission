@@ -39,14 +39,14 @@ export function DashboardMissionActions({ missionSlug, eta, locale }: DashboardM
 
   if (canSubmit) {
     return (
-      <Link href={`/submit/${missionSlug}`} className="tactical-link">
+      <Link href={`/submit/${missionSlug}`} className="tactical-link inline-flex min-h-11 items-center">
         {locale === "en" ? "Submit proof →" : "提交證明 →"}
       </Link>
     );
   }
 
   return (
-    <Link href={`/missions/${missionSlug}`} className="text-amber-300 hover:text-amber-200">
+    <Link href={`/missions/${missionSlug}`} className="inline-flex min-h-11 items-center text-amber-300 hover:text-amber-200">
       {locale === "en" ? "Accept mission first →" : "請先接受任務 →"}
     </Link>
   );

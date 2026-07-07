@@ -211,7 +211,7 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="admin-mobile-ui space-y-5">
       <div className="glass-panel p-5">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-white">{t.title}</h2>

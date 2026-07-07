@@ -273,4 +273,36 @@ a {
   .tactical-section-kicker {
     letter-spacing: 0.2em;
   }
+
+  .admin-mobile-ui .glass-panel,
+  .admin-mobile-ui .tactical-card {
+    padding: 1rem;
+  }
+
+  .admin-mobile-ui h1 {
+    font-size: 1.85rem;
+    line-height: 1.15;
+  }
+
+  .admin-mobile-ui h2 {
+    font-size: 1.15rem;
+  }
+
+  .admin-mobile-ui p {
+    line-height: 1.5;
+  }
+
+  .admin-mobile-ui button,
+  .admin-mobile-ui a,
+  .admin-mobile-ui input,
+  .admin-mobile-ui select,
+  .admin-mobile-ui textarea {
+    min-height: 44px;
+  }
+
+  .admin-mobile-ui input,
+  .admin-mobile-ui select,
+  .admin-mobile-ui textarea {
+    font-size: 16px;
+  }
 }

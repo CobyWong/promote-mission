@@ -230,7 +230,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="tactical-card mt-8 p-8">
+      <div className="tactical-card mt-8 p-5 sm:p-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <h2 className="text-2xl font-semibold text-slate-100">{t.earningsTitle}</h2>
@@ -262,7 +262,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="tactical-card mt-8 p-8">
+      <div className="tactical-card mt-8 p-5 sm:p-8">
         {dashboard.mode === "demo" ? (
           <div className="mb-6 rounded-xl border border-amber-300/50 bg-amber-300/10 px-4 py-4 text-sm text-amber-200">
             {t.demoNotice}
@@ -279,7 +279,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-2xl font-semibold text-slate-100">{t.activeMissions}</h2>
           <div className="tactical-subcard px-4 py-2 text-sm text-slate-300">
             {t.pendingReviews}: {dashboard.pendingCount}
@@ -314,7 +314,7 @@ export default async function DashboardPage() {
                         : submissionStatus;
                 const statusColor = submissionStatus ? statusColors[submissionStatus] || statusColors["Pending"] : "";
 
-                return <div key={mission.slug} className="tactical-subcard p-5">
+                return <div key={mission.slug} className="tactical-subcard p-4 sm:p-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <div className="flex items-center gap-3">
@@ -325,11 +325,11 @@ export default async function DashboardPage() {
                           </span>
                         ) : null}
                       </div>
-                      <h3 className="mt-2 text-xl font-semibold text-slate-100">{mission.title}</h3>
+                      <h3 className="mt-2 text-lg font-semibold text-slate-100 sm:text-xl">{mission.title}</h3>
                       <p className="mt-2 text-sm text-slate-400">{t.due}：{mission.eta} · {t.reward}：HK${totalPrize.toLocaleString()}（60% / 30% / 10%）</p>
                     </div>
-                    <div className="flex gap-3 text-sm font-semibold">
-                      <Link href={`/missions/${mission.slug}`} className="tactical-link">
+                    <div className="flex flex-wrap gap-2 text-sm font-semibold">
+                      <Link href={`/missions/${mission.slug}`} className="tactical-link inline-flex min-h-11 items-center">
                         {t.viewBrief}
                       </Link>
                       <DashboardMissionActions missionSlug={mission.slug} eta={mission.eta} locale={locale} />

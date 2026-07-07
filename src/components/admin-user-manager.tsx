@@ -156,7 +156,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
   }
 
   return (
-    <div className="space-y-8">
+    <div className="admin-mobile-ui space-y-8">
       {feedback ? (
         <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-4 text-sm text-emerald-100">
           {feedback}

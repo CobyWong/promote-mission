@@ -26,11 +26,11 @@ export default async function AdminReviewsPage() {
   const reviewData = await getAdminReviewData();
 
   return (
-    <section className="section-shell py-12 sm:py-16">
+    <section className="admin-mobile-ui section-shell py-10 sm:py-16">
       <div className="max-w-3xl">
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Admin Review</p>
-        <h1 className="mt-3 text-4xl font-semibold text-white">{t.title}</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">
+        <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">{t.title}</h1>
+        <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
           {t.desc}
         </p>
       </div>
