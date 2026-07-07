@@ -6,7 +6,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromApprovedCount, getRewardRequiredLevel } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getRewardRequiredLevel } from "@/lib/mission-rules";
 
 const hiddenMissionSlugs = new Set([
   "spark-hydration-bottle",
@@ -568,7 +568,7 @@ export async function getMissionCenterData() {
 
   const { data: submissions } = await supabase
     .from("submissions")
-    .select("mission_slug, status")
+    .select("mission_slug, status, reward_coins")
     .eq("user_id", user.id);
 
   const completedMissionSlugs = new Set(
@@ -578,7 +578,10 @@ export async function getMissionCenterData() {
       .filter((slug): slug is string => typeof slug === "string" && slug.length > 0),
   );
   const approvedMissionCount = completedMissionSlugs.size;
-  const userLevel = getCreatorLevelFromApprovedCount(approvedMissionCount);
+  const approvedExp = (submissions ?? [])
+    .filter((item) => item.status === "Approved")
+    .reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const userLevel = getCreatorLevelFromTotalExp(approvedExp);
 
   return {
     ...missionCatalog,
@@ -674,12 +677,13 @@ export async function getRewardsPageData() {
   const [{ data: transactions }, { data: redemptions }, { data: approvedSubmissions }] = await Promise.all([
     supabase.from("coin_transactions").select("*").eq("user_id", user.id),
     supabase.from("reward_redemptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-    supabase.from("submissions").select("id").eq("user_id", user.id).eq("status", "Approved"),
+    supabase.from("submissions").select("reward_coins").eq("user_id", user.id).eq("status", "Approved"),
   ]);
 
   const transactionRows = (transactions ?? []) as TransactionRow[];
   const redemptionRows = (redemptions ?? []) as RewardRedemptionRow[];
-  const userLevel = getCreatorLevelFromApprovedCount((approvedSubmissions ?? []).length);
+  const approvedExp = (approvedSubmissions ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const userLevel = getCreatorLevelFromTotalExp(approvedExp);
 
   return {
     mode: "live" as const,

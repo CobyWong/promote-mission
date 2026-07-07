@@ -6,7 +6,7 @@ import { SupportContactForm } from "@/components/support-contact-form";
 import { rewards } from "@/lib/data";
 import { getDashboardData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
-import { getMissionTotalPrizeByDifficulty } from "@/lib/mission-rules";
+import { getLevelProgressFromTotalExp, getMissionTotalPrizeByDifficulty, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { getSupportEmail, getSupportWhatsappUrl } from "@/lib/supabase/env";
 
 export default async function DashboardPage() {
@@ -48,6 +48,10 @@ export default async function DashboardPage() {
       statusInvited: "Invited",
       statusQualified: "Qualified",
       statusRewarded: "Rewarded",
+      levelProgress: "Level progress",
+      levelMaxed: "Max level reached",
+      expToNext: "EXP to next level",
+      totalExp: "Total EXP",
     }
     : {
       title: "你嘅創作者個人檔案",
@@ -85,6 +89,10 @@ export default async function DashboardPage() {
       statusInvited: "已邀請",
       statusQualified: "已達資格",
       statusRewarded: "已派獎",
+      levelProgress: "等級進度",
+      levelMaxed: "已達最高等級",
+      expToNext: "升級尚欠 EXP",
+      totalExp: "總 EXP",
     };
 
   const dashboard = await getDashboardData();
@@ -97,6 +105,10 @@ export default async function DashboardPage() {
     if (status === "Qualified") return t.statusQualified;
     return t.statusInvited;
   };
+  const approvedExp = dashboard.submissions
+    .filter((item) => item.status === "Approved")
+    .reduce((sum, item) => sum + Math.max(item.coins ?? 0, 0), 0);
+  const levelProgress = getLevelProgressFromTotalExp(approvedExp);
 
   if (dashboard.mode === "unauthenticated") {
     return (
@@ -158,6 +170,29 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="tactical-subcard p-4 md:col-span-2 xl:col-span-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.levelProgress}</p>
+              <p className="text-sm font-semibold text-cyan-200">
+                Lv.{levelProgress.level}/{MAX_CREATOR_LEVEL}
+              </p>
+            </div>
+
+            <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800/80">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-300 transition-all"
+                style={{ width: `${levelProgress.progressPercent}%` }}
+              />
+            </div>
+
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-300">
+              <span>{t.totalExp}: {levelProgress.totalExp.toLocaleString()}</span>
+              {levelProgress.isMaxLevel
+                ? <span>{t.levelMaxed}</span>
+                : <span>{t.expToNext}: {levelProgress.expToNextLevel.toLocaleString()} / {levelProgress.expForNextLevel.toLocaleString()}</span>}
+            </div>
+          </div>
+
           <div className="tactical-subcard p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.ageGroup}</p>
             <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.profile.ageGroup}</p>

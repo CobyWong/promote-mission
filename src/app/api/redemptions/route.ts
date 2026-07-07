@@ -4,7 +4,7 @@ import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromApprovedCount, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -45,10 +45,11 @@ export async function POST(request: Request) {
   const requiredLevel = getRewardRequiredLevel(rewardSlug);
   const { data: approvedSubmissions } = await supabase
     .from("submissions")
-    .select("id")
+    .select("reward_coins")
     .eq("user_id", user.id)
     .eq("status", "Approved");
-  const userLevel = getCreatorLevelFromApprovedCount((approvedSubmissions ?? []).length);
+  const approvedExp = (approvedSubmissions ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const userLevel = getCreatorLevelFromTotalExp(approvedExp);
 
   if (userLevel < requiredLevel) {
     return NextResponse.json(

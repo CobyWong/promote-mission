@@ -5,6 +5,7 @@ export const DIFFICULTY_REQUIRED_LEVEL = {
 } as const;
 
 export const MAX_CREATOR_LEVEL = 30;
+export const CREATOR_EXP_PER_LEVEL = 1000;
 
 const rewardRequiredLevelBySlug: Record<string, number> = {
   "parknshop-voucher-100": 1,
@@ -35,7 +36,32 @@ export function getMissionRequiredLevel(difficulty: string): number {
 
 export function getCreatorLevelFromApprovedCount(approvedCount: number): number {
   const safeApprovedCount = Math.max(0, approvedCount);
-  return Math.min(MAX_CREATOR_LEVEL, safeApprovedCount + 1);
+  return getCreatorLevelFromTotalExp(safeApprovedCount * CREATOR_EXP_PER_LEVEL);
+}
+
+export function getCreatorLevelFromTotalExp(totalExp: number): number {
+  const safeExp = Math.max(0, totalExp);
+  return Math.min(MAX_CREATOR_LEVEL, Math.floor(safeExp / CREATOR_EXP_PER_LEVEL) + 1);
+}
+
+export function getLevelProgressFromTotalExp(totalExp: number) {
+  const safeExp = Math.max(0, totalExp);
+  const level = getCreatorLevelFromTotalExp(safeExp);
+  const isMaxLevel = level >= MAX_CREATOR_LEVEL;
+  const levelStartExp = (level - 1) * CREATOR_EXP_PER_LEVEL;
+  const expIntoLevel = isMaxLevel ? CREATOR_EXP_PER_LEVEL : Math.max(0, safeExp - levelStartExp);
+  const expToNextLevel = isMaxLevel ? 0 : Math.max(CREATOR_EXP_PER_LEVEL - expIntoLevel, 0);
+  const progressPercent = isMaxLevel ? 100 : Math.min(100, Math.max(0, (expIntoLevel / CREATOR_EXP_PER_LEVEL) * 100));
+
+  return {
+    level,
+    totalExp: safeExp,
+    expIntoLevel,
+    expToNextLevel,
+    expForNextLevel: CREATOR_EXP_PER_LEVEL,
+    progressPercent,
+    isMaxLevel,
+  };
 }
 
 export function getRewardRequiredLevel(rewardSlug: string): number {
