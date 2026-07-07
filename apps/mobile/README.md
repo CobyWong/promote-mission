@@ -49,6 +49,14 @@ npm run start
 - Authenticated profile fetch (from `GET /api/mobile/me` with bearer token)
 - Missions list screen (from `GET /api/mobile/missions`)
 - Mission detail screen (from `GET /api/mobile/missions/[slug]`)
+- Proof submission flow (to `POST /api/mobile/submissions`) with validation, checklist, and success/failure feedback
+- Submission history timeline (from `GET /api/mobile/submissions`) with loading/error/retry states
+- Expandable history cards with deep actions (open mission, open reel) and paginated "load more"
+- History status filters + mission/brand search + AsyncStorage cache hydration for faster first paint
+- Server-side status/search query (`GET /api/mobile/submissions?status=&q=`) + query-aware cache key with TTL invalidation
+- Cursor pagination (`cursor`/`nextCursor`) for submission history + DB indexes for cursor and status queries
+- Lazy total strategy (`includeTotal=1` only on first page) to avoid frequent `count: exact` cost on every pagination request
+- Include total only on filter/search change or manual refresh; load-more/retry paths skip total recount
 
 ## Next scope
 
