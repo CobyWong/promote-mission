@@ -10,6 +10,18 @@
   --hud-subtext: #a4b3c0;
   --hud-accent: #8ea56a;
   --hud-accent-soft: #b7c79b;
+  --font-body-mobile: 15px;
+  --font-body-desktop: 16px;
+}
+
+html {
+  font-size: var(--font-body-mobile);
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: var(--font-body-desktop);
+  }
 }
 
 body {
@@ -20,6 +32,7 @@ body {
     linear-gradient(180deg, #27384a 0%, #223242 45%, #1a2531 100%);
   color: var(--hud-text);
   font-family: "Rajdhani", "Orbitron", "Noto Sans TC", "PingFang TC", sans-serif;
+  line-height: 1.5;
 }
 
 * {
@@ -36,7 +49,7 @@ a {
 }
 
 .section-shell {
-  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  @apply mx-auto max-w-7xl px-3 sm:px-6 lg:px-8;
 }
 
 .tactical-section-kicker {
@@ -50,7 +63,7 @@ a {
 .tactical-section-title {
   margin-top: 0.6rem;
   color: #e5edf8;
-  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-size: clamp(1.7rem, 7vw, 2.6rem);
   line-height: 1.06;
   font-weight: 700;
 }
@@ -58,8 +71,8 @@ a {
 .tactical-section-lead {
   margin-top: 1rem;
   color: var(--hud-subtext);
-  font-size: 1.05rem;
-  line-height: 1.7;
+  font-size: clamp(0.98rem, 3.8vw, 1.05rem);
+  line-height: 1.62;
   max-width: 60ch;
 }
 
@@ -93,6 +106,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
   border: 1px solid rgba(142, 165, 106, 0.65);
   border-radius: 0.75rem;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
@@ -112,6 +126,7 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-height: 44px;
   border: 1px solid rgba(100, 116, 139, 0.65);
   border-radius: 0.75rem;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
@@ -130,6 +145,8 @@ a {
 .tactical-link {
   color: #b7c79b;
   font-weight: 700;
+  min-height: 44px;
+  align-items: center;
 }
 
 .tactical-link:hover {
@@ -236,5 +253,24 @@ a {
 
   50% {
     transform: translateY(-6px);
+  }
+}
+
+@media (max-width: 767px) {
+  .tactical-card,
+  .glass-panel {
+    border-radius: 0.82rem;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .tactical-section-kicker {
+    letter-spacing: 0.2em;
   }
 }

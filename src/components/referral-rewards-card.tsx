@@ -79,9 +79,9 @@ export function ReferralRewardsCard({
 
 
   return (
-    <section className="tactical-card mt-8 p-6 sm:p-8">
+    <section className="tactical-card mt-6 p-4 sm:mt-8 sm:p-8">
       <div className="flex items-start gap-4">
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-amber-300/50 bg-amber-300/10 text-amber-200">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-amber-300/50 bg-amber-300/10 text-amber-200 sm:h-12 sm:w-12">
           <svg viewBox="0 0 20 20" fill="none" className="h-6 w-6" aria-hidden="true">
             <path d="M10 3.5v13M3.5 10h13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             <rect x="4" y="6" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.4" />
@@ -89,15 +89,15 @@ export function ReferralRewardsCard({
         </span>
 
         <div>
-          <h2 className="text-3xl font-semibold text-slate-100">{t.title}</h2>
-          <p className="mt-2 text-base text-slate-400">{t.subtitle}</p>
+          <h2 className="text-2xl font-semibold text-slate-100 sm:text-3xl">{t.title}</h2>
+          <p className="mt-2 text-sm text-slate-400 sm:text-base">{t.subtitle}</p>
         </div>
       </div>
 
-      <div className="tactical-subcard mt-6 px-4 py-4 sm:px-5">
+      <div className="tactical-subcard mt-5 px-4 py-4 sm:mt-6 sm:px-5">
         <p className="text-sm text-slate-400">{t.yourCode}</p>
         <div className="mt-2 flex items-center justify-between gap-3">
-          <p className="text-4xl font-bold tracking-[0.1em] text-amber-200">{referralCode}</p>
+          <p className="text-3xl font-bold tracking-[0.08em] text-amber-200 sm:text-4xl sm:tracking-[0.1em]">{referralCode}</p>
           <button
             type="button"
             onClick={() => copyText(referralCode)}
@@ -116,17 +116,17 @@ export function ReferralRewardsCard({
       <div className="mt-4 grid gap-4 md:grid-cols-3">
         <div className="tactical-subcard px-5 py-4">
           <p className="text-sm text-slate-400">{t.invited}</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-100">{invitedCount}</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">{invitedCount}</p>
         </div>
 
         <div className="tactical-subcard px-5 py-4">
           <p className="text-sm text-slate-400">{t.batches}</p>
-          <p className="mt-2 text-3xl font-semibold text-slate-100">{paidBatches}</p>
+          <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">{paidBatches}</p>
         </div>
 
         <div className="tactical-subcard px-5 py-4">
           <p className="text-sm text-slate-400">{t.reward}</p>
-          <p className="mt-2 text-3xl font-semibold text-amber-200">{totalRewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-200 sm:text-3xl">{totalRewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
         </div>
       </div>
 
@@ -148,7 +148,7 @@ export function ReferralRewardsCard({
         </div>
       </div>
 
-      <button type="button" className="tactical-link mt-6 text-lg">
+      <button type="button" className="tactical-link mt-5 inline-flex text-base sm:mt-6 sm:text-lg">
         {t.details} &rarr;
       </button>
     </section>
