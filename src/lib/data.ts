@@ -187,6 +187,52 @@ export const missions: Mission[] = [
     tags: ["Food", "Fitness", "Promo Code"]
   },
   {
+    slug: "pulse-home-workout-routine",
+    title: "30 秒居家 Work Out 教學短片",
+    brand: "Pulse Active",
+    product: "Home Workout Starter Plan",
+    points: 1000,
+    difficulty: "Easy",
+    eta: "1 day",
+    category: "Fitness",
+    description: "拍一條簡單易跟嘅居家訓練 Reels，示範 3 個基本動作，幫觀眾即刻開始運動。",
+    hook: "『無器材都可以喺屋企做到全身燃脂』。",
+    requirements: [
+      "影片長度 20-40 秒",
+      "最少展示 3 個動作（例如深蹲、平板支撐、弓步）",
+      "畫面需清楚見到完整動作",
+      "Caption 加 #MissionOneWorkout"
+    ],
+    deliverables: [
+      "IG Reels 連結",
+      "動作清單簡述"
+    ],
+    tags: ["Fitness", "Workout", "Home Training"]
+  },
+  {
+    slug: "greenplate-healthy-meal-prep",
+    title: "健康飲食 Meal Prep Reels 挑戰",
+    brand: "GreenPlate",
+    product: "Healthy Meal Prep Guide",
+    points: 1000,
+    difficulty: "Easy",
+    eta: "1 day",
+    category: "Food",
+    description: "拍攝你嘅健康餐準備流程，展示食材、份量同成品，突出『簡單、快、健康』重點。",
+    hook: "『5 分鐘整好一餐高蛋白低負擔健康餐』。",
+    requirements: [
+      "影片長度 20-45 秒",
+      "最少展示 3 款食材",
+      "需包含一個成品 close-up",
+      "Caption 加 #MissionOneHealthyMeal"
+    ],
+    deliverables: [
+      "IG Reels 連結",
+      "食材清單或營養重點"
+    ],
+    tags: ["Healthy Food", "Meal Prep", "Lifestyle"]
+  },
+  {
     slug: "missionone-funny-moment",
     title: "搞笑日常 Reels 挑戰",
     brand: "Mission One Community",
