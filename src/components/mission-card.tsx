@@ -58,6 +58,83 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
   const topCreator = topCreatorMap[mission.slug.split("-")[0]] ?? "@missionone.star";
   const topViews = mission.difficulty === "Easy" ? "35K" : mission.difficulty === "Medium" ? "52K" : "78K";
 
+  if (compactMobile) {
+    return (
+      <article className="group flex h-full flex-col rounded-3xl border border-slate-500/60 bg-slate-100/95 p-4 text-slate-900 shadow-[0_10px_24px_rgba(4,10,20,0.22)]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 text-xl font-extrabold leading-tight text-slate-900">{mission.title}</h3>
+            <p className="mt-1 truncate text-sm font-semibold text-slate-700">{brandLabel}</p>
+          </div>
+          <span
+            className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
+              isLocked
+                ? "border-amber-500/50 bg-amber-200/70 text-amber-900"
+                : "border-emerald-500/50 bg-emerald-200/70 text-emerald-900"
+            }`}
+          >
+            {isLocked
+              ? (locale === "en" ? `Lv.${requiredLevel} required` : `需 Lv.${requiredLevel}`)
+              : (locale === "en" ? "Unlocked" : "已解鎖")}
+          </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
+          <span className="rounded-full border border-slate-400/60 bg-white px-2.5 py-1 font-semibold text-slate-700">{categoryLabel}</span>
+          <span className="rounded-full border border-slate-400/60 bg-white px-2.5 py-1 font-semibold text-slate-700">UGC</span>
+          <span className="rounded-full border border-slate-400/60 bg-white px-2.5 py-1 font-semibold text-slate-700">{difficultyLabel}</span>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl border border-violet-300/70 bg-violet-100/65 px-3 py-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-violet-700">{locale === "en" ? "Top prize" : "最高獎勵"}</p>
+            <p className="mt-1 text-[1.45rem] font-black leading-none text-violet-900">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
+          </div>
+          <div className="rounded-2xl border border-cyan-300/70 bg-cyan-100/65 px-3 py-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-cyan-700">{locale === "en" ? "Reward" : "參加獎勵"}</p>
+            <p className="mt-1 text-[1.45rem] font-black leading-none text-cyan-900">{isLocked ? "???" : `${mission.points.toLocaleString()}`}</p>
+            <p className="mt-0.5 text-[11px] font-semibold text-cyan-700">{locale === "en" ? "Coins" : "金幣"}</p>
+          </div>
+        </div>
+
+        {(mission.minParticipants ?? 0) > 0 ? (
+          <p className="mt-2 text-xs text-slate-600">
+            {locale === "en" ? "Creator quota" : "創作者名額"}: {mission.currentParticipants ?? 0} / {mission.minParticipants}
+          </p>
+        ) : null}
+
+        {!isLocked ? (
+          <p className="mt-2 line-clamp-1 text-xs text-slate-600">{productLabel} · {mission.description}</p>
+        ) : (
+          <p className="mt-2 line-clamp-1 text-xs text-amber-800">
+            {locale === "en"
+              ? `Level up to Lv.${requiredLevel} to unlock mission details.`
+              : `升級至 Lv.${requiredLevel} 後可查看任務詳情。`}
+          </p>
+        )}
+
+        <div className="mt-3">
+          {isLocked ? (
+            <button
+              type="button"
+              disabled
+              className="flex h-11 w-full cursor-not-allowed items-center justify-center rounded-2xl bg-slate-300 px-4 text-base font-bold text-slate-500"
+            >
+              {locale === "en" ? `Unlock at Lv.${requiredLevel}` : `Lv.${requiredLevel} 解鎖`}
+            </button>
+          ) : (
+            <Link
+              href={`/missions/${mission.slug}`}
+              className="flex h-11 w-full items-center justify-center rounded-2xl bg-orange-500 px-4 text-base font-black text-white transition hover:bg-orange-400"
+            >
+              {locale === "en" ? "Start now" : "開始任務"}
+            </Link>
+          )}
+        </div>
+      </article>
+    );
+  }
+
   return (
     <article className="tactical-card group flex h-full flex-col overflow-hidden transition hover:-translate-y-0.5">
       <div className="space-y-3 p-4 sm:space-y-4 sm:p-5">
