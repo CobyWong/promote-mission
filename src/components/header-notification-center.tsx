@@ -132,7 +132,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
           <path d="M8.5 14.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
         </svg>
         {unreadCount > 0 ? (
-          <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-amber-400 px-1 text-[10px] font-bold text-slate-950">
+          <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-cyan-300 px-1 text-[10px] font-bold text-slate-950">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         ) : null}
@@ -167,8 +167,8 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
           ) : (
             notifications.slice(0, 12).map((item) => {
               const rowClass = item.isRead
-                ? (theme === "dark" ? "border-white/10 bg-white/5" : "border-slate-200 bg-slate-50")
-                : (theme === "dark" ? "border-cyan-300/35 bg-cyan-400/10" : "border-cyan-300/70 bg-cyan-50");
+                ? (theme === "dark" ? "border-white/10 bg-white/[0.04]" : "border-slate-200 bg-slate-50")
+                : (theme === "dark" ? "border-cyan-300/30 bg-cyan-950/40" : "border-cyan-300/50 bg-cyan-900/[0.06]");
 
               const titleClass = item.isRead
                 ? (theme === "dark" ? "text-white" : "text-slate-900")
@@ -176,7 +176,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
 
               const messageClass = item.isRead
                 ? (theme === "dark" ? "text-slate-300" : "text-slate-700")
-                : (theme === "dark" ? "text-slate-100" : "text-slate-800");
+                : (theme === "dark" ? "text-slate-200" : "text-slate-800");
 
               return (
                 <div key={item.id} className={`rounded-2xl border p-3 ${rowClass}`}>
@@ -187,7 +187,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
                       <p className={`mt-2 text-xs ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>{new Date(item.createdAt).toLocaleString(locale === "en" ? "en-US" : "zh-HK")}</p>
                     </div>
                     {!item.isRead ? (
-                      <span className="shrink-0 rounded-full bg-amber-400 px-2 py-1 text-[10px] font-bold text-slate-950">{t.unread}</span>
+                      <span className="shrink-0 rounded-full bg-cyan-300 px-2 py-1 text-[10px] font-bold text-slate-950">{t.unread}</span>
                     ) : null}
                   </div>
 
