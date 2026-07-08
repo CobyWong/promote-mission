@@ -31,8 +31,8 @@ const registerLanguages = ["Cantonese", "English", "Mandarin", "Japanese", "Kore
 const registerRegions = ["Hong Kong", "Macau", "Taiwan", "Singapore", "Malaysia", "Japan", "Korea", "USA", "UK", "Australia", "Other"];
 
 const registerGenders = ["男", "女", "其他", "不願透露"];
-const registerAgeGroups = ["18-24", "25-34", "35-44", "45+"];
-const registerFollowerBands = ["1K-5K", "5K-10K", "10K-20K", "20K-50K", "50K-100K", "100K+"];
+const registerAgeGroups = ["<12", "12-18", "18-24", "25-34", "35-44", "45+"];
+const registerFollowerBands = ["0-1000", "1K-5K", "5K-10K", "10K-20K", "20K-50K", "50K-100K", "100K+"];
 
 const lightInputClassName =
   "mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400";
@@ -102,7 +102,10 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       age: "Age group",
       followersBand: "Follower band",
       referral: "Referral code (optional)",
-      terms: "I agree to the service terms.",
+      termsPrefix: "I agree to the",
+      termsLink: "Terms of Service",
+      and: "and",
+      privacyLink: "Privacy Policy",
       needTwoNiches: "Please select at least 2 content niches.",
       needBasic: "Please complete name, email, and password.",
       needInstagram: "Please provide your Instagram username.",
@@ -136,7 +139,10 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       age: "年齡組別",
       followersBand: "追蹤數區間",
       referral: "推薦碼（選填）",
-      terms: "我同意服務條款",
+      termsPrefix: "我同意",
+      termsLink: "服務條款",
+      and: "及",
+      privacyLink: "私隱政策",
       needTwoNiches: "請至少選擇 2 個內容範疇。",
       needBasic: "請先填妥名稱、電郵及密碼。",
       needInstagram: "請填寫 Instagram 用戶名稱。",
@@ -594,7 +600,16 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                       <label className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700">
                         <input checked={agreedTerms} onChange={(event) => setAgreedTerms(event.target.checked)} type="checkbox" className="h-5 w-5 rounded border-slate-400" />
-                        <span>{t.terms}</span>
+                        <span>
+                          {t.termsPrefix} {" "}
+                          <Link href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-blue-600 hover:text-blue-700">
+                            {t.termsLink}
+                          </Link>{" "}
+                          {t.and} {" "}
+                          <Link href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-blue-600 hover:text-blue-700">
+                            {t.privacyLink}
+                          </Link>
+                        </span>
                       </label>
                     </>
                   ) : null}

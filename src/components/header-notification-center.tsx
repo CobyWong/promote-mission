@@ -12,6 +12,7 @@ type NotificationItem = {
   title: string;
   message: string;
   link: string | null;
+  metadata?: Record<string, unknown> | null;
   isRead: boolean;
   createdAt: string;
 };
@@ -118,6 +119,106 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
     setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
   }
 
+  function getNotificationCopy(item: NotificationItem) {
+    if (locale === "en") {
+      return {
+        title: item.title,
+        message: item.message,
+      };
+    }
+
+    const metadata = (item.metadata ?? {}) as Record<string, unknown>;
+    const missionTitle = typeof metadata.missionTitle === "string" ? metadata.missionTitle : "任務";
+    const rewardName = typeof metadata.rewardName === "string" ? metadata.rewardName : "獎勵";
+    const rewardCoins = typeof metadata.rewardCoins === "number" ? metadata.rewardCoins : 0;
+    const totalBonusCoins = typeof metadata.totalBonusCoins === "number" ? metadata.totalBonusCoins : 0;
+    const levels = Array.isArray(metadata.levels)
+      ? metadata.levels.filter((value): value is number => typeof value === "number")
+      : [];
+    const levelSummary = levels.length > 0 ? levels.map((level) => `Lv.${level}`).join("、") : "新等級";
+
+    if (item.type === "submission_approved") {
+      return {
+        title: "任務已通過",
+        message: `你提交的「${missionTitle}」已通過審核，已獲得 +${rewardCoins} 金幣。`,
+      };
+    }
+
+    if (item.type === "submission_needs_edits") {
+      return {
+        title: "作品需要修改",
+        message: `你提交的「${missionTitle}」需要修改，請查看審核備註後重新提交。`,
+      };
+    }
+
+    if (item.type === "level_up_reward") {
+      return {
+        title: "Game Pass 升級獎勵",
+        message: `你已升至 ${levelSummary}，已獲得 +${totalBonusCoins} 金幣獎勵。`,
+      };
+    }
+
+    if (item.type === "redemption_requested") {
+      return {
+        title: "兌換申請已提交",
+        message: `你提交的「${rewardName}」兌換申請已送出，現正等待審核。`,
+      };
+    }
+
+    if (item.type === "redemption_fulfilled") {
+      return {
+        title: "獎勵已發放",
+        message: `你申請的「${rewardName}」已完成兌換。`,
+      };
+    }
+
+    if (item.type === "redemption_rejected") {
+      return {
+        title: "兌換申請未通過",
+        message: `你申請的「${rewardName}」未通過審核。`,
+      };
+    }
+
+    if (item.type === "referral_reward") {
+      return {
+        title: "推薦獎勵已入帳",
+        message: `你的推薦已達成條件，已獲得 +${rewardCoins} 金幣。`,
+      };
+    }
+
+    const systemMap: Record<string, { title: string; message: string }> = {
+      "Referral reward under review": {
+        title: "推薦獎勵審核中",
+        message: `你的推薦獎勵（+${rewardCoins} 金幣）正在進行風險審核。`,
+      },
+      "Referral milestone unlocked": {
+        title: "推薦里程碑達成",
+        message: "你已達成推薦里程碑，額外金幣獎勵已入帳。",
+      },
+      "Referral streak bonus": {
+        title: "推薦連續獎勵",
+        message: "你本週推薦表現出色，連續獎勵已入帳。",
+      },
+      "Mission reminder": {
+        title: "任務提醒",
+        message: "你距離解鎖推薦獎勵只差一個已通過任務，立即完成首個任務吧。",
+      },
+      "Referral reward released": {
+        title: "推薦獎勵已釋放",
+        message: `你被暫緩的推薦獎勵（+${rewardCoins} 金幣）已通過審核並發放。`,
+      },
+      "Referral reward not approved": {
+        title: "推薦獎勵未通過",
+        message: "你被暫緩的推薦獎勵未通過審核。",
+      },
+    };
+
+    return systemMap[item.title] ?? {
+      title: item.title,
+      message: item.message,
+    };
+  }
+
   return (
     <details ref={detailsRef} className="relative z-[85]">
       <summary
@@ -166,6 +267,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
             </div>
           ) : (
             notifications.slice(0, 12).map((item) => {
+              const copy = getNotificationCopy(item);
               const rowClass = item.isRead
                 ? (theme === "dark" ? "border-white/10 bg-white/[0.04]" : "border-slate-200 bg-slate-50")
                 : (theme === "dark" ? "border-cyan-300/30 bg-cyan-950/40" : "border-cyan-300/50 bg-cyan-900/[0.06]");
@@ -182,8 +284,8 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
                 <div key={item.id} className={`rounded-2xl border p-3 ${rowClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className={`text-sm font-semibold ${titleClass}`}>{item.title}</p>
-                      <p className={`mt-1 text-sm ${messageClass}`}>{item.message}</p>
+                      <p className={`text-sm font-semibold ${titleClass}`}>{copy.title}</p>
+                      <p className={`mt-1 text-sm ${messageClass}`}>{copy.message}</p>
                       <p className={`mt-2 text-xs ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>{new Date(item.createdAt).toLocaleString(locale === "en" ? "en-US" : "zh-HK")}</p>
                     </div>
                     {!item.isRead ? (

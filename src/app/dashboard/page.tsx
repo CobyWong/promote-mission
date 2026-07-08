@@ -55,7 +55,6 @@ export default async function DashboardPage() {
       expToNext: "EXP to next level",
       totalExp: "Total EXP",
       nextLevelReward: "Next level reward",
-      viewLevelRewards: "View level rewards",
     }
     : {
       title: "你嘅創作者個人檔案",
@@ -99,7 +98,6 @@ export default async function DashboardPage() {
       expToNext: "升級尚欠 EXP",
       totalExp: "總 EXP",
       nextLevelReward: "下一級獎勵",
-      viewLevelRewards: "查看等級獎勵表",
     };
 
   const dashboard = await getDashboardData();
@@ -205,9 +203,6 @@ export default async function DashboardPage() {
               <span>
                 {t.nextLevelReward}: {levelProgress.isMaxLevel ? t.levelMaxed : `+${nextLevelCoins.toLocaleString()} Coins`}
               </span>
-              <Link href="/level-rewards" className="font-semibold text-cyan-200 hover:text-cyan-100">
-                {t.viewLevelRewards} →
-              </Link>
             </div>
           </div>
 

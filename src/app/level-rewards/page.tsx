@@ -19,9 +19,9 @@ export default async function LevelRewardsPage() {
       swipeHint: "Swipe to view more levels",
     }
     : {
-      kicker: "Game Pass",
-      title: "免費通行證獎勵軌道",
-      lead: "只保留 Free Pass。左右滑動可查看 Lv.1 至 Lv.30 每級獎勵。",
+      kicker: "",
+      title: "等級獎勵表",
+      lead: "",
       backDashboard: "返回個人檔案",
       level: "等級",
       reward: "獎勵",
@@ -36,9 +36,9 @@ export default async function LevelRewardsPage() {
       </Link>
 
       <div className="mt-5 max-w-4xl">
-        <p className="tactical-section-kicker">{t.kicker}</p>
+        {t.kicker ? <p className="tactical-section-kicker">{t.kicker}</p> : null}
         <h1 className="tactical-section-title">{t.title}</h1>
-        <p className="tactical-section-lead">{t.lead}</p>
+        {t.lead ? <p className="tactical-section-lead">{t.lead}</p> : null}
       </div>
 
       <div className="tactical-card mt-8 overflow-hidden p-0">

@@ -5,7 +5,6 @@ import { useEffect, useRef } from "react";
 
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
-import { ThemeSwitcher } from "@/components/theme-switcher";
 import type { Locale } from "@/lib/i18n";
 import type { Theme } from "@/lib/theme";
 
@@ -59,11 +58,8 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       menu: "Menu",
       missions: "Missions",
       rewards: "Rewards",
-      levelRewards: "Level Rewards",
       dashboard: "Profile",
       support: "Support",
-      privacy: "Privacy",
-      terms: "Terms",
       login: "Login",
       register: "Get Started",
       adminReview: "Admin Review",
@@ -78,11 +74,8 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       menu: "選單",
       missions: "任務中心",
       rewards: "獎賞商城",
-      levelRewards: "等級獎勵表",
       dashboard: "個人檔案",
       support: "客服中心",
-      privacy: "私隱政策",
-      terms: "服務條款",
       login: "登入",
       register: "免費開始",
       adminReview: "審核後台",
@@ -126,7 +119,6 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
 
           <div className="mt-6 flex items-center gap-3">
             <LanguageSwitcher locale={locale} />
-            <ThemeSwitcher theme={theme} />
           </div>
 
           <div className="mt-8 flex-1 space-y-3 overflow-y-auto pr-1">
@@ -143,12 +135,6 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.rewards}
-                </Link>
-                <Link href="/level-rewards" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.levelRewards}
                 </Link>
                 <Link href="/leaderboard" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
                   ? "border-white/10 text-slate-200 hover:bg-white/5"
@@ -169,18 +155,6 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.support}
-                </Link>
-                <Link href="/privacy" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.privacy}
-                </Link>
-                <Link href="/terms" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.terms}
                 </Link>
 
                 {isAdmin ? (
@@ -237,18 +211,6 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.support}
-                </Link>
-                <Link href="/privacy" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.privacy}
-                </Link>
-                <Link href="/terms" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
-                  {links.terms}
                 </Link>
               </>
             )}
