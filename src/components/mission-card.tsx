@@ -56,7 +56,14 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
   const isLocked = userLevel < requiredLevel;
   const rewards = getRankingRewardsByDifficulty(mission.difficulty);
   const topCreator = topCreatorMap[mission.slug.split("-")[0]] ?? "@missionone.star";
-  const topViews = mission.difficulty === "Easy" ? "35K" : mission.difficulty === "Medium" ? "52K" : "78K";
+  const topViews = mission.difficulty === "Easy" ? 35000 : mission.difficulty === "Medium" ? 52000 : 78000;
+  const rankingEntries = mission.rankings && mission.rankings.length > 0
+    ? mission.rankings.slice(0, 3)
+    : [
+      { rank: 1, handle: topCreator, views: topViews, reelUrl: `https://instagram.com/${topCreator.replace(/^@/, "")}` },
+      { rank: 2, handle: "@creator.rising", views: Math.max(1000, Math.floor(topViews * 0.82)), reelUrl: "https://instagram.com/creator.rising" },
+      { rank: 3, handle: "@ugc.storylab", views: Math.max(1000, Math.floor(topViews * 0.7)), reelUrl: "https://instagram.com/ugc.storylab" },
+    ];
 
   if (compactMobile) {
     return (
@@ -97,15 +104,27 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
           </div>
         </div>
 
-        <div className="mt-2 rounded-xl border border-slate-600/60 bg-slate-900/45 px-3 py-2 text-[11px] text-slate-300">
-          {isLocked
-            ? (locale === "en"
-              ? `Ranking rewards unlock at Lv.${requiredLevel}.`
-              : `升級至 Lv.${requiredLevel} 後可查看排名獎勵。`)
-            : (locale === "en"
-              ? `Ranking split: #1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`
-              : `排名派彩：第1名 HK$${rewards.first.toLocaleString()} · 第2名 HK$${rewards.second.toLocaleString()} · 第3名 HK$${rewards.third.toLocaleString()}`)}
-        </div>
+        {!isLocked ? (
+          <div className="mt-2 space-y-1.5 rounded-xl border border-slate-600/60 bg-slate-900/45 px-3 py-2 text-[11px] text-slate-300">
+            <p className="text-[11px] font-semibold text-slate-400">{locale === "en" ? "Mission ranking" : "任務排名"}</p>
+            {rankingEntries.map((entry) => (
+              <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-300/20 text-[10px] font-bold text-amber-200">{entry.rank}</span>
+                  <a
+                    href={entry.reelUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="truncate font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
+                  >
+                    {entry.handle}
+                  </a>
+                </div>
+                <span className="shrink-0 text-slate-400">{entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}</span>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {(mission.minParticipants ?? 0) > 0 ? (
           <p className="mt-2 text-xs text-slate-400">
@@ -218,8 +237,8 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
             {compactMobile ? (
               <div className="rounded-xl border border-slate-600/60 bg-slate-900/45 px-3 py-2.5 text-xs text-slate-300 sm:hidden">
                 {locale === "en"
-                  ? `Top creator: ${topCreator} · ${topViews} views`
-                  : `頂尖創作者：${topCreator} · ${topViews} 觀看`}
+                    ? `Top creator: ${topCreator} · ${(topViews / 1000).toFixed(1)}K views`
+                    : `頂尖創作者：${topCreator} · ${(topViews / 1000).toFixed(1)}K 觀看`}
               </div>
             ) : null}
           </>

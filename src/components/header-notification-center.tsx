@@ -26,6 +26,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const unreadNotifications = useMemo(() => notifications.filter((item) => !item.isRead), [notifications]);
 
   const t = locale === "en"
     ? {
@@ -49,7 +50,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
       refreshing: "更新中...",
     };
 
-  const unreadCount = useMemo(() => notifications.filter((item) => !item.isRead).length, [notifications]);
+  const unreadCount = unreadNotifications.length;
 
   useEffect(() => {
     async function load() {
@@ -57,7 +58,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
       const response = await fetch("/api/notifications", { cache: "no-store" });
       if (response.ok) {
         const result = (await response.json()) as { notifications?: NotificationItem[] };
-        setNotifications(result.notifications ?? []);
+        setNotifications((result.notifications ?? []).filter((item) => !item.isRead));
       }
       setLoading(false);
     }
@@ -98,9 +99,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
       return;
     }
 
-    setNotifications((current) =>
-      current.map((item) => (item.id === notificationId ? { ...item, isRead: true } : item)),
-    );
+    setNotifications((current) => current.filter((item) => item.id !== notificationId));
   }
 
   async function markAllRead() {
@@ -116,7 +115,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
       return;
     }
 
-    setNotifications((current) => current.map((item) => ({ ...item, isRead: true })));
+    setNotifications([]);
   }
 
   function getNotificationCopy(item: NotificationItem) {
@@ -261,24 +260,18 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
         {loading ? <p className={`mt-3 text-xs ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>{t.refreshing}</p> : null}
 
         <div className="mt-4 max-h-[24rem] space-y-2 overflow-y-auto pr-1">
-          {notifications.length === 0 ? (
+          {unreadNotifications.length === 0 ? (
             <div className={`rounded-2xl border px-4 py-4 text-sm ${theme === "dark" ? "border-white/10 text-slate-400" : "border-slate-200 text-slate-500"}`}>
               {t.empty}
             </div>
           ) : (
-            notifications.slice(0, 12).map((item) => {
+            unreadNotifications.slice(0, 12).map((item) => {
               const copy = getNotificationCopy(item);
-              const rowClass = item.isRead
-                ? (theme === "dark" ? "border-white/10 bg-white/[0.04]" : "border-slate-200 bg-slate-50")
-                : (theme === "dark" ? "border-cyan-300/30 bg-cyan-950/40" : "border-cyan-300/50 bg-cyan-900/[0.06]");
+              const rowClass = theme === "dark" ? "border-cyan-300/30 bg-cyan-950/40" : "border-cyan-300/50 bg-cyan-900/[0.06]";
 
-              const titleClass = item.isRead
-                ? (theme === "dark" ? "text-white" : "text-slate-900")
-                : (theme === "dark" ? "text-cyan-100" : "text-cyan-900");
+              const titleClass = theme === "dark" ? "text-cyan-100" : "text-cyan-900";
 
-              const messageClass = item.isRead
-                ? (theme === "dark" ? "text-slate-300" : "text-slate-700")
-                : (theme === "dark" ? "text-slate-200" : "text-slate-800");
+              const messageClass = theme === "dark" ? "text-slate-200" : "text-slate-800";
 
               return (
                 <div key={item.id} className={`rounded-2xl border p-3 ${rowClass}`}>
@@ -288,31 +281,25 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
                       <p className={`mt-1 text-sm ${messageClass}`}>{copy.message}</p>
                       <p className={`mt-2 text-xs ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>{new Date(item.createdAt).toLocaleString(locale === "en" ? "en-US" : "zh-HK")}</p>
                     </div>
-                    {!item.isRead ? (
-                      <span className="shrink-0 rounded-full bg-cyan-300 px-2 py-1 text-[10px] font-bold text-slate-950">{t.unread}</span>
-                    ) : null}
+                    <span className="shrink-0 rounded-full bg-cyan-300 px-2 py-1 text-[10px] font-bold text-slate-950">{t.unread}</span>
                   </div>
 
                   <div className="mt-3 flex items-center gap-2">
-                    {!item.isRead ? (
-                      <button
-                        type="button"
-                        onClick={() => markAsRead(item.id)}
-                        className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${theme === "dark"
-                          ? "border-white/20 text-slate-200"
-                          : "border-slate-300 text-slate-700"
-                          }`}
-                      >
-                        {t.markRead}
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => markAsRead(item.id)}
+                      className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${theme === "dark"
+                        ? "border-white/20 text-slate-200"
+                        : "border-slate-300 text-slate-700"
+                        }`}
+                    >
+                      {t.markRead}
+                    </button>
                     {item.link ? (
                       <Link
                         href={item.link}
                         onClick={() => {
-                          if (!item.isRead) {
-                            void markAsRead(item.id);
-                          }
+                          void markAsRead(item.id);
                           if (detailsRef.current) {
                             detailsRef.current.open = false;
                           }
