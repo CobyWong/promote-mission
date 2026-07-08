@@ -20,9 +20,19 @@ export async function Footer() {
             ? "Prototype experience for an IG Reels mission marketplace."
             : "IG Reels 任務平台原型體驗。"}
         </p>
-        <Link href="/dashboard#support-center" className="font-semibold text-cyan-300 hover:text-cyan-200">
-          {locale === "en" ? "Contact Support" : "聯絡客服"}
-        </Link>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/dashboard#support-center" className="font-semibold text-cyan-300 hover:text-cyan-200">
+            {locale === "en" ? "Contact Support" : "聯絡客服"}
+          </Link>
+          <span className="text-slate-500">•</span>
+          <Link href="/privacy" className="font-semibold text-slate-300 hover:text-white">
+            {locale === "en" ? "Privacy" : "私隱政策"}
+          </Link>
+          <span className="text-slate-500">•</span>
+          <Link href="/terms" className="font-semibold text-slate-300 hover:text-white">
+            {locale === "en" ? "Terms" : "服務條款"}
+          </Link>
+        </div>
       </div>
     </footer>
   );

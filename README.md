@@ -70,6 +70,57 @@ npm run build
 
 GitHub Actions CI now runs the same checks on push/PR.
 
+## Operator quickstart
+
+If you are releasing this app or handling live incidents, start here:
+
+- Release runbook: [docs/ops/release-checklist-staging-production.md](docs/ops/release-checklist-staging-production.md)
+- Rollback incident template: [docs/ops/production-rollback-incident-template.md](docs/ops/production-rollback-incident-template.md)
+- Backup/restore drill runbook: [docs/ops/backup-restore-drill.md](docs/ops/backup-restore-drill.md)
+- Incident communication playbook: [docs/ops/incident-communication-playbook.md](docs/ops/incident-communication-playbook.md)
+
+Recommended usage:
+
+1. Follow the staging checklist exactly before touching production.
+2. During production rollout, keep the incident template open.
+3. If rollback triggers fire, execute rollback first, then complete the incident record.
+
+One-command staging release gate (recommended to reduce manual error):
+
+```bash
+STAGING_BASE_URL=https://your-staging-domain.com \
+STAGING_ADMIN_EMAIL=admin@example.com \
+STAGING_ADMIN_PASSWORD='your-admin-password' \
+STAGING_BEARER_TOKEN='optional-mobile-user-jwt' \
+E2E_BASE_URL=https://your-staging-domain.com \
+E2E_USER_ACCESS_TOKEN='user-access-token' \
+E2E_USER_REFRESH_TOKEN='user-refresh-token' \
+E2E_ADMIN_EMAIL=admin@example.com \
+E2E_ADMIN_PASSWORD='your-admin-password' \
+E2E_MISSION_SLUG='pulse-active-home-workout' \
+E2E_REWARD_SLUG='parknshop-voucher-100' \
+RELEASE_GATE_STRICT_E2E=1 \
+FAIL_ON_FUNNEL_WARN=0 \
+npm run release:gate:staging
+```
+
+Interactive production release gate (enforces required checkpoints and aborts on failed confirmation):
+
+```bash
+PROD_BASE_URL=https://your-production-domain.com \
+PROD_ADMIN_EMAIL=admin@example.com \
+PROD_ADMIN_PASSWORD='your-admin-password' \
+E2E_BASE_URL=https://your-production-domain.com \
+E2E_USER_ACCESS_TOKEN='prod-safe-test-user-access-token' \
+E2E_USER_REFRESH_TOKEN='prod-safe-test-user-refresh-token' \
+E2E_ADMIN_EMAIL=admin@example.com \
+E2E_ADMIN_PASSWORD='your-admin-password' \
+E2E_MISSION_SLUG='pulse-active-home-workout' \
+E2E_REWARD_SLUG='parknshop-voucher-100' \
+FAIL_ON_FUNNEL_WARN=0 \
+npm run release:gate:production
+```
+
 Scheduled idempotency cleanup (Phase W3-08):
 
 1. Set repository secret `CLEANUP_ENDPOINT_URL` to your deployed endpoint, for example `https://your-domain.com/api/admin/idempotency/cleanup`.
@@ -95,6 +146,15 @@ STAGING_ADMIN_EMAIL=admin@example.com \
 STAGING_ADMIN_PASSWORD='your-admin-password' \
 FAIL_ON_FUNNEL_WARN=0 \
 npm run alerts:funnel
+```
+
+Funnel baseline and threshold tuning helper:
+
+```bash
+STAGING_BASE_URL=https://your-staging-domain.com \
+STAGING_ADMIN_EMAIL=admin@example.com \
+STAGING_ADMIN_PASSWORD='your-admin-password' \
+npm run funnel:baseline
 ```
 
 Scheduled funnel alert monitor:
@@ -168,6 +228,8 @@ Phase 5 batch 1 mobile APIs:
 - `/dashboard` creator dashboard
 - `/login` creator login
 - `/register` creator signup
+- `/privacy` privacy policy
+- `/terms` terms of service
 - `/admin/reviews` admin moderation demo
 - `/admin/redemptions` admin reward fulfillment panel
 - `/brand/missions` brand mission CRUD manager

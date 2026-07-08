@@ -62,6 +62,8 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       levelRewards: "Level Rewards",
       dashboard: "Profile",
       support: "Support",
+      privacy: "Privacy",
+      terms: "Terms",
       login: "Login",
       register: "Get Started",
       adminReview: "Admin Review",
@@ -79,6 +81,8 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       levelRewards: "等級獎勵表",
       dashboard: "個人檔案",
       support: "客服中心",
+      privacy: "私隱政策",
+      terms: "服務條款",
       login: "登入",
       register: "免費開始",
       adminReview: "審核後台",
@@ -166,6 +170,18 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   }`}>
                   {links.support}
                 </Link>
+                <Link href="/privacy" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.privacy}
+                </Link>
+                <Link href="/terms" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.terms}
+                </Link>
 
                 {isAdmin ? (
                   <>
@@ -221,6 +237,18 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
                   : "border-slate-200 text-slate-700 hover:bg-slate-50"
                   }`}>
                   {links.support}
+                </Link>
+                <Link href="/privacy" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.privacy}
+                </Link>
+                <Link href="/terms" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
+                  ? "border-white/10 text-slate-200 hover:bg-white/5"
+                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
+                  }`}>
+                  {links.terms}
                 </Link>
               </>
             )}

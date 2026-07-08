@@ -93,7 +93,6 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
         <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
           {([1, 0, 2] as const).map((idx) => {
             const leader = sorted[idx];
-            const rank = idx + 1;
             const podiumHeights = ["h-28", "h-36", "h-24"];
             return (
               <div key={leader.name} className="flex flex-col items-center gap-2">
