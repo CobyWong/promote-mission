@@ -8,6 +8,7 @@ const errorMonitorWebhookUrl = process.env.ERROR_MONITOR_WEBHOOK_URL;
 const rateLimitSalt = process.env.RATE_LIMIT_SALT;
 const upstashRedisRestUrl = process.env.UPSTASH_REDIS_REST_URL;
 const upstashRedisRestToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+const cleanupCronToken = process.env.CLEANUP_CRON_TOKEN;
 
 export function hasSupabaseConfig() {
   return Boolean(supabaseUrl && supabaseAnonKey);
@@ -99,4 +100,12 @@ export function getUpstashRedisRestUrl() {
 
 export function getUpstashRedisRestToken() {
   return upstashRedisRestToken?.trim() ?? "";
+}
+
+export function hasCleanupCronToken() {
+  return Boolean(cleanupCronToken?.trim());
+}
+
+export function getCleanupCronToken() {
+  return cleanupCronToken?.trim() ?? "";
 }

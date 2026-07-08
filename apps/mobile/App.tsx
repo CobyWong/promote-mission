@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 
-import { API_BASE_URL, fetchJson, postJson } from "./src/lib/api";
+import { API_BASE_URL, ApiRequestError, fetchJson, postJson } from "./src/lib/api";
 import { hasSupabaseMobileConfig, supabase } from "./src/lib/supabase";
 import { mobileTheme } from "./src/theme/mobile";
 
@@ -186,6 +186,11 @@ function getTimelineToneStyle(tone: MobileSubmissionTimelineEvent["tone"]) {
   }
 
   return styles.timelineNeutral;
+}
+
+function createIdempotencyKey(namespace: string, slug?: string) {
+  const normalizedSlug = slug?.trim() || "na";
+  return `${namespace}:${normalizedSlug}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
 }
 
 export default function App() {
@@ -707,6 +712,14 @@ export default function App() {
           checks: submissionChecks,
         },
         accessToken,
+        {
+          retries: 2,
+          retryOnStatuses: [429],
+          initialRetryDelayMs: 600,
+          headers: {
+            "idempotency-key": createIdempotencyKey("mobile-submission", selectedMission.slug),
+          },
+        },
       );
 
       setSubmissionId(result.id);
@@ -715,7 +728,17 @@ export default function App() {
       setSubmissionChecks((current) => ({ ...current, taggedBrand: false, addedCollaborator: false }));
       await loadSubmissionHistory(accessToken);
     } catch (requestError) {
-      setSubmissionError(requestError instanceof Error ? requestError.message : "Submission failed. Please retry.");
+      if (requestError instanceof ApiRequestError) {
+        if (requestError.status === 409) {
+          setSubmissionError("Your previous submission is still processing. Wait a few seconds, refresh, then try once.");
+        } else if (requestError.status === 429) {
+          setSubmissionError("Too many submit attempts in a short time. Please wait briefly before retrying.");
+        } else {
+          setSubmissionError(requestError.message);
+        }
+      } else {
+        setSubmissionError(requestError instanceof Error ? requestError.message : "Submission failed. Please retry.");
+      }
     } finally {
       setSubmissionBusy(false);
     }

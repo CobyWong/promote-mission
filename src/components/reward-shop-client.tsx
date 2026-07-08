@@ -16,6 +16,29 @@ type RewardShopClientProps = {
   locale?: Locale;
 };
 
+function createIdempotencyKey(namespace: string, rewardSlug: string) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return `${namespace}:${rewardSlug}:${crypto.randomUUID()}`;
+  }
+
+  return `${namespace}:${rewardSlug}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
+}
+
+function parseRetryAfterMs(response: Response) {
+  const retryAfter = Number.parseInt(response.headers.get("retry-after") ?? "", 10);
+  if (Number.isNaN(retryAfter) || retryAfter <= 0) {
+    return null;
+  }
+
+  return retryAfter * 1000;
+}
+
+function waitFor(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 export function RewardShopClient({ rewards, balance, redemptions, isAuthenticated, userLevel, locale = "zh-HK" }: RewardShopClientProps) {
   const router = useRouter();
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
@@ -40,18 +63,49 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
     setError(null);
     setSuccess(null);
 
-    const response = await fetch("/api/redemptions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ rewardSlug: reward.slug }),
-    });
+    const idempotencyKey = createIdempotencyKey("web-redemption", reward.slug);
+    const maxRetries = 1;
+
+    let response: Response | null = null;
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      response = await fetch("/api/redemptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "idempotency-key": idempotencyKey,
+        },
+        body: JSON.stringify({ rewardSlug: reward.slug }),
+      });
+
+      if (response.status === 429 && attempt < maxRetries) {
+        const retryAfterMs = parseRetryAfterMs(response) ?? 1200;
+        await waitFor(Math.min(3000, retryAfterMs));
+        continue;
+      }
+
+      break;
+    }
+
+    if (!response) {
+      setError(locale === "en" ? "Redemption request could not be sent." : "未能送出兌換請求。請稍後再試。");
+      setPendingSlug(null);
+      return;
+    }
 
     const result = (await response.json()) as { error?: string; redemptionId?: string };
 
     if (!response.ok) {
-      setError(result.error ?? (locale === "en" ? "Redemption failed. Please try again." : "兌換失敗，請稍後再試。"));
+      if (response.status === 409) {
+        setError(locale === "en"
+          ? "A similar redemption is being processed. Wait a few seconds and refresh before trying again."
+          : "相同兌換正在處理中，請稍等幾秒後重新整理再試。");
+      } else if (response.status === 429) {
+        setError(locale === "en"
+          ? "Too many redemption attempts. Please wait a moment, then retry once."
+          : "兌換嘗試過於頻繁，請稍等片刻後再重試一次。");
+      } else {
+        setError(result.error ?? (locale === "en" ? "Redemption failed. Please try again." : "兌換失敗，請稍後再試。"));
+      }
       setPendingSlug(null);
       return;
     }

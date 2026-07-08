@@ -34,6 +34,7 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 	- `INSTAGRAM_REDIRECT_URI` (default: `http://localhost:3000/api/instagram/callback`)
 	- `ERROR_MONITOR_WEBHOOK_URL` (optional, webhook endpoint for API error forwarding)
 	- `RATE_LIMIT_SALT` (required for stable, hashed rate-limit keys)
+	- `CLEANUP_CRON_TOKEN` (required, protects scheduled cleanup endpoint)
 	- `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (optional; enables distributed rate limiting and idempotency across instances)
 3. Run the SQL in [supabase/schema.sql](supabase/schema.sql) inside your Supabase SQL editor.
 4. Confirm the `submission-screenshots` Storage bucket is created by the SQL script.
@@ -65,6 +66,13 @@ npm run build
 ```
 
 GitHub Actions CI now runs the same checks on push/PR.
+
+Scheduled idempotency cleanup (Phase W3-08):
+
+1. Set repository secret `CLEANUP_ENDPOINT_URL` to your deployed endpoint, for example `https://your-domain.com/api/admin/idempotency/cleanup`.
+2. Set repository secret `CLEANUP_CRON_TOKEN` to the same value as app env `CLEANUP_CRON_TOKEN`.
+3. The workflow `.github/workflows/idempotency-cleanup.yml` runs hourly and can also be manually triggered.
+4. Optional manual trigger input `retentionDays` controls deletion cutoff (default `7`, allowed `1-30`).
 
 Staging abuse/idempotency verification:
 
@@ -139,6 +147,7 @@ Phase 5 batch 1 mobile APIs:
 - Rate limiting and idempotency automatically use Upstash Redis (when configured) and fall back to in-memory state in local/dev.
 - Idempotency is now persisted in `public.idempotency_keys` to keep replay/inflight protection across instances even without Redis.
 - Write endpoints (`/api/submissions`, `/api/mobile/submissions`, `/api/redemptions`) now support `Idempotency-Key` to prevent duplicate writes.
+- Scheduled cleanup endpoint `/api/admin/idempotency/cleanup` deletes expired `idempotency_keys` rows using a cron token header (`x-cron-token`).
 - Structured API logs now include request metadata and optional webhook forwarding via `ERROR_MONITOR_WEBHOOK_URL`.
 - Admin KPI now includes abuse counters (rate-limited requests + idempotency replay/inflight events) and recent abuse signal logs.
 - Admin approval uses the SQL function `approve_submission` to mark the submission approved and insert reward coins atomically.

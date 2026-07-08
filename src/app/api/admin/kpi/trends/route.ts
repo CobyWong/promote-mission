@@ -14,7 +14,30 @@ type Bucket = {
   approvals: number;
   redemptions: number;
   notifications: number;
+  rateLimited: number;
+  idempotencyReplay: number;
+  idempotencyInflight: number;
 };
+
+function classifyAbuseEvent(event: string | null) {
+  if (!event) {
+    return null;
+  }
+
+  if (event.endsWith(".idempotency_replay") || event.endsWith("_idempotency_replay")) {
+    return "idempotencyReplay" as const;
+  }
+
+  if (event.endsWith(".idempotency_inflight") || event.endsWith("_idempotency_inflight")) {
+    return "idempotencyInflight" as const;
+  }
+
+  if (event.endsWith(".rate_limited") || event.endsWith("_rate_limited")) {
+    return "rateLimited" as const;
+  }
+
+  return null;
+}
 
 function floorToHour(date: Date) {
   const next = new Date(date);
@@ -101,11 +124,12 @@ export async function GET(request: Request) {
   const bucketTimes = getBuckets(range, now);
   const startsAtIso = bucketTimes[0].toISOString();
 
-  const [errorLogs, approvedSubmissions, redemptions, notifications] = await Promise.all([
+  const [errorLogs, approvedSubmissions, redemptions, notifications, abuseLogs] = await Promise.all([
     admin.from("app_logs").select("created_at").eq("level", "error").gte("created_at", startsAtIso),
     admin.from("submissions").select("reviewed_at").eq("status", "Approved").gte("reviewed_at", startsAtIso),
     admin.from("reward_redemptions").select("created_at").gte("created_at", startsAtIso),
     admin.from("notifications").select("created_at").gte("created_at", startsAtIso),
+    admin.from("app_logs").select("created_at, event").gte("created_at", startsAtIso),
   ]);
 
   const points: Bucket[] = bucketTimes.map((date) => ({
@@ -115,6 +139,9 @@ export async function GET(request: Request) {
     approvals: 0,
     redemptions: 0,
     notifications: 0,
+    rateLimited: 0,
+    idempotencyReplay: 0,
+    idempotencyInflight: 0,
   }));
 
   for (const row of errorLogs.data ?? []) {
@@ -142,6 +169,18 @@ export async function GET(request: Request) {
     const index = findBucketIndex(range, bucketTimes, row.created_at);
     if (index >= 0) {
       points[index].notifications += 1;
+    }
+  }
+
+  for (const row of abuseLogs.data ?? []) {
+    const kind = classifyAbuseEvent(row.event);
+    if (!kind) {
+      continue;
+    }
+
+    const index = findBucketIndex(range, bucketTimes, row.created_at);
+    if (index >= 0) {
+      points[index][kind] += 1;
     }
   }
 

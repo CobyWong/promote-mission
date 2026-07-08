@@ -30,6 +30,9 @@ type TrendPayload = {
     approvals: number;
     redemptions: number;
     notifications: number;
+    rateLimited: number;
+    idempotencyReplay: number;
+    idempotencyInflight: number;
   }>;
 };
 
@@ -43,7 +46,14 @@ type LogItem = {
   created_at: string;
 };
 
-type TrendMetricKey = "errors" | "approvals" | "redemptions" | "notifications";
+type TrendMetricKey =
+  | "errors"
+  | "approvals"
+  | "redemptions"
+  | "notifications"
+  | "rateLimited"
+  | "idempotencyReplay"
+  | "idempotencyInflight";
 
 function buildLinePath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) {
@@ -87,6 +97,9 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       approvals: "Approvals",
       redemptions: "Redemptions",
       notifications: "Notifications",
+      trendRateLimited: "Rate-limited",
+      trendReplay: "Idempotency replay",
+      trendInflight: "Idempotency inflight",
       abuseSignals: "Abuse and replay signals (24h)",
       rateLimited: "Rate-limited",
       idempotencyReplays: "Idempotency replay",
@@ -116,6 +129,9 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       approvals: "批核",
       redemptions: "兌換請求",
       notifications: "通知",
+      trendRateLimited: "限流命中",
+      trendReplay: "冪等重播",
+      trendInflight: "冪等進行中",
       abuseSignals: "濫用與重播信號（24 小時）",
       rateLimited: "限流命中",
       idempotencyReplays: "冪等重播",
@@ -211,6 +227,7 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
     ? Math.max(
       1,
       ...trendSeries.flatMap((item) => [item.errors, item.approvals, item.redemptions, item.notifications]),
+      ...trendSeries.flatMap((item) => [item.rateLimited, item.idempotencyReplay, item.idempotencyInflight]),
     )
     : 1;
 
@@ -219,6 +236,9 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
     { key: "approvals", label: t.approvals, stroke: "#34d399", fill: "rgba(52,211,153,0.12)" },
     { key: "redemptions", label: t.redemptions, stroke: "#f59e0b", fill: "rgba(245,158,11,0.12)" },
     { key: "notifications", label: t.notifications, stroke: "#38bdf8", fill: "rgba(56,189,248,0.12)" },
+    { key: "rateLimited", label: t.trendRateLimited, stroke: "#a78bfa", fill: "rgba(167,139,250,0.12)" },
+    { key: "idempotencyReplay", label: t.trendReplay, stroke: "#f472b6", fill: "rgba(244,114,182,0.12)" },
+    { key: "idempotencyInflight", label: t.trendInflight, stroke: "#facc15", fill: "rgba(250,204,21,0.12)" },
   ];
 
   function getMetricPoints(metric: TrendMetricKey) {

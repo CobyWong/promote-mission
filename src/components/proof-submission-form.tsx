@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -38,8 +38,18 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
   const [error, setError] = useState<string | null>(null);
   const [acceptedAndValid, setAcceptedAndValid] = useState(false);
   const [acceptanceChecked, setAcceptanceChecked] = useState(false);
+  const idempotencyKeyRef = useRef<string>("");
   const backendReady = hasSupabaseConfig();
   const rewards = getRankingRewardsByDifficulty(mission.difficulty);
+
+  const buildIdempotencyKey = () => {
+    const base = `web-submission:${mission.slug}`;
+    if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+      return `${base}:${crypto.randomUUID()}`;
+    }
+
+    return `${base}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
+  };
 
   useEffect(() => {
     const key = getMissionAcceptanceStorageKey(mission.slug);
@@ -142,6 +152,10 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           setLoading(true);
           setError(null);
 
+          if (!idempotencyKeyRef.current) {
+            idempotencyKeyRef.current = buildIdempotencyKey();
+          }
+
           const formData = new FormData();
           formData.set("slug", mission.slug);
           formData.set("reelUrl", reelUrl);
@@ -151,13 +165,28 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
 
           const response = await fetch("/api/submissions", {
             method: "POST",
+            headers: {
+              "idempotency-key": idempotencyKeyRef.current,
+            },
             body: formData,
           });
 
           const result = (await response.json()) as { error?: string; id?: string };
 
           if (!response.ok) {
-            setError(result.error ?? (locale === "en" ? "Submission failed. Please try again." : "提交失敗，請稍後再試。"));
+            if (response.status === 409) {
+              setError(locale === "en"
+                ? "A matching submission is already processing. Wait a few seconds, refresh, then retry once."
+                : "相同提交正在處理中，請等幾秒並重新整理後再試一次。");
+            } else if (response.status === 429) {
+              idempotencyKeyRef.current = "";
+              setError(locale === "en"
+                ? "Too many submit attempts. Pause briefly before trying again."
+                : "提交次數過於頻繁，請稍等片刻後再試。");
+            } else {
+              idempotencyKeyRef.current = "";
+              setError(result.error ?? (locale === "en" ? "Submission failed. Please try again." : "提交失敗，請稍後再試。"));
+            }
             setLoading(false);
             if (response.status === 401) {
               router.push(`/login?next=/submit/${mission.slug}`);
@@ -165,6 +194,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
             return;
           }
 
+          idempotencyKeyRef.current = "";
           setSubmissionId(result.id ?? null);
           setSubmitted(true);
           setLoading(false);

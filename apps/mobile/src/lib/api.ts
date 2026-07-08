@@ -1,6 +1,18 @@
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
 
 const DEFAULT_TIMEOUT_MS = 12000;
+const DEFAULT_INITIAL_RETRY_DELAY_MS = 400;
+
+type RequestJsonOptions = {
+  timeoutMs?: number;
+  retries?: number;
+  retryOnStatuses?: number[];
+  initialRetryDelayMs?: number;
+};
+
+type PostJsonOptions = RequestJsonOptions & {
+  headers?: HeadersInit;
+};
 
 export class ApiRequestError extends Error {
   status: number;
@@ -19,6 +31,14 @@ function getErrorMessage(status: number) {
     return "Session expired. Please sign in again.";
   }
 
+  if (status === 409) {
+    return "A duplicate request is already being processed. Please wait a moment and try again.";
+  }
+
+  if (status === 429) {
+    return "Too many requests. Slow down and retry shortly.";
+  }
+
   if (status >= 500) {
     return "Server error. Please try again shortly.";
   }
@@ -26,13 +46,30 @@ function getErrorMessage(status: number) {
   return `Request failed (${status})`;
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function getRetryAfterMs(response: Response) {
+  const retryAfter = Number.parseInt(response.headers.get("retry-after") ?? "", 10);
+  if (Number.isNaN(retryAfter) || retryAfter <= 0) {
+    return null;
+  }
+
+  return retryAfter * 1000;
+}
+
 async function requestJson<T>(
   path: string,
   init: RequestInit,
-  options?: { timeoutMs?: number; retries?: number },
+  options?: RequestJsonOptions,
 ): Promise<T> {
   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const retries = options?.retries ?? 0;
+  const retryOnStatuses = options?.retryOnStatuses ?? [];
+  const initialRetryDelayMs = options?.initialRetryDelayMs ?? DEFAULT_INITIAL_RETRY_DELAY_MS;
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     const controller = new AbortController();
@@ -45,6 +82,14 @@ async function requestJson<T>(
       });
 
       if (!response.ok) {
+        const shouldRetryStatus = retryOnStatuses.includes(response.status) && attempt < retries;
+        if (shouldRetryStatus) {
+          const headerDelay = getRetryAfterMs(response);
+          const backoffDelay = initialRetryDelayMs * 2 ** attempt;
+          await sleep(Math.max(backoffDelay, headerDelay ?? 0));
+          continue;
+        }
+
         throw new ApiRequestError(getErrorMessage(response.status), response.status);
       }
 
@@ -55,6 +100,8 @@ async function requestJson<T>(
       const shouldRetry = attempt < retries && isNetworkError;
 
       if (shouldRetry) {
+        const backoffDelay = initialRetryDelayMs * 2 ** attempt;
+        await sleep(backoffDelay);
         continue;
       }
 
@@ -85,17 +132,23 @@ export async function fetchJson<T>(path: string, token?: string): Promise<T> {
         }
       : undefined,
     },
-    { retries: 1 },
+    { retries: 1, initialRetryDelayMs: DEFAULT_INITIAL_RETRY_DELAY_MS },
   );
 }
 
-export async function postJson<T>(path: string, payload: unknown, token?: string): Promise<T> {
+export async function postJson<T>(
+  path: string,
+  payload: unknown,
+  token?: string,
+  options?: PostJsonOptions,
+): Promise<T> {
   return requestJson<T>(path, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options?.headers ?? {}),
     },
     body: JSON.stringify(payload),
-  });
+  }, options);
 }

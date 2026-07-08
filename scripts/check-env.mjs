@@ -22,6 +22,7 @@ const requiredKeys = [
   "META_APP_SECRET",
   "ERROR_MONITOR_WEBHOOK_URL",
   "RATE_LIMIT_SALT",
+  "CLEANUP_CRON_TOKEN",
 ];
 
 const fileContent = fs.readFileSync(envExamplePath, "utf8");
@@ -78,6 +79,7 @@ const placeholderRules = [
   ["SUPABASE_SERVICE_ROLE_KEY", "your-supabase-service-role-key"],
   ["ADMIN_PASSWORD", "change-this-admin-password"],
   ["RATE_LIMIT_SALT", "change-this-rate-limit-salt"],
+  ["CLEANUP_CRON_TOKEN", "change-this-cleanup-cron-token"],
 ];
 
 const invalidPlaceholders = [];
