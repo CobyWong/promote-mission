@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 import { getCurrentLocale, type Locale } from "@/lib/i18n";
 import { getCurrentTheme } from "@/lib/theme";
@@ -86,9 +87,14 @@ export async function Header() {
     <header className="sticky top-0 z-50 border-b border-slate-500/45 bg-slate-900/45 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
-          <span className={`flex h-10 w-10 items-center justify-center border border-amber-300/40 bg-amber-300/15 text-amber-200`} style={{ clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}>
-            MO
-          </span>
+          <Image
+            src="/logo.png"
+            alt="Mission One"
+            width={40}
+            height={40}
+            className="h-10 w-10 object-contain"
+            priority
+          />
           <span className="sr-only">Mission One</span>
         </Link>
 
