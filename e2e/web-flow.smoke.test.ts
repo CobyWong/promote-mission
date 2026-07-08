@@ -81,36 +81,40 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     expect(errorText.length).toBeGreaterThan(0);
   }
 
-  const submitPayloadBody = {
-    slug: missionSlug,
-    reelUrl: `https://instagram.com/reel/e2e-${Date.now()}`,
-    captionSummary: "E2E smoke submission",
-    notes: "E2E smoke submission",
-    checks: {
-      published: true,
-      taggedBrand: true,
-      addedCollaborator: true,
-    },
-  };
+  async function createSubmission() {
+    const submitPayloadBody = {
+      slug: missionSlug,
+      reelUrl: `https://instagram.com/reel/e2e-${Date.now()}`,
+      captionSummary: "E2E smoke submission",
+      notes: "E2E smoke submission",
+      checks: {
+        published: true,
+        taggedBrand: true,
+        addedCollaborator: true,
+      },
+    };
 
-  const submitResponse = await fetch(`${baseUrl}/api/submissions`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      cookie: userCookie,
-      "idempotency-key": `e2e-submit-${Date.now()}`,
-      "x-forwarded-proto": "https",
-    },
-    body: JSON.stringify(submitPayloadBody),
-  });
+    const submitResponse = await fetch(`${baseUrl}/api/submissions`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: userCookie,
+        "idempotency-key": `e2e-submit-${Date.now()}`,
+        "x-forwarded-proto": "https",
+      },
+      body: JSON.stringify(submitPayloadBody),
+    });
 
-  const submitPayload = await readJson(submitResponse);
-  expect(
-    submitResponse.status,
-    `Submission failed with status ${submitResponse.status}: ${JSON.stringify(submitPayload)}`,
-  ).toBe(201);
-  const submissionId = typeof submitPayload?.id === "string" ? submitPayload.id : "";
-  expect(submissionId.length).toBeGreaterThan(0);
+    const submitPayload = await readJson(submitResponse);
+    expect(
+      submitResponse.status,
+      `Submission failed with status ${submitResponse.status}: ${JSON.stringify(submitPayload)}`,
+    ).toBe(201);
+
+    const submissionId = typeof submitPayload?.id === "string" ? submitPayload.id : "";
+    expect(submissionId.length).toBeGreaterThan(0);
+    return submissionId;
+  }
 
   const adminLoginResponse = await fetch(`${baseUrl}/api/admin/login`, {
     method: "POST",
@@ -130,22 +134,32 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
   expect(adminCookie.length).toBeGreaterThan(0);
   expect(adminLoginPayload?.ok).toBe(true);
 
-  const approveResponse = await fetch(`${baseUrl}/api/admin/submissions/${submissionId}`, {
-    method: "PATCH",
-    headers: {
-      "content-type": "application/json",
-      cookie: adminCookie,
-      "x-forwarded-proto": "https",
-    },
-    body: JSON.stringify({
-      status: "Approved",
-      notes: "E2E smoke auto approval",
-    }),
-  });
+  async function approveSubmission(submissionId: string) {
+    const approveResponse = await fetch(`${baseUrl}/api/admin/submissions/${submissionId}`, {
+      method: "PATCH",
+      headers: {
+        "content-type": "application/json",
+        cookie: adminCookie,
+        "x-forwarded-proto": "https",
+      },
+      body: JSON.stringify({
+        status: "Approved",
+        notes: "E2E smoke auto approval",
+      }),
+    });
 
-  const approvePayload = await readJson(approveResponse);
-  expect(approveResponse.status).toBe(200);
-  expect(approvePayload?.ok).toBe(true);
+    const approvePayload = await readJson(approveResponse);
+    expect(approveResponse.status).toBe(200);
+    expect(approvePayload?.ok).toBe(true);
+  }
+
+  const firstSubmissionId = await createSubmission();
+  await approveSubmission(firstSubmissionId);
+
+  if (strictRedeem) {
+    const secondSubmissionId = await createSubmission();
+    await approveSubmission(secondSubmissionId);
+  }
 
   const redeemResponse = await fetch(`${baseUrl}/api/redemptions`, {
     method: "POST",
