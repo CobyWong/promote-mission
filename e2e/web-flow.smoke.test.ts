@@ -81,25 +81,27 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     expect(errorText.length).toBeGreaterThan(0);
   }
 
-  const formData = new FormData();
-  formData.set("slug", missionSlug);
-  formData.set("reelUrl", `https://instagram.com/reel/e2e-${Date.now()}`);
-  formData.set("captionSummary", "E2E smoke submission");
-  formData.set("notes", "E2E smoke submission");
-  formData.set("checks", JSON.stringify({
-    published: true,
-    taggedBrand: true,
-    addedCollaborator: true,
-  }));
+  const submitPayloadBody = {
+    slug: missionSlug,
+    reelUrl: `https://instagram.com/reel/e2e-${Date.now()}`,
+    captionSummary: "E2E smoke submission",
+    notes: "E2E smoke submission",
+    checks: {
+      published: true,
+      taggedBrand: true,
+      addedCollaborator: true,
+    },
+  };
 
   const submitResponse = await fetch(`${baseUrl}/api/submissions`, {
     method: "POST",
     headers: {
+      "content-type": "application/json",
       cookie: userCookie,
       "idempotency-key": `e2e-submit-${Date.now()}`,
       "x-forwarded-proto": "https",
     },
-    body: formData,
+    body: JSON.stringify(submitPayloadBody),
   });
 
   const submitPayload = await readJson(submitResponse);

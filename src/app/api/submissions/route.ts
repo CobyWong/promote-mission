@@ -8,6 +8,14 @@ import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+type SubmissionRequestBody = {
+  slug?: string;
+  reelUrl?: string;
+  captionSummary?: string;
+  notes?: string;
+  checks?: Record<string, unknown>;
+};
+
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
 
@@ -54,13 +62,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Please log in before submitting proof." }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const slug = String(formData.get("slug") ?? "").trim();
-    const reelUrl = String(formData.get("reelUrl") ?? "").trim();
-    const captionSummary = String(formData.get("captionSummary") ?? "").trim() || null;
-    const notes = String(formData.get("notes") ?? "").trim() || null;
-    const checksRaw = String(formData.get("checks") ?? "{}");
-    const checks = JSON.parse(checksRaw) as Record<string, boolean>;
+    const contentType = request.headers.get("content-type") ?? "";
+    let slug = "";
+    let reelUrl = "";
+    let captionSummary: string | null = null;
+    let notes: string | null = null;
+    let checks: Record<string, boolean> = {};
+
+    if (contentType.includes("application/json")) {
+      const body = (await request.json().catch(() => null)) as SubmissionRequestBody | null;
+      slug = String(body?.slug ?? "").trim();
+      reelUrl = String(body?.reelUrl ?? "").trim();
+      captionSummary = String(body?.captionSummary ?? "").trim() || null;
+      notes = String(body?.notes ?? "").trim() || null;
+      checks = (body?.checks ?? {}) as Record<string, boolean>;
+    } else {
+      const formData = await request.formData();
+      slug = String(formData.get("slug") ?? "").trim();
+      reelUrl = String(formData.get("reelUrl") ?? "").trim();
+      captionSummary = String(formData.get("captionSummary") ?? "").trim() || null;
+      notes = String(formData.get("notes") ?? "").trim() || null;
+      const checksRaw = String(formData.get("checks") ?? "{}");
+      checks = JSON.parse(checksRaw) as Record<string, boolean>;
+    }
 
     const { data: missionRow } = await supabase
       .from("missions")
