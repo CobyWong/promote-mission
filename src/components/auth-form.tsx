@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 import type { Locale } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -51,8 +50,6 @@ function toggleChip(list: string[], value: string, maxSelection = 99) {
 
 export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const isRegister = mode === "register";
-  const router = useRouter();
-  const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -270,12 +267,12 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
           return;
         }
 
-        setSubmitted(true);
-
         if (data.session) {
-          router.push("/dashboard?editProfile=1");
-          router.refresh();
+          window.location.assign("/api/auth/redirect?next=%2Fdashboard%3FeditProfile%3D1");
+          return;
         }
+
+        window.location.assign("/login?registered=1");
 
         return;
       }
@@ -310,7 +307,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
             });
           }
         }
-        setSubmitted(true);
         window.location.assign("/admin/reviews");
         return;
       }
@@ -352,7 +348,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         return;
       }
 
-      setSubmitted(true);
       window.location.assign("/api/auth/redirect?next=%2Fdashboard");
     } catch {
       setError(t.networkError);
@@ -371,32 +366,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         </div>
       ) : null}
 
-      {submitted ? (
-        <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Success</p>
-          <h2 className="mt-3 text-3xl font-semibold text-slate-900">
-            {isRegister ? (locale === "en" ? "Account created" : "帳號已建立") : (locale === "en" ? "Signed in" : "已成功登入")}
-          </h2>
-          <p className="mt-4 text-slate-600">
-            {isRegister
-              ? locale === "en"
-                ? "Account created. Continue to your dashboard."
-                : "帳號已建立，可以直接前往個人檔案。"
-              : locale === "en"
-                ? "Go to your dashboard to continue mission work."
-                : "登入成功，立即前往個人檔案。"}
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Link href="/dashboard" className="rounded-full bg-blue-600 px-5 py-3 text-center font-semibold text-white transition hover:bg-blue-700">
-              {locale === "en" ? "Open Profile" : "前往個人檔案"}
-            </Link>
-            <Link href="/missions" className="rounded-full border border-slate-300 px-5 py-3 text-center font-semibold text-slate-700 transition hover:border-slate-400">
-              {locale === "en" ? "View Missions" : "查看任務"}
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-6" onSubmit={handleSubmit}>
           {isRegister ? (
             <>
               <div>
@@ -602,11 +572,11 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                         <input checked={agreedTerms} onChange={(event) => setAgreedTerms(event.target.checked)} type="checkbox" className="h-5 w-5 rounded border-slate-400" />
                         <span>
                           {t.termsPrefix} {" "}
-                          <Link href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-blue-600 hover:text-blue-700">
+                          <Link href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-sky-300 hover:text-sky-200">
                             {t.termsLink}
                           </Link>{" "}
                           {t.and} {" "}
-                          <Link href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-blue-600 hover:text-blue-700">
+                          <Link href="/privacy" target="_blank" rel="noreferrer" className="font-semibold text-sky-300 hover:text-sky-200">
                             {t.privacyLink}
                           </Link>
                         </span>
@@ -688,8 +658,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
               </div>
             </section>
           )}
-        </form>
-      )}
+      </form>
     </div>
   );
 }
