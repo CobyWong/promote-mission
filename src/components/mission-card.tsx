@@ -217,7 +217,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
             </div>
             <div className={`${compactMobile ? "hidden sm:block" : "block"} space-y-2`}>
               <p className="text-sm text-slate-400">{locale === "en" ? "Top creators" : "頂尖創作者"}</p>
-              {(mission.rankings && mission.rankings.length > 0 ? mission.rankings : [{ rank: 1, handle: topCreator, views: Number(topViews.replace("K", "000")), reelUrl: `https://instagram.com/${topCreator.replace(/^@/, "")}` }]).map((entry) => (
+              {(mission.rankings && mission.rankings.length > 0 ? mission.rankings : [{ rank: 1, handle: topCreator, views: topViews, reelUrl: `https://instagram.com/${topCreator.replace(/^@/, "")}` }]).map((entry) => (
                 <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-300">
                   <div className="flex items-center gap-2">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-300/20 text-xs font-bold text-amber-200">{entry.rank}</span>
