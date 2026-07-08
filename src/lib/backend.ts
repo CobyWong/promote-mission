@@ -13,6 +13,8 @@ const hiddenMissionSlugs = new Set([
   "fitbyte-protein-chips",
 ]);
 
+const REDEMPTION_RETENTION_DAYS = 30;
+
 const fallbackCreatorProfile: CreatorProfile = {
   userId: "USR-DEMO001",
   name: "Chloe Wong",
@@ -165,6 +167,20 @@ function toRewardRedemption(row: RewardRedemptionRow): RewardRedemption {
     createdAt: new Date(row.created_at).toLocaleString("zh-HK"),
     notes: row.notes ?? "",
   };
+}
+
+async function pruneExpiredRewardRedemptions() {
+  if (!hasSupabaseAdminConfig()) {
+    return;
+  }
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return;
+  }
+
+  const cutoff = new Date(Date.now() - REDEMPTION_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  await admin.from("reward_redemptions").delete().lt("created_at", cutoff);
 }
 
 function toSubmission(row: SubmissionRow): Submission {
@@ -642,6 +658,8 @@ export async function getRewardsCatalog() {
 export async function getRewardsPageData() {
   const rewardCatalog = await getRewardsCatalog();
 
+  await pruneExpiredRewardRedemptions();
+
   if (!hasSupabaseConfig()) {
     return {
       mode: "demo" as const,
@@ -985,6 +1003,8 @@ export async function getAdminReviewData() {
 }
 
 export async function getAdminRedemptionsData() {
+  await pruneExpiredRewardRedemptions();
+
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
     return {
       mode: "demo" as const,

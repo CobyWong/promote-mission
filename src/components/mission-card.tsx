@@ -156,7 +156,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
               href={`/missions/${mission.slug}`}
                 className="tactical-btn-primary flex h-11 w-full px-4 text-base"
             >
-              {locale === "en" ? "Start now" : "開始任務"}
+              {locale === "en" ? "Start now" : "查看任務"}
             </Link>
           )}
         </div>

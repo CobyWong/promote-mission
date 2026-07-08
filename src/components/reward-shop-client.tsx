@@ -138,7 +138,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
         <div className="tactical-card p-6">
           <h2 className="text-xl font-semibold text-slate-100">{locale === "en" ? "Recent Redemptions" : "最近兌換紀錄"}</h2>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1">
             {redemptions.length > 0 ? (
               redemptions.map((redemption) => (
                 <div key={redemption.id} className="tactical-subcard px-4 py-4 text-sm text-slate-300">
