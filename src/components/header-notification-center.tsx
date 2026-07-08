@@ -168,14 +168,22 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
             notifications.slice(0, 12).map((item) => {
               const rowClass = item.isRead
                 ? (theme === "dark" ? "border-white/10 bg-white/5" : "border-slate-200 bg-slate-50")
-                : (theme === "dark" ? "border-amber-300/35 bg-amber-300/10" : "border-amber-300/60 bg-amber-50");
+                : (theme === "dark" ? "border-cyan-300/35 bg-cyan-400/10" : "border-cyan-300/70 bg-cyan-50");
+
+              const titleClass = item.isRead
+                ? (theme === "dark" ? "text-white" : "text-slate-900")
+                : (theme === "dark" ? "text-cyan-100" : "text-cyan-900");
+
+              const messageClass = item.isRead
+                ? (theme === "dark" ? "text-slate-300" : "text-slate-700")
+                : (theme === "dark" ? "text-slate-100" : "text-slate-800");
 
               return (
                 <div key={item.id} className={`rounded-2xl border p-3 ${rowClass}`}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className={`text-sm font-semibold ${theme === "dark" ? "text-white" : "text-slate-900"}`}>{item.title}</p>
-                      <p className={`mt-1 text-sm ${theme === "dark" ? "text-slate-300" : "text-slate-700"}`}>{item.message}</p>
+                      <p className={`text-sm font-semibold ${titleClass}`}>{item.title}</p>
+                      <p className={`mt-1 text-sm ${messageClass}`}>{item.message}</p>
                       <p className={`mt-2 text-xs ${theme === "dark" ? "text-slate-400" : "text-slate-500"}`}>{new Date(item.createdAt).toLocaleString(locale === "en" ? "en-US" : "zh-HK")}</p>
                     </div>
                     {!item.isRead ? (
