@@ -97,6 +97,16 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
           </div>
         </div>
 
+        <div className="mt-2 rounded-xl border border-slate-600/60 bg-slate-900/45 px-3 py-2 text-[11px] text-slate-300">
+          {isLocked
+            ? (locale === "en"
+              ? `Ranking rewards unlock at Lv.${requiredLevel}.`
+              : `升級至 Lv.${requiredLevel} 後可查看排名獎勵。`)
+            : (locale === "en"
+              ? `Ranking split: #1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`
+              : `排名派彩：第1名 HK$${rewards.first.toLocaleString()} · 第2名 HK$${rewards.second.toLocaleString()} · 第3名 HK$${rewards.third.toLocaleString()}`)}
+        </div>
+
         {(mission.minParticipants ?? 0) > 0 ? (
           <p className="mt-2 text-xs text-slate-400">
             {locale === "en" ? "Creator quota" : "創作者名額"}: {mission.currentParticipants ?? 0} / {mission.minParticipants}
