@@ -71,12 +71,17 @@ function safeParseSnapshot(raw: string | null): IdempotencySnapshot | null {
 }
 
 async function readSnapshotDistributed(storageKey: string) {
-  const raw = await runUpstashCommand(["GET", storageKey]);
-  if (raw === null) {
+  try {
+    const raw = await runUpstashCommand(["GET", storageKey]);
+    if (raw === null) {
+      return null;
+    }
+
+    return safeParseSnapshot(String(raw));
+  } catch {
+    // Redis should be an optimization; network/config failures must not fail the request path.
     return null;
   }
-
-  return safeParseSnapshot(String(raw));
 }
 
 async function readSnapshotPersistent(storageKey: string): Promise<IdempotencySnapshot | null> {

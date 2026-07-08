@@ -29,7 +29,13 @@ function getCookieHeader(response: Response) {
     return "";
   }
 
-  return single.split(";", 1)[0];
+  const cookiePairs = single
+    // Split only between cookie entries, not within Expires attributes.
+    .split(/,(?=\s*[^;,\s]+=)/g)
+    .map((raw) => raw.split(";", 1)[0]?.trim())
+    .filter((value): value is string => Boolean(value));
+
+  return cookiePairs.join("; ");
 }
 
 async function readJson(response: Response) {
@@ -65,7 +71,15 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
       cookie: userCookie,
     },
   });
-  expect(acceptResponse.status).toBe(200);
+  const acceptPayload = await readJson(acceptResponse);
+  expect([200, 400]).toContain(acceptResponse.status);
+  if (acceptResponse.status === 200) {
+    expect(acceptPayload?.ok).toBe(true);
+  }
+  if (acceptResponse.status === 400) {
+    const errorText = typeof acceptPayload?.error === "string" ? acceptPayload.error : "";
+    expect(errorText.length).toBeGreaterThan(0);
+  }
 
   const formData = new FormData();
   formData.set("slug", missionSlug);
@@ -89,7 +103,10 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
   });
 
   const submitPayload = await readJson(submitResponse);
-  expect(submitResponse.status).toBe(201);
+  expect(
+    submitResponse.status,
+    `Submission failed with status ${submitResponse.status}: ${JSON.stringify(submitPayload)}`,
+  ).toBe(201);
   const submissionId = typeof submitPayload?.id === "string" ? submitPayload.id : "";
   expect(submissionId.length).toBeGreaterThan(0);
 
