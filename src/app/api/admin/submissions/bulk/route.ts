@@ -276,6 +276,19 @@ export async function PATCH(request: Request) {
         };
         await admin.from("submissions").update(assignmentPayload).eq("id", id);
       }
+
+      await createAppLog({
+        level: "info",
+        category: "funnel",
+        event: "funnel.submission_approved",
+        route: "/api/admin/submissions/bulk",
+        userId: reviewerId,
+        context: {
+          submissionId: id,
+          creatorUserId: target.user_id,
+          bulk: true,
+        },
+      });
     }
 
     await syncSlaBreachForIds(admin, ids);

@@ -180,6 +180,19 @@ export async function POST(request: Request) {
     context: { rewardSlug, redemptionId: data },
   });
 
+  await createAppLog({
+    level: "info",
+    category: "funnel",
+    event: "funnel.redemption_requested",
+    route: "/api/redemptions",
+    userId: user.id,
+    context: {
+      rewardSlug,
+      redemptionId: data,
+      channel: "web",
+    },
+  });
+
   const successBody = { redemptionId: data };
   await finalizeIdempotentOperation({
     storageKey: operation.storageKey,

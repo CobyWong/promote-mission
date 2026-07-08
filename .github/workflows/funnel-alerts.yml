@@ -1,0 +1,38 @@
+name: Funnel Alerts
+
+on:
+  schedule:
+    - cron: "11 * * * *"
+  workflow_dispatch:
+    inputs:
+      failOnWarn:
+        description: "Fail on warning-level regressions (1 or 0)"
+        required: false
+        default: "0"
+
+jobs:
+  funnel-alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check funnel regressions on staging
+        env:
+          STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+          STAGING_ADMIN_EMAIL: ${{ secrets.STAGING_ADMIN_EMAIL }}
+          STAGING_ADMIN_PASSWORD: ${{ secrets.STAGING_ADMIN_PASSWORD }}
+          FAIL_ON_FUNNEL_WARN: ${{ github.event.inputs.failOnWarn || '0' }}
+        run: npm run alerts:funnel

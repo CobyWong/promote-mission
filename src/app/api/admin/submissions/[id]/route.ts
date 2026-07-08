@@ -278,6 +278,18 @@ export async function PATCH(
       },
     });
 
+    await createAppLog({
+      level: "info",
+      category: "funnel",
+      event: "funnel.submission_approved",
+      route: "/api/admin/submissions/[id]",
+      userId: reviewerId,
+      context: {
+        submissionId: id,
+        creatorUserId: existingSubmission.user_id,
+      },
+    });
+
     return NextResponse.json({ ok: true });
   }
 

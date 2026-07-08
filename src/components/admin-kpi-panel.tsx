@@ -36,6 +36,45 @@ type TrendPayload = {
   }>;
 };
 
+type FunnelPayload = {
+  range: "24h" | "7d";
+  generatedAt: string;
+  since: string;
+  funnel: {
+    missionAccepted: number;
+    submissionCreated: number;
+    submissionApproved: number;
+    redemptionRequested: number;
+  };
+  conversion: {
+    acceptToSubmitPct: number;
+    submitToApprovePct: number;
+    approveToRedeemPct: number;
+    acceptToRedeemPct: number;
+  };
+  series: Array<{
+    label: string;
+    startsAt: string;
+    missionAccepted: number;
+    submissionCreated: number;
+    submissionApproved: number;
+    redemptionRequested: number;
+  }>;
+};
+
+type FunnelAlertsPayload = {
+  generatedAt: string;
+  alerts: Array<{
+    key: string;
+    severity: "warn" | "critical" | null;
+    message: string;
+    currentCount: number;
+    baselineDailyAvg: number;
+    thresholdPct: number;
+    dropPct: number;
+  }>;
+};
+
 type LogItem = {
   id: string;
   level: string;
@@ -55,6 +94,9 @@ type TrendMetricKey =
   | "idempotencyReplay"
   | "idempotencyInflight";
 
+type FunnelMetricKey = "missionAccepted" | "submissionCreated" | "submissionApproved" | "redemptionRequested";
+type TrendDirection = "up" | "down" | "flat";
+
 function buildLinePath(points: Array<{ x: number; y: number }>) {
   if (points.length === 0) {
     return "";
@@ -71,6 +113,48 @@ function buildAreaPath(points: Array<{ x: number; y: number }>, baselineY: numbe
   const first = points[0];
   const last = points[points.length - 1];
   return `M ${first.x} ${baselineY} ${points.map((point) => `L ${point.x} ${point.y}`).join(" ")} L ${last.x} ${baselineY} Z`;
+}
+
+function buildSparklinePath(values: number[], width: number, height: number) {
+  if (values.length === 0) {
+    return "";
+  }
+
+  const max = Math.max(1, ...values);
+  return values.map((value, index) => {
+    const ratioX = values.length === 1 ? 0 : index / (values.length - 1);
+    const x = ratioX * width;
+    const y = height - (value / max) * height;
+    return `${index === 0 ? "M" : "L"} ${x} ${y}`;
+  }).join(" ");
+}
+
+function getTrendDirection(values: number[]): TrendDirection {
+  if (values.length < 4) {
+    return "flat";
+  }
+
+  const windowSize = Math.min(3, Math.floor(values.length / 2));
+  if (windowSize <= 0) {
+    return "flat";
+  }
+
+  const latestWindow = values.slice(values.length - windowSize);
+  const previousWindow = values.slice(values.length - windowSize * 2, values.length - windowSize);
+
+  const latestAverage = latestWindow.reduce((sum, value) => sum + value, 0) / windowSize;
+  const previousAverage = previousWindow.reduce((sum, value) => sum + value, 0) / windowSize;
+  const delta = latestAverage - previousAverage;
+
+  if (delta > 0.01) {
+    return "up";
+  }
+
+  if (delta < -0.01) {
+    return "down";
+  }
+
+  return "flat";
 }
 
 export function AdminKpiPanel({ locale }: { locale: Locale }) {
@@ -90,6 +174,21 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       noErrors: "No recent errors.",
       updatedAt: "Updated",
       trends: "KPI trends",
+      funnel: "Growth funnel",
+      funnelRangeLabel: "Window",
+      funnelAlerts: "Funnel regression alerts",
+      noFunnelAlerts: "No funnel regressions detected.",
+      missionAccepted: "Mission accepted",
+      submissionCreated: "Submission created",
+      submissionApproved: "Submission approved",
+      redemptionRequested: "Redemption requested",
+      trendUp: "Up",
+      trendDown: "Down",
+      trendFlat: "Flat",
+      acceptToSubmitPct: "Accept -> Submit",
+      submitToApprovePct: "Submit -> Approve",
+      approveToRedeemPct: "Approve -> Redeem",
+      acceptToRedeemPct: "Accept -> Redeem",
       range24h: "24h",
       range7d: "7d",
       exportCsv: "Export CSV",
@@ -122,6 +221,21 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       noErrors: "最近未有錯誤。",
       updatedAt: "更新時間",
       trends: "KPI 趨勢",
+      funnel: "轉化漏斗",
+      funnelRangeLabel: "時間範圍",
+      funnelAlerts: "漏斗回落警示",
+      noFunnelAlerts: "目前未有漏斗回落。",
+      missionAccepted: "任務接受",
+      submissionCreated: "提交建立",
+      submissionApproved: "提交批核",
+      redemptionRequested: "兌換申請",
+      trendUp: "上升",
+      trendDown: "下降",
+      trendFlat: "持平",
+      acceptToSubmitPct: "接受 -> 提交",
+      submitToApprovePct: "提交 -> 批核",
+      approveToRedeemPct: "批核 -> 兌換",
+      acceptToRedeemPct: "接受 -> 兌換",
       range24h: "24 小時",
       range7d: "7 日",
       exportCsv: "匯出 CSV",
@@ -143,6 +257,8 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
   const [kpi, setKpi] = useState<KpiPayload | null>(null);
   const [trends, setTrends] = useState<TrendPayload | null>(null);
   const [trendRange, setTrendRange] = useState<"24h" | "7d">("24h");
+  const [funnel, setFunnel] = useState<FunnelPayload | null>(null);
+  const [funnelAlerts, setFunnelAlerts] = useState<FunnelAlertsPayload | null>(null);
   const [logs, setLogs] = useState<LogItem[]>([]);
   const [abuseLogs, setAbuseLogs] = useState<LogItem[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -157,23 +273,27 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
   useEffect(() => {
     async function load() {
       setError(null);
-      const [kpiRes, trendRes, logRes, rateLimitedRes, replayRes, inflightRes] = await Promise.all([
+      const [kpiRes, trendRes, funnelRes, funnelAlertsRes, logRes, rateLimitedRes, replayRes, inflightRes] = await Promise.all([
         fetch("/api/admin/kpi", { cache: "no-store" }),
         fetch(`/api/admin/kpi/trends?range=${trendRange}`, { cache: "no-store" }),
+        fetch(`/api/admin/kpi/funnel?range=${trendRange}`, { cache: "no-store" }),
+        fetch("/api/admin/kpi/funnel/alerts", { cache: "no-store" }),
         fetch("/api/admin/kpi/logs?level=error&limit=6", { cache: "no-store" }),
         fetch("/api/admin/kpi/logs?level=all&eventSuffix=.rate_limited&limit=8", { cache: "no-store" }),
         fetch("/api/admin/kpi/logs?level=all&eventSuffix=.idempotency_replay&limit=8", { cache: "no-store" }),
         fetch("/api/admin/kpi/logs?level=all&eventSuffix=.idempotency_inflight&limit=8", { cache: "no-store" }),
       ]);
 
-      if (!kpiRes.ok || !trendRes.ok || !logRes.ok) {
+      if (!kpiRes.ok || !trendRes.ok || !logRes.ok || !funnelRes.ok || !funnelAlertsRes.ok) {
         setError(t.loadFailed);
         return;
       }
 
-      const [kpiResult, trendResult, logResult, rateLimitedResult, replayResult, inflightResult] = await Promise.all([
+      const [kpiResult, trendResult, funnelResult, funnelAlertsResult, logResult, rateLimitedResult, replayResult, inflightResult] = await Promise.all([
         kpiRes.json() as Promise<KpiPayload>,
         trendRes.json() as Promise<TrendPayload>,
+        funnelRes.json() as Promise<FunnelPayload>,
+        funnelAlertsRes.json() as Promise<FunnelAlertsPayload>,
         logRes.json() as Promise<{ logs: LogItem[] }>,
         Promise.resolve(rateLimitedRes.ok ? rateLimitedRes.json() as Promise<{ logs: LogItem[] }> : { logs: [] }),
         Promise.resolve(replayRes.ok ? replayRes.json() as Promise<{ logs: LogItem[] }> : { logs: [] }),
@@ -182,6 +302,8 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
 
       setKpi(kpiResult);
       setTrends(trendResult);
+      setFunnel(funnelResult);
+      setFunnelAlerts(funnelAlertsResult);
       setLogs(logResult.logs ?? []);
       const mergedAbuse = [...(rateLimitedResult.logs ?? []), ...(replayResult.logs ?? []), ...(inflightResult.logs ?? [])]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -201,6 +323,13 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
   if (!kpi) {
     return <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-300">{t.loading}</div>;
   }
+
+  const funnelMetricConfig: Array<{ key: FunnelMetricKey; label: string; sparkColor: string }> = [
+    { key: "missionAccepted", label: t.missionAccepted, sparkColor: "#38bdf8" },
+    { key: "submissionCreated", label: t.submissionCreated, sparkColor: "#34d399" },
+    { key: "submissionApproved", label: t.submissionApproved, sparkColor: "#f59e0b" },
+    { key: "redemptionRequested", label: t.redemptionRequested, sparkColor: "#f472b6" },
+  ];
 
   const stats = [
     { label: t.pendingSubmissions, value: kpi.kpis.pendingSubmissions },
@@ -272,6 +401,81 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
             <div key={item.label} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
               <p className="text-xs text-slate-400">{item.label}</p>
               <p className="mt-1 text-2xl font-semibold text-white">{item.value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {funnel ? (
+        <div className="glass-panel p-5">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.funnel}</h3>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs text-slate-300">
+              <span>{t.funnelRangeLabel}:</span>
+              <span className="font-semibold text-slate-100">{funnel.range === "24h" ? t.range24h : t.range7d}</span>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {funnelMetricConfig.map((metric) => {
+              const points = funnel.series.map((bucket) => bucket[metric.key]);
+              const path = buildSparklinePath(points, 120, 26);
+              const direction = getTrendDirection(points);
+              const directionLabel = direction === "up"
+                ? t.trendUp
+                : direction === "down"
+                  ? t.trendDown
+                  : t.trendFlat;
+              const directionBadgeClass = direction === "up"
+                ? "border-emerald-300/40 bg-emerald-300/10 text-emerald-200"
+                : direction === "down"
+                  ? "border-rose-300/40 bg-rose-300/10 text-rose-200"
+                  : "border-slate-400/40 bg-slate-500/10 text-slate-200";
+
+              return (
+                <div key={metric.key} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-slate-400">{metric.label}</p>
+                    <span className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${directionBadgeClass}`}>{directionLabel}</span>
+                  </div>
+                  <p className="mt-1 text-2xl font-semibold text-white">{funnel.funnel[metric.key]}</p>
+                  <div className="mt-2 h-7">
+                    <svg viewBox="0 0 120 26" className="h-7 w-full" role="img" aria-label={`${metric.label} sparkline`}>
+                      <path d={path} fill="none" stroke={metric.sparkColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+            <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm text-cyan-100">
+              {t.acceptToSubmitPct}: <span className="font-semibold">{funnel.conversion.acceptToSubmitPct}%</span>
+            </div>
+            <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm text-cyan-100">
+              {t.submitToApprovePct}: <span className="font-semibold">{funnel.conversion.submitToApprovePct}%</span>
+            </div>
+            <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm text-cyan-100">
+              {t.approveToRedeemPct}: <span className="font-semibold">{funnel.conversion.approveToRedeemPct}%</span>
+            </div>
+            <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/10 px-3 py-2 text-sm text-cyan-100">
+              {t.acceptToRedeemPct}: <span className="font-semibold">{funnel.conversion.acceptToRedeemPct}%</span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="glass-panel p-5">
+        <h3 className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.funnelAlerts}</h3>
+        <div className="mt-3 space-y-2">
+          {!funnelAlerts || funnelAlerts.alerts.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-300">{t.noFunnelAlerts}</div>
+          ) : funnelAlerts.alerts.map((alert) => (
+            <div key={alert.key} className={`rounded-2xl border px-4 py-3 ${alert.severity === "critical" ? "border-rose-400/30 bg-rose-400/10" : "border-amber-300/25 bg-amber-300/10"}`}>
+              <p className={`text-xs ${alert.severity === "critical" ? "text-rose-200" : "text-amber-200"}`}>{alert.key} · drop {alert.dropPct}% (threshold {alert.thresholdPct}%)</p>
+              <p className={`mt-1 text-sm ${alert.severity === "critical" ? "text-rose-100" : "text-amber-100"}`}>{alert.message}</p>
+              <p className={`mt-1 text-xs ${alert.severity === "critical" ? "text-rose-200" : "text-amber-200"}`}>current: {alert.currentCount} · baseline/day: {alert.baselineDailyAvg}</p>
             </div>
           ))}
         </div>

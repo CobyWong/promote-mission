@@ -35,6 +35,9 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 	- `ERROR_MONITOR_WEBHOOK_URL` (optional, webhook endpoint for API error forwarding)
 	- `RATE_LIMIT_SALT` (required for stable, hashed rate-limit keys)
 	- `CLEANUP_CRON_TOKEN` (required, protects scheduled cleanup endpoint)
+	- `FUNNEL_ALERT_SUBMISSION_DROP_PCT` (optional, default `30`)
+	- `FUNNEL_ALERT_APPROVE_DROP_PCT` (optional, default `30`)
+	- `FUNNEL_ALERT_REDEEM_DROP_PCT` (optional, default `30`)
 	- `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (optional; enables distributed rate limiting and idempotency across instances)
 3. Run the SQL in [supabase/schema.sql](supabase/schema.sql) inside your Supabase SQL editor.
 4. Confirm the `submission-screenshots` Storage bucket is created by the SQL script.
@@ -82,6 +85,48 @@ STAGING_ADMIN_EMAIL=admin@example.com \
 STAGING_ADMIN_PASSWORD='your-admin-password' \
 STAGING_BEARER_TOKEN='optional-mobile-user-jwt' \
 npm run verify:staging
+```
+
+Funnel regression alert check:
+
+```bash
+STAGING_BASE_URL=https://your-staging-domain.com \
+STAGING_ADMIN_EMAIL=admin@example.com \
+STAGING_ADMIN_PASSWORD='your-admin-password' \
+FAIL_ON_FUNNEL_WARN=0 \
+npm run alerts:funnel
+```
+
+Scheduled funnel alert monitor:
+
+- Workflow file: `.github/workflows/funnel-alerts.yml`
+- Required repository secrets: `STAGING_BASE_URL`, `STAGING_ADMIN_EMAIL`, `STAGING_ADMIN_PASSWORD`
+- Runs hourly and can be triggered manually with `failOnWarn` input (`0` or `1`).
+
+Web E2E smoke test (accept -> submit -> approve -> redeem):
+
+```bash
+E2E_BASE_URL=https://your-staging-domain.com \
+E2E_USER_ACCESS_TOKEN='user-access-token' \
+E2E_USER_REFRESH_TOKEN='user-refresh-token' \
+E2E_ADMIN_EMAIL=admin@example.com \
+E2E_ADMIN_PASSWORD='your-admin-password' \
+E2E_MISSION_SLUG='pulse-active-home-workout' \
+E2E_REWARD_SLUG='parknshop-voucher-100' \
+npm run test:e2e:web
+```
+
+Strict E2E redeem mode (must return `201` only):
+
+```bash
+E2E_BASE_URL=https://your-staging-domain.com \
+E2E_USER_ACCESS_TOKEN='user-access-token' \
+E2E_USER_REFRESH_TOKEN='user-refresh-token' \
+E2E_ADMIN_EMAIL=admin@example.com \
+E2E_ADMIN_PASSWORD='your-admin-password' \
+E2E_MISSION_SLUG='pulse-active-home-workout' \
+E2E_REWARD_SLUG='parknshop-voucher-100' \
+npm run test:e2e:web:strict
 ```
 
 ## Mobile app (Phase 5)
@@ -150,6 +195,8 @@ Phase 5 batch 1 mobile APIs:
 - Scheduled cleanup endpoint `/api/admin/idempotency/cleanup` deletes expired `idempotency_keys` rows using a cron token header (`x-cron-token`).
 - Structured API logs now include request metadata and optional webhook forwarding via `ERROR_MONITOR_WEBHOOK_URL`.
 - Admin KPI now includes abuse counters (rate-limited requests + idempotency replay/inflight events) and recent abuse signal logs.
+- Admin funnel KPI endpoint `/api/admin/kpi/funnel` reports mission accept -> submit -> approve -> redeem conversion for `24h` or `7d` windows.
+- Admin funnel alerts endpoint `/api/admin/kpi/funnel/alerts` flags 24h submission/approval/redemption drops against previous 7-day daily baseline.
 - Admin approval uses the SQL function `approve_submission` to mark the submission approved and insert reward coins atomically.
 - Reward redemption uses the SQL function `redeem_reward` to validate balance and insert a negative wallet transaction atomically.
 - Proof submission uploads screenshots into the `submission-screenshots` bucket and stores the uploaded paths on each submission row.

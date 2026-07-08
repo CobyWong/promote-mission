@@ -192,6 +192,19 @@ export async function POST(request: Request) {
   }
 
   const successBody = { id: (data as { id: string }).id };
+  await createAppLog({
+    level: "info",
+    category: "funnel",
+    event: "funnel.submission_created",
+    route: "/api/submissions",
+    userId: user.id,
+    context: {
+      missionSlug: mission.slug,
+      submissionId: successBody.id,
+      channel: "web",
+    },
+  });
+
   await finalizeIdempotentOperation({
     storageKey: operation.storageKey,
     ttlMs: operation.ttlMs,

@@ -467,6 +467,19 @@ export async function POST(request: Request) {
       },
     });
 
+    await logApiEvent({
+      level: "info",
+      route: "/api/mobile/submissions",
+      event: "funnel.submission_created",
+      request,
+      requestId,
+      userId: user.id,
+      context: {
+        missionSlug: mission.slug,
+        channel: "mobile",
+      },
+    });
+
     const successBody = { id: (data as { id: string }).id };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,

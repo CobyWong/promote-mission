@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 
+import { createAppLog } from "@/lib/observability";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig, hasSupabaseConfig } from "@/lib/supabase/env";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function POST(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ slug: string }> },
 ) {
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
@@ -34,6 +36,25 @@ export async function POST(
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
+
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+
+  await createAppLog({
+    level: "info",
+    category: "funnel",
+    event: "funnel.mission_accepted",
+    route: "/api/missions/[slug]/interest",
+    userId: user?.id ?? null,
+    context: {
+      missionSlug: slug,
+      method: request.method,
+      channel: "web",
+      participantsAfter: nextCount,
+    },
+  });
 
   return NextResponse.json({ ok: true, count: nextCount });
 }
