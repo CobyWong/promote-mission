@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const email = String(body.email ?? "");
     const password = String(body.password ?? "");
 
-    const limiter = evaluateRateLimit({
+    const limiter = await evaluateRateLimit({
       namespace: "admin-login",
       key: `${getClientFingerprint(request)}:${email.trim().toLowerCase()}`,
       max: 8,

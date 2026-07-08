@@ -10,7 +10,7 @@ export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
 
   try {
-    const limiter = evaluateRateLimit({
+    const limiter = await evaluateRateLimit({
       namespace: "auth-session",
       key: getClientFingerprint(request),
       max: 30,

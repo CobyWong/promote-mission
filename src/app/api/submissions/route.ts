@@ -5,9 +5,10 @@ import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
+import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 
 export async function POST(request: Request) {
-  const limiter = evaluateRateLimit({
+  const limiter = await evaluateRateLimit({
     namespace: "web-submission-create",
     key: getClientFingerprint(request),
     max: 20,
@@ -123,6 +124,25 @@ export async function POST(request: Request) {
     status: "Pending",
   };
 
+  const operation = await beginIdempotentOperation({
+    namespace: "web-submission-create",
+    actorId: user.id,
+    request,
+    fallbackSeed: `${user.id}:${mission.slug}:${reelUrl}:${captionSummary ?? ""}`,
+    ttlMs: 2 * 60 * 1000,
+  });
+
+  if (operation.mode === "replay") {
+    return NextResponse.json(operation.body as Record<string, unknown>, { status: operation.status });
+  }
+
+  if (operation.mode === "inflight") {
+    return NextResponse.json(
+      { error: "A submission with the same idempotency key is already in progress." },
+      { status: 409 },
+    );
+  }
+
   const { data, error } = await supabase
     .from("submissions")
     .insert(submissionPayload)
@@ -130,8 +150,23 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    const errorBody = { error: error.message };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 400,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 400 });
   }
 
-  return NextResponse.json({ id: (data as { id: string }).id }, { status: 201 });
+  const successBody = { id: (data as { id: string }).id };
+  await finalizeIdempotentOperation({
+    storageKey: operation.storageKey,
+    ttlMs: operation.ttlMs,
+    status: 201,
+    body: successBody,
+  });
+
+  return NextResponse.json(successBody, { status: 201 });
 }

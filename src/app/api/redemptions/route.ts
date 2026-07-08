@@ -2,11 +2,33 @@ import { NextResponse } from "next/server";
 
 import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
+import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 
 export async function POST(request: Request) {
+  const limiter = await evaluateRateLimit({
+    namespace: "web-redemption-create",
+    key: getClientFingerprint(request),
+    max: 12,
+    windowMs: 60_000,
+  });
+
+  if (!limiter.allowed) {
+    const retryAfter = getRetryAfterSeconds(limiter.resetAt);
+    return NextResponse.json(
+      { error: "Too many redemption attempts. Please try again shortly." },
+      {
+        status: 429,
+        headers: {
+          "retry-after": String(retryAfter),
+        },
+      },
+    );
+  }
+
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
@@ -58,11 +80,37 @@ export async function POST(request: Request) {
     );
   }
 
+  const operation = await beginIdempotentOperation({
+    namespace: "web-redemption-create",
+    actorId: user.id,
+    request,
+    fallbackSeed: `${user.id}:${rewardSlug}`,
+    ttlMs: 2 * 60 * 1000,
+  });
+
+  if (operation.mode === "replay") {
+    return NextResponse.json(operation.body as Record<string, unknown>, { status: operation.status });
+  }
+
+  if (operation.mode === "inflight") {
+    return NextResponse.json(
+      { error: "A redemption with the same idempotency key is already in progress." },
+      { status: 409 },
+    );
+  }
+
   const { data, error } = await supabase.rpc("redeem_reward", {
     reward_slug_input: rewardSlug,
   } satisfies Database["public"]["Functions"]["redeem_reward"]["Args"]);
 
   if (error) {
+    const errorBody = { error: error.message };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 400,
+      body: errorBody,
+    });
     await createAppLog({
       level: "error",
       category: "redemptions",
@@ -72,7 +120,7 @@ export async function POST(request: Request) {
       userId: user.id,
       context: { rewardSlug },
     });
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json(errorBody, { status: 400 });
   }
 
   const { data: redemptionRecord } = await supabase
@@ -102,5 +150,13 @@ export async function POST(request: Request) {
     context: { rewardSlug, redemptionId: data },
   });
 
-  return NextResponse.json({ redemptionId: data }, { status: 201 });
+  const successBody = { redemptionId: data };
+  await finalizeIdempotentOperation({
+    storageKey: operation.storageKey,
+    ttlMs: operation.ttlMs,
+    status: 201,
+    body: successBody,
+  });
+
+  return NextResponse.json(successBody, { status: 201 });
 }

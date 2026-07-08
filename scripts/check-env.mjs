@@ -94,4 +94,11 @@ if (invalidPlaceholders.length > 0) {
   process.exit(1);
 }
 
+const upstashUrl = parsed.get("UPSTASH_REDIS_REST_URL") ?? "";
+const upstashToken = parsed.get("UPSTASH_REDIS_REST_TOKEN") ?? "";
+if ((upstashUrl && !upstashToken) || (!upstashUrl && upstashToken)) {
+  console.error("UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN must be configured together (or both left empty).");
+  process.exit(1);
+}
+
 console.log("Environment template checks passed.");

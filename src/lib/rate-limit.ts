@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { getRateLimitSalt } from "@/lib/supabase/env";
+import { runUpstashCommand } from "@/lib/upstash";
 
 type RateLimitWindow = {
   count: number;
@@ -20,7 +21,21 @@ export function getClientFingerprint(request: Request) {
   return createHash("sha256").update(hashInput).digest("hex").slice(0, 24);
 }
 
-export function evaluateRateLimit(input: {
+export async function evaluateRateLimit(input: {
+  namespace: string;
+  key: string;
+  max: number;
+  windowMs: number;
+}) {
+  const distributed = await evaluateDistributedRateLimit(input).catch(() => null);
+  if (distributed) {
+    return distributed;
+  }
+
+  return evaluateLocalRateLimit(input);
+}
+
+function evaluateLocalRateLimit(input: {
   namespace: string;
   key: string;
   max: number;
@@ -58,6 +73,47 @@ export function evaluateRateLimit(input: {
     allowed: true,
     remaining: Math.max(input.max - existing.count, 0),
     resetAt: existing.resetAt,
+  };
+}
+
+async function evaluateDistributedRateLimit(input: {
+  namespace: string;
+  key: string;
+  max: number;
+  windowMs: number;
+}) {
+  const compositeKey = `rl:${input.namespace}:${input.key}`;
+  const countRaw = await runUpstashCommand(["INCR", compositeKey]);
+  if (countRaw === null) {
+    return null;
+  }
+
+  const count = Number(countRaw);
+  if (!Number.isFinite(count)) {
+    return null;
+  }
+
+  if (count === 1) {
+    await runUpstashCommand(["PEXPIRE", compositeKey, input.windowMs]);
+  }
+
+  const ttlRaw = await runUpstashCommand(["PTTL", compositeKey]);
+  const ttl = Number(ttlRaw);
+  const safeTtl = Number.isFinite(ttl) && ttl > 0 ? ttl : input.windowMs;
+  const resetAt = Date.now() + safeTtl;
+
+  if (count > input.max) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetAt,
+    };
+  }
+
+  return {
+    allowed: true,
+    remaining: Math.max(input.max - count, 0),
+    resetAt,
   };
 }
 

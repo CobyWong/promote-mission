@@ -6,6 +6,8 @@ const supportWhatsappUrl = process.env.NEXT_PUBLIC_SUPPORT_WHATSAPP_URL;
 const adminPassword = process.env.ADMIN_PASSWORD;
 const errorMonitorWebhookUrl = process.env.ERROR_MONITOR_WEBHOOK_URL;
 const rateLimitSalt = process.env.RATE_LIMIT_SALT;
+const upstashRedisRestUrl = process.env.UPSTASH_REDIS_REST_URL;
+const upstashRedisRestToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export function hasSupabaseConfig() {
   return Boolean(supabaseUrl && supabaseAnonKey);
@@ -85,4 +87,16 @@ export function getErrorMonitorWebhookUrl() {
 
 export function getRateLimitSalt() {
   return rateLimitSalt?.trim() || "dev-rate-limit-salt";
+}
+
+export function hasUpstashRedisConfig() {
+  return Boolean(upstashRedisRestUrl?.trim() && upstashRedisRestToken?.trim());
+}
+
+export function getUpstashRedisRestUrl() {
+  return upstashRedisRestUrl?.trim() ?? "";
+}
+
+export function getUpstashRedisRestToken() {
+  return upstashRedisRestToken?.trim() ?? "";
 }

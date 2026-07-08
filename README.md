@@ -34,6 +34,7 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 	- `INSTAGRAM_REDIRECT_URI` (default: `http://localhost:3000/api/instagram/callback`)
 	- `ERROR_MONITOR_WEBHOOK_URL` (optional, webhook endpoint for API error forwarding)
 	- `RATE_LIMIT_SALT` (required for stable, hashed rate-limit keys)
+	- `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` (optional; enables distributed rate limiting and idempotency across instances)
 3. Run the SQL in [supabase/schema.sql](supabase/schema.sql) inside your Supabase SQL editor.
 4. Confirm the `submission-screenshots` Storage bucket is created by the SQL script.
 5. In Supabase Auth, enable Email/Password provider.
@@ -64,6 +65,16 @@ npm run build
 ```
 
 GitHub Actions CI now runs the same checks on push/PR.
+
+Staging abuse/idempotency verification:
+
+```bash
+STAGING_BASE_URL=https://your-staging-domain.com \
+STAGING_ADMIN_EMAIL=admin@example.com \
+STAGING_ADMIN_PASSWORD='your-admin-password' \
+STAGING_BEARER_TOKEN='optional-mobile-user-jwt' \
+npm run verify:staging
+```
 
 ## Mobile app (Phase 5)
 
@@ -125,6 +136,8 @@ Phase 5 batch 1 mobile APIs:
 - If Supabase env vars are missing, the app falls back to demo-friendly UI states.
 - Admin login now requires explicit `ADMIN_PASSWORD` and blocks insecure defaults.
 - API abuse protection now includes route-level rate limits for admin login, auth session, and submission create paths.
+- Rate limiting and idempotency automatically use Upstash Redis (when configured) and fall back to in-memory state in local/dev.
+- Write endpoints (`/api/submissions`, `/api/mobile/submissions`, `/api/redemptions`) now support `Idempotency-Key` to prevent duplicate writes.
 - Structured API logs now include request metadata and optional webhook forwarding via `ERROR_MONITOR_WEBHOOK_URL`.
 - Admin approval uses the SQL function `approve_submission` to mark the submission approved and insert reward coins atomically.
 - Reward redemption uses the SQL function `redeem_reward` to validate balance and insert a negative wallet transaction atomically.
