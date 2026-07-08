@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 
 import { hasUpstashRedisConfig } from "@/lib/supabase/env";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { runUpstashCommand } from "@/lib/upstash";
 
 type CompletedSnapshot = {
@@ -22,10 +23,26 @@ type LocalRecord = {
   snapshot: IdempotencySnapshot;
 };
 
+type PersistentIdempotencyRow = {
+  storage_key: string;
+  phase: "pending" | "done";
+  response_status: number | null;
+  response_body: unknown;
+  expires_at: string;
+};
+
 const localRecords = new Map<string, LocalRecord>();
 
 function buildStorageKey(namespace: string, actorId: string, key: string) {
   return `idem:${namespace}:${actorId}:${key}`;
+}
+
+function toIsoFromTtl(ttlMs: number) {
+  return new Date(Date.now() + ttlMs).toISOString();
+}
+
+function hashIdempotencyKey(value: string) {
+  return createHash("sha256").update(value).digest("hex");
 }
 
 function digestFallback(raw: string) {
@@ -62,6 +79,95 @@ async function readSnapshotDistributed(storageKey: string) {
   return safeParseSnapshot(String(raw));
 }
 
+async function readSnapshotPersistent(storageKey: string): Promise<IdempotencySnapshot | null> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return null;
+  }
+
+  const table = (admin.from("idempotency_keys" as never) as unknown) as {
+    select: (columns: string) => {
+      eq: (column: string, value: string) => {
+        maybeSingle: () => Promise<{ data: unknown; error: { code?: string; message: string } | null }>;
+      };
+    };
+  };
+
+  const { data, error } = await table
+    .select("storage_key, phase, response_status, response_body, expires_at")
+    .eq("storage_key", storageKey)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  const row = data as PersistentIdempotencyRow;
+  if (new Date(row.expires_at).getTime() <= Date.now()) {
+    return null;
+  }
+
+  if (row.phase === "pending") {
+    return {
+      phase: "pending",
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  return {
+    phase: "done",
+    status: row.response_status ?? 200,
+    body: row.response_body,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+async function claimPersistentPending(input: {
+  storageKey: string;
+  namespace: string;
+  actorId: string;
+  idempotencyKey: string;
+  ttlMs: number;
+}) {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return false;
+  }
+
+  const table = (admin.from("idempotency_keys" as never) as unknown) as {
+    delete: () => {
+      eq: (column: string, value: string) => {
+        lt: (column: string, value: string) => Promise<{ error: { message: string } | null }>;
+      };
+    };
+    insert: (payload: Record<string, unknown>) => Promise<{ error: { code?: string; message: string } | null }>;
+  };
+
+  await table
+    .delete()
+    .eq("storage_key", input.storageKey)
+    .lt("expires_at", new Date().toISOString());
+
+  const { error } = await table.insert({
+    storage_key: input.storageKey,
+    namespace: input.namespace,
+    actor_id: input.actorId,
+    idempotency_key_hash: hashIdempotencyKey(input.idempotencyKey),
+    phase: "pending",
+    backend: hasUpstashRedisConfig() ? "redis" : "database",
+    expires_at: toIsoFromTtl(input.ttlMs),
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      return false;
+    }
+    throw new Error(error.message);
+  }
+
+  return true;
+}
+
 function readSnapshotLocal(storageKey: string) {
   const record = localRecords.get(storageKey);
   if (!record) {
@@ -79,6 +185,41 @@ function readSnapshotLocal(storageKey: string) {
 async function writeSnapshotDistributed(storageKey: string, snapshot: IdempotencySnapshot, ttlMs: number) {
   const result = await runUpstashCommand(["SET", storageKey, JSON.stringify(snapshot), "PX", ttlMs, "XX"]);
   if (result === null) {
+    return false;
+  }
+
+  return true;
+}
+
+async function writeSnapshotPersistent(input: {
+  storageKey: string;
+  ttlMs: number;
+  snapshot: IdempotencySnapshot;
+}) {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return false;
+  }
+
+  const table = (admin.from("idempotency_keys" as never) as unknown) as {
+    update: (payload: Record<string, unknown>) => {
+      eq: (column: string, value: string) => Promise<{ error: { message: string } | null }>;
+    };
+  };
+
+  const payload: Record<string, unknown> = {
+    phase: input.snapshot.phase,
+    updated_at: new Date().toISOString(),
+    expires_at: toIsoFromTtl(input.ttlMs),
+  };
+
+  if (input.snapshot.phase === "done") {
+    payload.response_status = input.snapshot.status;
+    payload.response_body = input.snapshot.body;
+  }
+
+  const { error } = await table.update(payload).eq("storage_key", input.storageKey);
+  if (error) {
     return false;
   }
 
@@ -108,6 +249,40 @@ export async function beginIdempotentOperation(input: {
     phase: "pending",
     updatedAt: nowIso,
   };
+
+  const claimedPersistent = await claimPersistentPending({
+    storageKey,
+    namespace: input.namespace,
+    actorId: input.actorId,
+    idempotencyKey: operationKey,
+    ttlMs,
+  }).catch(() => null);
+
+  if (claimedPersistent) {
+    return {
+      mode: "proceed" as const,
+      storageKey,
+      ttlMs,
+      idempotencyKey: operationKey,
+    };
+  }
+
+  if (claimedPersistent === false) {
+    const persistedSnapshot = await readSnapshotPersistent(storageKey);
+    if (persistedSnapshot?.phase === "done") {
+      return {
+        mode: "replay" as const,
+        status: persistedSnapshot.status,
+        body: persistedSnapshot.body,
+        idempotencyKey: operationKey,
+      };
+    }
+
+    return {
+      mode: "inflight" as const,
+      idempotencyKey: operationKey,
+    };
+  }
 
   if (hasUpstashRedisConfig()) {
     const distributedSet = await runUpstashCommand(["SET", storageKey, JSON.stringify(pending), "PX", ttlMs, "NX"]).catch(() => null);
@@ -174,6 +349,16 @@ export async function finalizeIdempotentOperation(input: {
     body: input.body,
     updatedAt: new Date().toISOString(),
   };
+
+  const writtenPersistent = await writeSnapshotPersistent({
+    storageKey: input.storageKey,
+    ttlMs: input.ttlMs,
+    snapshot,
+  }).catch(() => false);
+
+  if (writtenPersistent) {
+    return;
+  }
 
   const writtenDistributed = hasUpstashRedisConfig()
     ? await writeSnapshotDistributed(input.storageKey, snapshot, input.ttlMs).catch(() => false)

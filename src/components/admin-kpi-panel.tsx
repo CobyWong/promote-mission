@@ -14,6 +14,9 @@ type KpiPayload = {
     unreadNotifications: number;
     approvedLast7d: number;
     errorsLast24h: number;
+    rateLimitedLast24h: number;
+    idempotencyReplayLast24h: number;
+    idempotencyInflightLast24h: number;
   };
 };
 
@@ -84,6 +87,12 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       approvals: "Approvals",
       redemptions: "Redemptions",
       notifications: "Notifications",
+      abuseSignals: "Abuse and replay signals (24h)",
+      rateLimited: "Rate-limited",
+      idempotencyReplays: "Idempotency replay",
+      idempotencyInflight: "Idempotency inflight",
+      recentAbuse: "Recent abuse/replay events",
+      noAbuseEvents: "No abuse/replay events yet.",
     }
     : {
       title: "Ops KPI 快照",
@@ -107,12 +116,19 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       approvals: "批核",
       redemptions: "兌換請求",
       notifications: "通知",
+      abuseSignals: "濫用與重播信號（24 小時）",
+      rateLimited: "限流命中",
+      idempotencyReplays: "冪等重播",
+      idempotencyInflight: "冪等進行中",
+      recentAbuse: "最近濫用／重播事件",
+      noAbuseEvents: "目前未有濫用／重播事件。",
     };
 
   const [kpi, setKpi] = useState<KpiPayload | null>(null);
   const [trends, setTrends] = useState<TrendPayload | null>(null);
   const [trendRange, setTrendRange] = useState<"24h" | "7d">("24h");
   const [logs, setLogs] = useState<LogItem[]>([]);
+  const [abuseLogs, setAbuseLogs] = useState<LogItem[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [hoveredPoint, setHoveredPoint] = useState<{
     x: number;
@@ -125,10 +141,13 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
   useEffect(() => {
     async function load() {
       setError(null);
-      const [kpiRes, trendRes, logRes] = await Promise.all([
+      const [kpiRes, trendRes, logRes, rateLimitedRes, replayRes, inflightRes] = await Promise.all([
         fetch("/api/admin/kpi", { cache: "no-store" }),
         fetch(`/api/admin/kpi/trends?range=${trendRange}`, { cache: "no-store" }),
         fetch("/api/admin/kpi/logs?level=error&limit=6", { cache: "no-store" }),
+        fetch("/api/admin/kpi/logs?level=all&eventSuffix=.rate_limited&limit=8", { cache: "no-store" }),
+        fetch("/api/admin/kpi/logs?level=all&eventSuffix=.idempotency_replay&limit=8", { cache: "no-store" }),
+        fetch("/api/admin/kpi/logs?level=all&eventSuffix=.idempotency_inflight&limit=8", { cache: "no-store" }),
       ]);
 
       if (!kpiRes.ok || !trendRes.ok || !logRes.ok) {
@@ -136,15 +155,22 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
         return;
       }
 
-      const [kpiResult, trendResult, logResult] = await Promise.all([
+      const [kpiResult, trendResult, logResult, rateLimitedResult, replayResult, inflightResult] = await Promise.all([
         kpiRes.json() as Promise<KpiPayload>,
         trendRes.json() as Promise<TrendPayload>,
         logRes.json() as Promise<{ logs: LogItem[] }>,
+        Promise.resolve(rateLimitedRes.ok ? rateLimitedRes.json() as Promise<{ logs: LogItem[] }> : { logs: [] }),
+        Promise.resolve(replayRes.ok ? replayRes.json() as Promise<{ logs: LogItem[] }> : { logs: [] }),
+        Promise.resolve(inflightRes.ok ? inflightRes.json() as Promise<{ logs: LogItem[] }> : { logs: [] }),
       ]);
 
       setKpi(kpiResult);
       setTrends(trendResult);
       setLogs(logResult.logs ?? []);
+      const mergedAbuse = [...(rateLimitedResult.logs ?? []), ...(replayResult.logs ?? []), ...(inflightResult.logs ?? [])]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 8);
+      setAbuseLogs(mergedAbuse);
     }
 
     load();
@@ -168,6 +194,9 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
     { label: t.unreadNotifications, value: kpi.kpis.unreadNotifications },
     { label: t.approvedLast7d, value: kpi.kpis.approvedLast7d },
     { label: t.errorsLast24h, value: kpi.kpis.errorsLast24h },
+    { label: t.rateLimited, value: kpi.kpis.rateLimitedLast24h },
+    { label: t.idempotencyReplays, value: kpi.kpis.idempotencyReplayLast24h },
+    { label: t.idempotencyInflight, value: kpi.kpis.idempotencyInflightLast24h },
   ];
 
   const trendSeries = trends?.series ?? [];
@@ -358,6 +387,21 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
               </span>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="glass-panel p-5">
+        <h3 className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.recentAbuse}</h3>
+        <div className="mt-3 space-y-2">
+          {abuseLogs.length === 0 ? (
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-300">{t.noAbuseEvents}</div>
+          ) : abuseLogs.map((log) => (
+            <div key={log.id} className="rounded-2xl border border-amber-300/20 bg-amber-300/10 px-4 py-3">
+              <p className="text-xs text-amber-200">{new Date(log.created_at).toLocaleString(locale === "en" ? "en-US" : "zh-HK")} · {log.event}</p>
+              <p className="mt-1 text-sm text-amber-100">{log.message ?? "(no message)"}</p>
+              {log.route ? <p className="mt-1 text-xs text-amber-200">{log.route}</p> : null}
+            </div>
+          ))}
         </div>
       </div>
 

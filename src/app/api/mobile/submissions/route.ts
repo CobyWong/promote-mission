@@ -404,10 +404,34 @@ export async function POST(request: Request) {
     });
 
     if (operation.mode === "replay") {
+      await logApiEvent({
+        level: "info",
+        route: "/api/mobile/submissions",
+        event: "mobile.submissions.idempotency_replay",
+        request,
+        requestId,
+        userId: user.id,
+        context: {
+          missionSlug: mission.slug,
+          idempotencyKey: operation.idempotencyKey,
+        },
+      });
       return NextResponse.json(operation.body as Record<string, unknown>, { status: operation.status });
     }
 
     if (operation.mode === "inflight") {
+      await logApiEvent({
+        level: "warn",
+        route: "/api/mobile/submissions",
+        event: "mobile.submissions.idempotency_inflight",
+        request,
+        requestId,
+        userId: user.id,
+        context: {
+          missionSlug: mission.slug,
+          idempotencyKey: operation.idempotencyKey,
+        },
+      });
       return NextResponse.json(
         { error: "A submission with the same idempotency key is already in progress." },
         { status: 409 },

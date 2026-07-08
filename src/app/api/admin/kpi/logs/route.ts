@@ -25,14 +25,19 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const level = (searchParams.get("level") ?? "error").toLowerCase();
+  const eventSuffix = (searchParams.get("eventSuffix") ?? "").trim();
   const limitValue = Number(searchParams.get("limit") ?? "20");
   const limit = Number.isNaN(limitValue) ? 20 : Math.min(Math.max(limitValue, 1), 100);
 
-  const query = admin
+  let query = admin
     .from("app_logs")
     .select("id, level, category, event, message, route, request_id, user_id, context, created_at")
     .order("created_at", { ascending: false })
     .limit(limit);
+
+  if (eventSuffix) {
+    query = query.like("event", `%${eventSuffix}`);
+  }
 
   const { data, error } = await (level === "all" ? query : query.eq("level", level));
 

@@ -18,6 +18,14 @@ export async function POST(request: Request) {
 
   if (!limiter.allowed) {
     const retryAfter = getRetryAfterSeconds(limiter.resetAt);
+    await createAppLog({
+      level: "warn",
+      category: "api",
+      event: "web.redemptions.rate_limited",
+      message: "Redemption endpoint rate-limited.",
+      route: "/api/redemptions",
+      context: { retryAfter },
+    });
     return NextResponse.json(
       { error: "Too many redemption attempts. Please try again shortly." },
       {
@@ -89,10 +97,32 @@ export async function POST(request: Request) {
   });
 
   if (operation.mode === "replay") {
+    await createAppLog({
+      level: "info",
+      category: "api",
+      event: "web.redemptions.idempotency_replay",
+      route: "/api/redemptions",
+      userId: user.id,
+      context: {
+        rewardSlug,
+        idempotencyKey: operation.idempotencyKey,
+      },
+    });
     return NextResponse.json(operation.body as Record<string, unknown>, { status: operation.status });
   }
 
   if (operation.mode === "inflight") {
+    await createAppLog({
+      level: "warn",
+      category: "api",
+      event: "web.redemptions.idempotency_inflight",
+      route: "/api/redemptions",
+      userId: user.id,
+      context: {
+        rewardSlug,
+        idempotencyKey: operation.idempotencyKey,
+      },
+    });
     return NextResponse.json(
       { error: "A redemption with the same idempotency key is already in progress." },
       { status: 409 },

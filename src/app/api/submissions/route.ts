@@ -6,6 +6,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
+import { createAppLog } from "@/lib/observability";
 
 export async function POST(request: Request) {
   const limiter = await evaluateRateLimit({
@@ -17,6 +18,14 @@ export async function POST(request: Request) {
 
   if (!limiter.allowed) {
     const retryAfter = getRetryAfterSeconds(limiter.resetAt);
+    await createAppLog({
+      level: "warn",
+      category: "api",
+      event: "web.submissions.rate_limited",
+      message: "Web submission endpoint rate-limited.",
+      route: "/api/submissions",
+      context: { retryAfter },
+    });
     return NextResponse.json(
       { error: "Too many submissions. Please wait and try again." },
       {
@@ -133,10 +142,32 @@ export async function POST(request: Request) {
   });
 
   if (operation.mode === "replay") {
+    await createAppLog({
+      level: "info",
+      category: "api",
+      event: "web.submissions.idempotency_replay",
+      route: "/api/submissions",
+      userId: user.id,
+      context: {
+        missionSlug: mission.slug,
+        idempotencyKey: operation.idempotencyKey,
+      },
+    });
     return NextResponse.json(operation.body as Record<string, unknown>, { status: operation.status });
   }
 
   if (operation.mode === "inflight") {
+    await createAppLog({
+      level: "warn",
+      category: "api",
+      event: "web.submissions.idempotency_inflight",
+      route: "/api/submissions",
+      userId: user.id,
+      context: {
+        missionSlug: mission.slug,
+        idempotencyKey: operation.idempotencyKey,
+      },
+    });
     return NextResponse.json(
       { error: "A submission with the same idempotency key is already in progress." },
       { status: 409 },

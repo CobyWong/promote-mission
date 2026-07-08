@@ -35,6 +35,9 @@ export async function GET() {
     { count: unreadNotifications },
     { count: error24h },
     { count: approved7d },
+    { count: rateLimited24h },
+    { count: idempotencyReplay24h },
+    { count: idempotencyInflight24h },
   ] = await Promise.all([
     admin.from("submissions").select("id", { count: "exact", head: true }).eq("status", "Pending"),
     admin
@@ -54,6 +57,9 @@ export async function GET() {
     admin.from("notifications").select("id", { count: "exact", head: true }).eq("is_read", false),
     admin.from("app_logs").select("id", { count: "exact", head: true }).eq("level", "error").gte("created_at", iso24h),
     admin.from("submissions").select("id", { count: "exact", head: true }).eq("status", "Approved").gte("reviewed_at", iso7d),
+    admin.from("app_logs").select("id", { count: "exact", head: true }).like("event", "%.rate_limited").gte("created_at", iso24h),
+    admin.from("app_logs").select("id", { count: "exact", head: true }).like("event", "%.idempotency_replay").gte("created_at", iso24h),
+    admin.from("app_logs").select("id", { count: "exact", head: true }).like("event", "%.idempotency_inflight").gte("created_at", iso24h),
   ]);
 
   return NextResponse.json({
@@ -66,6 +72,9 @@ export async function GET() {
       unreadNotifications: unreadNotifications ?? 0,
       approvedLast7d: approved7d ?? 0,
       errorsLast24h: error24h ?? 0,
+      rateLimitedLast24h: rateLimited24h ?? 0,
+      idempotencyReplayLast24h: idempotencyReplay24h ?? 0,
+      idempotencyInflightLast24h: idempotencyInflight24h ?? 0,
     },
   });
 }
