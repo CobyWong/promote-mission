@@ -4,6 +4,19 @@ const adminPassword = process.env.STAGING_ADMIN_PASSWORD?.trim();
 const bearerToken = process.env.STAGING_BEARER_TOKEN?.trim();
 const strictAuthSessionRateLimit = process.env.STRICT_AUTH_SESSION_RATE_LIMIT === "1";
 
+function getAdminRateLimitProbeEmail() {
+  if (!adminEmail) {
+    return "rate-limit-probe@example.com";
+  }
+
+  const [local, domain] = adminEmail.split("@");
+  if (!domain) {
+    return `rate-limit-probe+${Date.now()}@example.com`;
+  }
+
+  return `${local}+rate-limit-probe@${domain}`;
+}
+
 if (!baseUrl) {
   console.error("Missing STAGING_BASE_URL.");
   process.exit(1);
@@ -40,10 +53,11 @@ async function verifyAdminRateLimit() {
   }
 
   console.log("- Checking admin login rate limit...");
+  const probeEmail = getAdminRateLimitProbeEmail();
   let saw429 = false;
   for (let attempt = 0; attempt < 12; attempt += 1) {
     const result = await postJson("/api/admin/login", {
-      email: adminEmail,
+      email: probeEmail,
       password: "intentionally-wrong-password",
     });
 
