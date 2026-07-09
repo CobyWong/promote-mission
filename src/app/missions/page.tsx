@@ -83,33 +83,25 @@ export default async function MissionsPage() {
               ? "border-slate-500/50 bg-slate-900/30"
               : "border-cyan-300/35 bg-slate-900/35 hover:-translate-y-0.5 hover:border-cyan-200/65"
           }`;
-
-          if (locked) {
-            return (
-              <div key={section.key} className={`${sharedClass} cursor-not-allowed opacity-90`}>
+          return (
+            <Link key={section.key} href={`/missions/level/${section.key.toLowerCase()}`} className={sharedClass}>
+              <div className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${sectionAccent(section.key)} ${locked ? "opacity-45" : "opacity-80"}`} />
+              {locked ? (
                 <div className="pointer-events-none absolute inset-0">
                   <div className="absolute inset-4 rounded-2xl border border-slate-400/45" />
                   <div className="absolute left-1/2 top-1/2 h-[2px] w-[140%] -translate-x-1/2 -translate-y-1/2 rotate-[17deg] bg-slate-200/45" />
                   <div className="absolute left-1/2 top-1/2 h-[2px] w-[140%] -translate-x-1/2 -translate-y-1/2 -rotate-[17deg] bg-slate-200/45" />
                 </div>
-                <div className="relative mx-auto flex min-h-[150px] max-w-2xl flex-col items-center justify-center">
-                  <p className="text-4xl font-semibold text-slate-100 sm:text-5xl">{sectionLabel(section.key)} 🔒</p>
-                  <p className="mt-2 text-sm text-slate-400">{sectionSubLabel(section.key)}</p>
-                  <p className="mt-4 text-lg text-slate-200">
-                    {locale === "en" ? `Unlock at Lv.${section.requiredLevel}` : `達到 Lv.${section.requiredLevel} 後解鎖`}
-                  </p>
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <Link key={section.key} href={`/missions/level/${section.key.toLowerCase()}`} className={sharedClass}>
-              <div className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${sectionAccent(section.key)} opacity-80`} />
-              <div className="absolute right-6 top-6 text-2xl text-cyan-200/80 transition group-hover:scale-110">{sectionIcon(section.key)}</div>
+              ) : null}
+              <div className="absolute right-6 top-6 text-2xl text-cyan-200/80 transition group-hover:scale-110">{locked ? "🔒" : sectionIcon(section.key)}</div>
               <div className="relative mx-auto flex min-h-[150px] max-w-2xl flex-col items-center justify-center">
                 <p className="text-4xl font-semibold text-slate-100 sm:text-5xl">{sectionLabel(section.key)}</p>
                 <p className="mt-2 text-sm text-slate-300">{sectionSubLabel(section.key)}</p>
+                {locked ? (
+                  <p className="mt-4 text-sm font-semibold text-amber-200">
+                    {locale === "en" ? `Preview available · Unlock missions at Lv.${section.requiredLevel}` : `可先預覽任務 · 達到 Lv.${section.requiredLevel} 後可接任務`}
+                  </p>
+                ) : null}
               </div>
             </Link>
           );

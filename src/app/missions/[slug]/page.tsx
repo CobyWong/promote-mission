@@ -60,15 +60,13 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Reward" : "獎勵"}</p>
               <p className="mt-2 text-2xl font-semibold text-cyan-300">
-                {isLevelLocked
-                  ? (locale === "en" ? "Unlock required" : "需解鎖後查看")
-                  : `#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
+                {`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
               </p>
               <p className="mt-2 text-xs text-slate-400">
                 {isLevelLocked
                   ? (locale === "en"
-                    ? `Reach Lv.${requiredLevel} to view ranking rewards.`
-                    : `達到 Lv.${requiredLevel} 後可查看排名獎勵。`)
+                    ? `Rewards are visible now, but you need Lv.${requiredLevel} to accept this mission.`
+                    : `獎勵現已可見，但需達到 Lv.${requiredLevel} 才可接取任務。`)
                   : (locale === "en"
                     ? `Split by likes ranking from total pool HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`
                     : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`)}

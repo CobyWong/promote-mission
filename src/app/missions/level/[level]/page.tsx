@@ -37,22 +37,6 @@ export default async function MissionLevelPage({ params }: { params: Promise<{ l
   const requiredLevel = DIFFICULTY_REQUIRED_LEVEL[selectedLevel];
   const isLocked = userLevel < requiredLevel;
 
-  if (isLocked) {
-    return (
-      <section className="section-shell py-10 sm:py-12">
-        <div className="mx-auto max-w-3xl rounded-3xl border border-amber-300/35 bg-amber-300/10 px-8 py-12 text-center">
-          <h1 className="text-4xl font-semibold text-amber-100">{getSectionLabel(selectedLevel, locale)} 🔒</h1>
-          <p className="mt-4 text-lg text-amber-200">
-            {locale === "en" ? `This zone unlocks at Lv.${requiredLevel}.` : `此任務區需達到 Lv.${requiredLevel} 才可進入。`}
-          </p>
-          <Link href="/missions" className="mt-6 inline-flex rounded-full border border-amber-300/50 px-5 py-2 text-sm font-semibold text-amber-100 transition hover:border-amber-200">
-            {locale === "en" ? "Back to mission zones" : "返回任務分區"}
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
   const levelMissions = missionCatalog.missions.filter((mission) => getMissionRequiredLevel(mission.difficulty) === requiredLevel);
 
   return (
@@ -66,6 +50,13 @@ export default async function MissionLevelPage({ params }: { params: Promise<{ l
               ? "Choose missions in this difficulty zone and start creating."
               : "請選擇此難度分區任務並開始創作。"}
           </p>
+          {isLocked ? (
+            <p className="mt-3 inline-flex rounded-full border border-amber-300/45 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-200">
+              {locale === "en"
+                ? `Preview enabled. Accepting missions unlocks at Lv.${requiredLevel}.`
+                : `現可預覽任務；達到 Lv.${requiredLevel} 後方可接取。`}
+            </p>
+          ) : null}
         </div>
 
         <Link href="/missions" className="rounded-full border border-slate-500/70 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:border-slate-300">

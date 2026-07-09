@@ -82,11 +82,11 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
         <div className="mt-3 grid grid-cols-2 gap-2.5">
           <div className="tactical-subcard px-3 py-2.5">
             <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{locale === "en" ? "Top prize" : "最高獎勵"}</p>
-            <p className="mt-1 text-[1.45rem] font-black leading-none text-amber-300">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
+            <p className="mt-1 text-[1.45rem] font-black leading-none text-amber-300">{`HK$${rewards.totalPrize.toLocaleString()}`}</p>
           </div>
           <div className="tactical-subcard px-3 py-2.5">
             <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{locale === "en" ? "Reward" : "參加獎勵"}</p>
-            <p className="mt-1 text-[1.45rem] font-black leading-none text-amber-200">{isLocked ? "???" : `${mission.points.toLocaleString()}`}</p>
+            <p className="mt-1 text-[1.45rem] font-black leading-none text-amber-200">{`${mission.points.toLocaleString()}`}</p>
             <p className="mt-0.5 text-[11px] font-semibold text-slate-400">{locale === "en" ? "Coins" : "金幣"}</p>
           </div>
         </div>
@@ -123,33 +123,28 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
           </p>
         ) : null}
 
-        {!isLocked ? (
-          <p className="mt-2 line-clamp-1 text-xs text-slate-400">{productLabel} · {mission.description}</p>
-        ) : (
-          <p className="mt-2 line-clamp-1 text-xs text-amber-200">
+        <p className="mt-2 line-clamp-1 text-xs text-slate-400">{productLabel} · {mission.description}</p>
+        {isLocked ? (
+          <p className="mt-1 line-clamp-1 text-xs text-amber-200">
             {locale === "en"
-              ? `Level up to Lv.${requiredLevel} to unlock mission details.`
-              : `升級至 Lv.${requiredLevel} 後可查看任務詳情。`}
+              ? `Locked for acceptance until Lv.${requiredLevel}.`
+              : `需達 Lv.${requiredLevel} 才可接取。`}
           </p>
-        )}
+        ) : null}
 
         <div className="mt-3">
-          {isLocked ? (
-            <button
-              type="button"
-              disabled
-                className="flex h-11 w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-600 bg-slate-800 px-4 text-base font-bold text-slate-500"
-            >
-              {locale === "en" ? `Unlock at Lv.${requiredLevel}` : `Lv.${requiredLevel} 解鎖`}
-            </button>
-          ) : (
-            <Link
-              href={`/missions/${mission.slug}`}
-                className="tactical-btn-primary flex h-11 w-full px-4 text-base"
-            >
-              {locale === "en" ? "Start now" : "查看任務"}
-            </Link>
-          )}
+          <Link
+            href={`/missions/${mission.slug}`}
+            className={`flex h-11 w-full items-center justify-center rounded-xl border px-4 text-base font-bold ${
+              isLocked
+                ? "border-amber-300/45 bg-amber-300/12 text-amber-100 hover:bg-amber-300/20"
+                : "tactical-btn-primary"
+            }`}
+          >
+            {isLocked
+              ? (locale === "en" ? `Preview mission (Lv.${requiredLevel} to accept)` : `查看任務（Lv.${requiredLevel} 才可接取）`)
+              : (locale === "en" ? "Start now" : "查看任務")}
+          </Link>
         </div>
       </article>
     );
@@ -172,11 +167,11 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
       <div className="border-y border-slate-700/80 px-4 py-3 sm:px-5 sm:py-4">
         <div className="flex items-end justify-between gap-3">
           <p className="text-base font-semibold text-slate-400 sm:text-xl">{locale === "en" ? "Total prize pool" : "總獎金池"}</p>
-          <p className="text-[1.65rem] font-black text-amber-300 sm:text-[2rem]">{isLocked ? "???" : `HK$${rewards.totalPrize.toLocaleString()}`}</p>
+          <p className="text-[1.65rem] font-black text-amber-300 sm:text-[2rem]">{`HK$${rewards.totalPrize.toLocaleString()}`}</p>
         </div>
         <div className="mt-2.5 flex items-center justify-between border-t border-slate-700/80 pt-2.5 sm:mt-3 sm:pt-3">
           <p className="text-sm font-semibold text-slate-400 sm:text-lg">{locale === "en" ? "Participation reward" : "參加獎勵"}</p>
-          <p className="text-lg font-black text-amber-200 sm:text-xl">{isLocked ? "???" : `${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`}</p>
+          <p className="text-lg font-black text-amber-200 sm:text-xl">{`${mission.points.toLocaleString()} ${locale === "en" ? "Coins" : "金幣"}`}</p>
         </div>
         <p className="mt-2 text-[11px] text-slate-400 sm:text-xs">
           {locale === "en" ? "Coins can be used to redeem rewards in the reward shop." : "金幣可用於獎賞商城兌換獎勵。"}
@@ -196,43 +191,43 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
         {isLocked ? (
           <p className="rounded-xl border border-amber-300/50 bg-amber-300/12 px-3 py-2 text-sm font-medium text-amber-200">
             {locale === "en"
-              ? `Rewards and details are hidden. Level up to Lv.${requiredLevel} to unlock this mission.`
-              : `獎勵與詳情已隱藏，升級到 Lv.${requiredLevel} 後即可解鎖。`}
+              ? `You can preview this mission now, but accepting is locked until Lv.${requiredLevel}.`
+              : `你可以先預覽任務，但需達 Lv.${requiredLevel} 才可接取。`}
           </p>
-        ) : (
-          <>
-            <div className={`${compactMobile ? "hidden sm:block" : "block"} tactical-subcard px-3 py-2 text-sm text-slate-300`}>
-              {locale === "en"
-                ? `Ranking split: #1 60% (HK$${rewards.first.toLocaleString()}) · #2 30% (HK$${rewards.second.toLocaleString()}) · #3 10% (HK$${rewards.third.toLocaleString()})`
-                : `排名派彩：第 1 名 60%（HK$${rewards.first.toLocaleString()}） · 第 2 名 30%（HK$${rewards.second.toLocaleString()}） · 第 3 名 10%（HK$${rewards.third.toLocaleString()}）`}
-            </div>
-            <div className={`${compactMobile ? "hidden sm:block" : "block"} space-y-2`}>
-              <p className="text-sm text-slate-400">{locale === "en" ? "Top creators" : "頂尖創作者"}</p>
-              {rankingEntries.length > 0 ? (
-                rankingEntries.map((entry) => (
-                  <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-300">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-300/20 text-xs font-bold text-amber-200">{entry.rank}</span>
-                      <a
-                        href={entry.reelUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
-                      >
-                        {entry.handle}
-                      </a>
-                    </div>
-                    <span className="text-slate-400">{entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}</span>
+        ) : null}
+
+        <>
+          <div className={`${compactMobile ? "hidden sm:block" : "block"} tactical-subcard px-3 py-2 text-sm text-slate-300`}>
+            {locale === "en"
+              ? `Ranking split: #1 60% (HK$${rewards.first.toLocaleString()}) · #2 30% (HK$${rewards.second.toLocaleString()}) · #3 10% (HK$${rewards.third.toLocaleString()})`
+              : `排名派彩：第 1 名 60%（HK$${rewards.first.toLocaleString()}） · 第 2 名 30%（HK$${rewards.second.toLocaleString()}） · 第 3 名 10%（HK$${rewards.third.toLocaleString()}）`}
+          </div>
+          <div className={`${compactMobile ? "hidden sm:block" : "block"} space-y-2`}>
+            <p className="text-sm text-slate-400">{locale === "en" ? "Top creators" : "頂尖創作者"}</p>
+            {rankingEntries.length > 0 ? (
+              rankingEntries.map((entry) => (
+                <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber-300/20 text-xs font-bold text-amber-200">{entry.rank}</span>
+                    <a
+                      href={entry.reelUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
+                    >
+                      {entry.handle}
+                    </a>
                   </div>
-                ))
-              ) : (
-                <div className="rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-400">
-                  {locale === "en" ? "No top creators yet." : "目前尚無頂尖創作者資料。"}
+                  <span className="text-slate-400">{entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}</span>
                 </div>
-              )}
-            </div>
-          </>
-        )}
+              ))
+            ) : (
+              <div className="rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-400">
+                {locale === "en" ? "No top creators yet." : "目前尚無頂尖創作者資料。"}
+              </div>
+            )}
+          </div>
+        </>
 
         {(mission.minParticipants ?? 0) > 0 ? (
           <div className="text-xs text-slate-400">
@@ -240,26 +235,22 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
           </div>
         ) : null}
 
-        {!isLocked ? <p className={`${compactMobile ? "line-clamp-1 sm:line-clamp-2" : "line-clamp-2"} text-xs leading-5 text-slate-400`}>{productLabel} · {mission.description}</p> : null}
+        <p className={`${compactMobile ? "line-clamp-1 sm:line-clamp-2" : "line-clamp-2"} text-xs leading-5 text-slate-400`}>{productLabel} · {mission.description}</p>
       </div>
 
       <div className="mt-auto border-t border-slate-700/80 p-3.5 sm:p-4">
-        {isLocked ? (
-          <button
-            type="button"
-            disabled
-            className="flex h-10 w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-600 bg-slate-800 px-4 text-base font-semibold text-slate-500 sm:h-12 sm:px-5 sm:text-lg"
-          >
-            {locale === "en" ? `Level up to unlock (Lv.${requiredLevel})` : `升級至 Lv.${requiredLevel} 解鎖`}
-          </button>
-        ) : (
-          <Link
-            href={`/missions/${mission.slug}`}
-            className="tactical-btn-primary flex h-10 w-full px-4 text-base sm:h-12 sm:px-5 sm:text-lg"
-          >
-            {locale === "en" ? "Join campaign" : "參與活動"}
-          </Link>
-        )}
+        <Link
+          href={`/missions/${mission.slug}`}
+          className={`flex h-10 w-full items-center justify-center rounded-xl px-4 text-base font-semibold sm:h-12 sm:px-5 sm:text-lg ${
+            isLocked
+              ? "border border-amber-300/45 bg-amber-300/12 text-amber-100 hover:bg-amber-300/20"
+              : "tactical-btn-primary"
+          }`}
+        >
+          {isLocked
+            ? (locale === "en" ? `Preview mission (Lv.${requiredLevel} to accept)` : `查看任務（Lv.${requiredLevel} 才可接取）`)
+            : (locale === "en" ? "Join campaign" : "參與活動")}
+        </Link>
       </div>
     </article>
   );
