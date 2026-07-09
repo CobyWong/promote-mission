@@ -19,6 +19,40 @@ type RewardShopClientProps = {
 type RewardSortKey = "recommended" | "priceAsc" | "priceDesc" | "levelAsc";
 type RewardFilterKey = "all" | "affordable" | "unlockable";
 
+function getRewardVisualMeta(reward: Reward, locale: Locale) {
+  const name = `${reward.name} ${reward.slug}`.toLowerCase();
+
+  if (name.includes("usdt")) {
+    return {
+      icon: "₮",
+      overline: locale === "en" ? "Digital payout" : "數位獎賞",
+      gradient: "from-emerald-300/25 via-cyan-300/10 to-transparent",
+    };
+  }
+
+  if (name.includes("voucher") || name.includes("禮券") || name.includes("hks100")) {
+    return {
+      icon: "券",
+      overline: locale === "en" ? "Instant voucher" : "即時禮券",
+      gradient: "from-amber-300/20 via-lime-300/10 to-transparent",
+    };
+  }
+
+  if (name.includes("airpods") || name.includes("sony") || name.includes("headphone")) {
+    return {
+      icon: "♪",
+      overline: locale === "en" ? "Creator gear" : "創作裝備",
+      gradient: "from-violet-300/22 via-cyan-300/10 to-transparent",
+    };
+  }
+
+  return {
+    icon: reward.name.trim().charAt(0).toUpperCase() || "R",
+    overline: locale === "en" ? "Featured reward" : "精選獎賞",
+    gradient: "from-cyan-300/16 via-slate-900/5 to-transparent",
+  };
+}
+
 function createIdempotencyKey(namespace: string, rewardSlug: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${namespace}:${rewardSlug}:${crypto.randomUUID()}`;
@@ -81,6 +115,8 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       unavailable: "Unavailable",
       emptyTitle: "No matching rewards",
       emptyDesc: "Try another search keyword or filter.",
+      estDelivery: "Est. delivery",
+      secureRedemption: "Secure redemption",
     }
     : {
       walletTitle: "我的錢包",
@@ -111,6 +147,8 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       unavailable: "暫時不可兌換",
       emptyTitle: "沒有符合條件的商品",
       emptyDesc: "請嘗試其他搜尋關鍵字或篩選條件。",
+      estDelivery: "預計送達",
+      secureRedemption: "安全兌換",
     };
 
   const statusLabel = (status: string) => {
@@ -338,7 +376,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
           const hasRequiredLevel = userLevel >= minLevel;
           const canRedeem = hasEnoughCoins && hasStock && hasRequiredLevel;
 
-          const rewardInitial = reward.name.trim().charAt(0).toUpperCase() || "R";
+          const rewardVisual = getRewardVisualMeta(reward, locale);
           const etaLabel = reward.eta ?? t.etaFallback;
           const stockLabel = reward.stock ?? "∞";
           const stateTag = !hasStock
@@ -350,25 +388,31 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                 : t.redeemNow;
 
           return (
-            <article key={reward.slug} className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45">
-              <div className="relative overflow-hidden px-5 pb-4 pt-5">
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/16 via-transparent to-slate-900/10" />
-                <div className="relative flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-lg font-bold text-cyan-100">
-                      {rewardInitial}
-                    </div>
-                    <div className="min-w-0">
-                      <h3 className="text-[1.65rem] font-bold leading-tight text-slate-100">{reward.name}</h3>
-                      <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
-                    </div>
+            <article key={reward.slug} className="overflow-hidden rounded-[1.7rem] border border-slate-500/70 bg-[#1c2937]/78 shadow-[0_20px_42px_rgba(7,12,20,0.28)] transition hover:-translate-y-1 hover:border-cyan-300/45">
+              <div className="relative overflow-hidden border-b border-slate-500/60 p-5">
+                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${rewardVisual.gradient}`} />
+                <div className="relative">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-100/85">
+                      {rewardVisual.overline}
+                    </span>
+                    <span className="inline-flex shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2.5 py-1 text-xs font-semibold text-slate-200">
+                      {stateTag}
+                    </span>
                   </div>
-                  <span className="inline-flex shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2.5 py-1 text-xs font-semibold text-slate-200">
-                    {stateTag}
-                  </span>
-                </div>
 
-                <div className="relative mt-4 flex flex-wrap items-center gap-2">
+                  <div className="mt-3 flex h-36 items-end justify-between rounded-2xl border border-slate-400/50 bg-slate-900/35 p-4">
+                    <div>
+                      <h3 className="text-[1.55rem] font-bold leading-tight text-slate-100">{reward.name}</h3>
+                      <p className="mt-1 max-w-[32ch] text-sm text-slate-300">{reward.description}</p>
+                    </div>
+                    <div className="text-5xl font-black leading-none text-cyan-100/85">{rewardVisual.icon}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-5 py-4">
+                <div className="flex items-center gap-2 pb-3">
                   {reward.badge ? (
                     <span className="tactical-chip">
                       {reward.badge}
@@ -378,33 +422,31 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                     {t.unlockLevel}: Lv.{minLevel}
                   </span>
                 </div>
-              </div>
 
-              <div className="border-t border-slate-600/60 bg-slate-900/35 px-5 py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-3 border-t border-slate-500/55 pt-3">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-400">{locale === "en" ? "Price" : "售價"}</p>
-                    <p className="mt-1 text-4xl font-black leading-none text-amber-200">{reward.cost.toLocaleString()}</p>
+                    <p className="mt-1 text-[2.25rem] font-black leading-none text-amber-200">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
+                  <div className="h-16 w-px bg-slate-500/55" />
                   <div className="text-right">
                     <p className="text-xs uppercase tracking-wide text-slate-400">{t.stock}</p>
-                    <p className="mt-1 text-4xl font-black leading-none text-slate-100">{stockLabel}</p>
-                    <p className="mt-1 text-xs text-slate-400">{etaLabel}</p>
+                    <p className="mt-1 text-[2.25rem] font-black leading-none text-slate-100">{stockLabel}</p>
+                    <p className="mt-1 text-xs text-slate-400">{t.estDelivery} · {etaLabel}</p>
                   </div>
                 </div>
-              </div>
 
-              <div className="px-5 pb-5 pt-3">
-                <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
-                  <span>{etaLabel}</span>
-                  <span>{t.stock} {stockLabel}</span>
+                <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                  <span>{t.estDelivery}: {etaLabel}</span>
+                  <span>{t.secureRedemption}</span>
                 </div>
+
                 <button
                   type="button"
                   disabled={!canRedeem || pendingSlug === reward.slug}
                   onClick={() => handleRedeem(reward)}
-                  className="tactical-btn-primary h-12 w-full rounded-2xl px-5 text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
+                  className="tactical-btn-primary mt-3 h-12 w-full rounded-2xl px-5 text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
                 >
                   {pendingSlug === reward.slug
                     ? t.redeeming
