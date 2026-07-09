@@ -171,6 +171,17 @@ Scheduled funnel alert monitor:
 - Required repository secrets: `STAGING_BASE_URL`, `STAGING_ADMIN_EMAIL`, `STAGING_ADMIN_PASSWORD`
 - Runs hourly and can be triggered manually with `failOnWarn` input (`0` or `1`).
 
+Manual mobile smoke workflow:
+
+- Workflow file: `.github/workflows/mobile-smoke.yml`
+- Trigger: `workflow_dispatch`
+- Inputs:
+	- `target`: `staging` or `production`
+	- `requireAuthChecks`: `1` or `0`
+- Required repository secrets:
+	- Staging: `STAGING_BASE_URL` (and `STAGING_BEARER_TOKEN` when `requireAuthChecks=1`)
+	- Production: `PROD_BASE_URL` (and `PROD_MOBILE_BEARER_TOKEN` when `requireAuthChecks=1`)
+
 Web E2E smoke test (accept -> submit -> approve -> redeem):
 
 ```bash

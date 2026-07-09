@@ -21,13 +21,16 @@ Required environment variables and secrets:
 - FUNNEL_ALERT_APPROVE_DROP_PCT
 - FUNNEL_ALERT_REDEEM_DROP_PCT
 
-Required GitHub secrets for scheduled jobs:
+Required GitHub secrets for scheduled/manual workflows:
 
 - CLEANUP_ENDPOINT_URL
 - CLEANUP_CRON_TOKEN
 - STAGING_BASE_URL
 - STAGING_ADMIN_EMAIL
 - STAGING_ADMIN_PASSWORD
+- STAGING_BEARER_TOKEN (for authenticated mobile smoke checks)
+- PROD_BASE_URL (for production mobile smoke workflow)
+- PROD_MOBILE_BEARER_TOKEN (for authenticated production mobile smoke checks)
 - STAGING_BEARER_TOKEN (recommended for authenticated mobile smoke checks)
 
 ## 1) Local quality gate
@@ -122,6 +125,7 @@ Optional strict redeem gate:
 3. Trigger workflow manually if needed:
    - Funnel Alerts workflow
    - Idempotency Cleanup workflow
+    - Mobile Smoke workflow
 
 Staging go/no-go:
 
