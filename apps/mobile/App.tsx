@@ -19,6 +19,7 @@ import {
 } from "react-native";
 
 import { API_BASE_URL, ApiRequestError, fetchJson, postJson } from "./src/lib/api";
+import { mobileConfig } from "./src/lib/config";
 import { registerSubmissionUploadBackgroundTask } from "./src/lib/submission-upload-worker";
 import { hasSupabaseMobileConfig, supabase } from "./src/lib/supabase";
 import { mobileTheme } from "./src/theme/mobile";
@@ -2356,6 +2357,7 @@ export default function App() {
         ) : null}
 
         <Text style={styles.footer}>API base URL: {API_BASE_URL}</Text>
+        <Text style={styles.footer}>Environment: {mobileConfig.appEnvironment}</Text>
       </ScrollView>
     </SafeAreaView>
   );

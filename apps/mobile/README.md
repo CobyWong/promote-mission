@@ -21,10 +21,25 @@ cp .env.example .env.local
 - Android emulator: `http://10.0.2.2:3000`
 - Physical device: `http://<your-lan-ip>:3000`
 
+Set mobile app environment in `.env.local`:
+
+- Local dev: `EXPO_PUBLIC_APP_ENV=development`
+- Staging builds: `EXPO_PUBLIC_APP_ENV=staging`
+- Production builds: `EXPO_PUBLIC_APP_ENV=production`
+
 3. Add Supabase public values in `.env.local`:
 
 - `EXPO_PUBLIC_SUPABASE_URL`
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+
+Example `.env.local` for staging:
+
+```bash
+EXPO_PUBLIC_APP_ENV=staging
+EXPO_PUBLIC_API_BASE_URL=https://your-staging-domain.com
+EXPO_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
 ## Run
 

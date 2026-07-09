@@ -1,4 +1,6 @@
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? "http://localhost:3000";
+import { mobileConfig } from "./config";
+
+export const API_BASE_URL = mobileConfig.apiBaseUrl;
 
 const DEFAULT_TIMEOUT_MS = 12000;
 const DEFAULT_INITIAL_RETRY_DELAY_MS = 400;
