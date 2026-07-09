@@ -181,6 +181,8 @@ Manual mobile smoke workflow:
 - Required repository secrets:
 	- Staging: `STAGING_BASE_URL` (and `STAGING_BEARER_TOKEN` when `requireAuthChecks=1`)
 	- Production: `PROD_BASE_URL` (and `PROD_MOBILE_BEARER_TOKEN` when `requireAuthChecks=1`)
+- Scheduled run: every 2 hours against staging.
+- Failure behavior: writes a standardized "Mobile Smoke Alert" summary to workflow run output.
 
 Web E2E smoke test (accept -> submit -> approve -> redeem):
 

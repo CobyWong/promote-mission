@@ -127,6 +127,11 @@ Optional strict redeem gate:
    - Idempotency Cleanup workflow
     - Mobile Smoke workflow
 
+Mobile Smoke automation:
+
+- `.github/workflows/mobile-smoke.yml` runs every 2 hours (staging target).
+- On failure it emits a standardized "Mobile Smoke Alert" summary with runbook and incident-comms references.
+
 Staging go/no-go:
 
 - GO if all checks pass and no critical funnel alerts.

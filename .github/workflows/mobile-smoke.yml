@@ -1,6 +1,8 @@
 name: Mobile Smoke
 
 on:
+  schedule:
+    - cron: "23 */2 * * *"
   workflow_dispatch:
     inputs:
       target:
@@ -33,8 +35,9 @@ jobs:
 
       - name: Resolve target environment variables
         env:
-          TARGET_ENV: ${{ github.event.inputs.target || 'staging' }}
-          REQUIRE_AUTH: ${{ github.event.inputs.requireAuthChecks || '1' }}
+          EVENT_NAME: ${{ github.event_name }}
+          TARGET_ENV_INPUT: ${{ github.event.inputs.target || 'staging' }}
+          REQUIRE_AUTH_INPUT: ${{ github.event.inputs.requireAuthChecks || '1' }}
           STAGING_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
           STAGING_BEARER_TOKEN: ${{ secrets.STAGING_BEARER_TOKEN }}
           PROD_BASE_URL: ${{ secrets.PROD_BASE_URL }}
@@ -42,7 +45,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          target="${TARGET_ENV}"
+          target="${TARGET_ENV_INPUT}"
+          require_auth="${REQUIRE_AUTH_INPUT}"
+
+          if [[ "${EVENT_NAME}" == "schedule" ]]; then
+            target="staging"
+            require_auth="1"
+          fi
+
           if [[ "${target}" == "production" ]]; then
             base_url="${PROD_BASE_URL}"
             token="${PROD_MOBILE_BEARER_TOKEN}"
@@ -56,19 +66,46 @@ jobs:
             exit 1
           fi
 
-          if [[ "${REQUIRE_AUTH}" == "1" && -z "${token}" ]]; then
+          if [[ "${require_auth}" == "1" && -z "${token}" ]]; then
             echo "Authenticated checks required but token secret is missing for target=${target}."
             exit 1
           fi
 
-          if [[ "${REQUIRE_AUTH}" != "1" ]]; then
+          if [[ "${require_auth}" != "1" ]]; then
             token=""
           fi
 
           {
+            echo "MOBILE_SMOKE_TARGET=${target}"
+            echo "MOBILE_SMOKE_REQUIRE_AUTH=${require_auth}"
             echo "MOBILE_SMOKE_BASE_URL=${base_url}"
             echo "MOBILE_SMOKE_BEARER_TOKEN=${token}"
           } >> "$GITHUB_ENV"
 
+      - name: Run header
+        run: |
+          {
+            echo "## Mobile Smoke Run"
+            echo "- target: ${MOBILE_SMOKE_TARGET}"
+            echo "- auth checks: ${MOBILE_SMOKE_REQUIRE_AUTH}"
+            echo "- base URL: ${MOBILE_SMOKE_BASE_URL}"
+            echo "- trigger: ${{ github.event_name }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run mobile smoke checks
         run: npm run verify:mobile:smoke
+
+      - name: Failure alert summary
+        if: failure()
+        run: |
+          echo "::error::Mobile smoke failed for target=${MOBILE_SMOKE_TARGET}. Follow release runbook and incident communication playbook."
+
+          {
+            echo "## Mobile Smoke Alert"
+            echo "- status: failed"
+            echo "- target: ${MOBILE_SMOKE_TARGET}"
+            echo "- trigger: ${{ github.event_name }}"
+            echo "- runbook: docs/ops/release-checklist-staging-production.md"
+            echo "- comms: docs/ops/incident-communication-playbook.md"
+            echo "- retry command: MOBILE_SMOKE_BASE_URL=${MOBILE_SMOKE_BASE_URL} npm run verify:mobile:smoke"
+          } >> "$GITHUB_STEP_SUMMARY"
