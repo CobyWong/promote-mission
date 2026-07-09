@@ -1,4 +1,5 @@
 import { mobileConfig } from "./config";
+import { trackApiError, trackPerformance } from "./telemetry";
 
 export const API_BASE_URL = mobileConfig.apiBaseUrl;
 
@@ -191,6 +192,7 @@ async function requestJson<T>(
   const retryDelaysMs: number[] = [];
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const startedAt = Date.now();
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -228,6 +230,15 @@ async function requestJson<T>(
         });
       }
 
+      const durationMs = Date.now() - startedAt;
+      trackPerformance("api.request", durationMs, {
+        path,
+        method,
+        status: response.status,
+        attempt: attempt + 1,
+        maxAttempts,
+      });
+
       return (await response.json()) as T;
     } catch (error) {
       const isAbort = error instanceof Error && error.name === "AbortError";
@@ -242,10 +253,25 @@ async function requestJson<T>(
       }
 
       if (error instanceof ApiRequestError) {
+        trackApiError(
+          "api.request",
+          {
+            code: error.code,
+            status: error.status,
+            path: error.path,
+            method: error.method,
+            attempt: error.attempt,
+            maxAttempts: error.maxAttempts,
+            retryable: error.retryable,
+            retryDelaysMs: error.retryDelaysMs,
+            requestId: error.requestId,
+          },
+          error.message,
+        );
         throw error;
       }
 
-      throw new ApiRequestError(
+      const normalizedError = new ApiRequestError(
         isAbort ? "Request timed out. Check your connection and try again." : "Network request failed.",
         {
           status: 0,
@@ -260,6 +286,24 @@ async function requestJson<T>(
           retryDelaysMs,
         },
       );
+
+      trackApiError(
+        "api.request",
+        {
+          code: normalizedError.code,
+          status: normalizedError.status,
+          path: normalizedError.path,
+          method: normalizedError.method,
+          attempt: normalizedError.attempt,
+          maxAttempts: normalizedError.maxAttempts,
+          retryable: normalizedError.retryable,
+          retryDelaysMs: normalizedError.retryDelaysMs,
+          requestId: normalizedError.requestId,
+        },
+        normalizedError.message,
+      );
+
+      throw normalizedError;
     } finally {
       clearTimeout(timer);
     }

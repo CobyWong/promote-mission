@@ -39,7 +39,18 @@ EXPO_PUBLIC_APP_ENV=staging
 EXPO_PUBLIC_API_BASE_URL=https://your-staging-domain.com
 EXPO_PUBLIC_SUPABASE_URL=https://your-supabase-project.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+EXPO_PUBLIC_TELEMETRY_ENABLED=true
+EXPO_PUBLIC_MOBILE_TELEMETRY_ENDPOINT=https://your-observability-endpoint.example.com/mobile-events
+EXPO_PUBLIC_TELEMETRY_ERROR_SAMPLE_RATE=1
+EXPO_PUBLIC_TELEMETRY_PERF_SAMPLE_RATE=0.3
 ```
+
+Telemetry notes:
+
+- Global runtime errors are captured via a global error handler.
+- React render/runtime crashes are captured via app-level Error Boundary.
+- API request failures and request duration are emitted as telemetry events.
+- Keep performance sample rate low (for example `0.1` to `0.3`) in production.
 
 ## Run
 

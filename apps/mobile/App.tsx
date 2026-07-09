@@ -2,7 +2,7 @@ import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
 import * as LegacyFileSystem from "expo-file-system/legacy";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   AppState,
@@ -22,6 +22,7 @@ import { API_BASE_URL, ApiRequestError, fetchJson, getUserFacingApiErrorMessage,
 import { mobileConfig } from "./src/lib/config";
 import { registerSubmissionUploadBackgroundTask } from "./src/lib/submission-upload-worker";
 import { hasSupabaseMobileConfig, supabase } from "./src/lib/supabase";
+import { installGlobalErrorHandler, trackApiError, trackAppError } from "./src/lib/telemetry";
 import { mobileTheme } from "./src/theme/mobile";
 
 type MobileMissionListItem = {
@@ -362,18 +363,21 @@ function reportApiErrorDiagnostics(error: unknown, scope: string) {
     return;
   }
 
-  console.info("[mobile-api-error]", {
+  trackApiError(
     scope,
-    code: error.code,
-    status: error.status,
-    path: error.path,
-    method: error.method,
-    attempt: error.attempt,
-    maxAttempts: error.maxAttempts,
-    retryDelaysMs: error.retryDelaysMs,
-    retryable: error.retryable,
-    requestId: error.requestId,
-  });
+    {
+      code: error.code,
+      status: error.status,
+      path: error.path,
+      method: error.method,
+      attempt: error.attempt,
+      maxAttempts: error.maxAttempts,
+      retryable: error.retryable,
+      retryDelaysMs: error.retryDelaysMs,
+      requestId: error.requestId,
+    },
+    error.message,
+  );
 }
 
 function formatRetryCountdown(nextRetryAt: string | null) {
@@ -431,7 +435,53 @@ function getUploadedBytesFromParts(
   return Math.min(fileSize, Math.max(0, uploadedBytes));
 }
 
-export default function App() {
+type AppErrorBoundaryProps = {
+  children: ReactNode;
+};
+
+type AppErrorBoundaryState = {
+  hasError: boolean;
+};
+
+class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
+  state: AppErrorBoundaryState = {
+    hasError: false,
+  };
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    trackAppError("react-error-boundary", error, {
+      componentStack: errorInfo.componentStack,
+    });
+  }
+
+  private handleReset = () => {
+    this.setState({ hasError: false });
+  };
+
+  render() {
+    if (!this.state.hasError) {
+      return this.props.children;
+    }
+
+    return (
+      <SafeAreaView style={boundaryStyles.safeArea}>
+        <View style={boundaryStyles.container}>
+          <Text style={boundaryStyles.title}>Something went wrong</Text>
+          <Text style={boundaryStyles.hint}>A runtime error was detected. Please retry the screen.</Text>
+          <Pressable onPress={this.handleReset} style={boundaryStyles.button}>
+            <Text style={boundaryStyles.buttonText}>Retry</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+}
+
+function AppContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -478,6 +528,10 @@ export default function App() {
   const queueProcessingLocalIdRef = useRef<string | null>(null);
   const profileId = profile?.id ?? null;
   const userLevel = profile?.userLevel ?? 1;
+
+  useEffect(() => {
+    installGlobalErrorHandler();
+  }, []);
 
   const selectedItem = useMemo(
     () => missions.find((item) => item.slug === selectedSlug) ?? null,
@@ -2911,3 +2965,50 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
 });
+
+const boundaryStyles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: mobileTheme.colors.background,
+  },
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  title: {
+    color: mobileTheme.colors.text,
+    fontSize: mobileTheme.type.title,
+    fontWeight: "700",
+  },
+  hint: {
+    color: mobileTheme.colors.textMuted,
+    fontSize: mobileTheme.type.bodySm,
+    textAlign: "center",
+  },
+  button: {
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: mobileTheme.colors.border,
+    borderRadius: mobileTheme.radius.sm,
+    minHeight: mobileTheme.tapTarget.minHeight,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: mobileTheme.colors.text,
+    fontSize: mobileTheme.type.body,
+    fontWeight: "600",
+  },
+});
+
+export default function App() {
+  return (
+    <AppErrorBoundary>
+      <AppContent />
+    </AppErrorBoundary>
+  );
+}
