@@ -13,6 +13,8 @@ type MetricConfig = {
   thresholdPct: number;
 };
 
+const minBaselineDaily = Number.parseFloat(process.env.FUNNEL_ALERT_MIN_BASELINE_DAILY ?? "5");
+
 const metricConfig: MetricConfig[] = [
   {
     key: "submissionCreated",
@@ -37,6 +39,14 @@ function normalizeThreshold(value: number) {
   }
 
   return Math.max(1, Math.min(95, value));
+}
+
+function normalizeMinBaseline(value: number) {
+  if (Number.isNaN(value)) {
+    return 5;
+  }
+
+  return Math.max(0, value);
 }
 
 function computeDropPct(current: number, baselineDailyAvg: number) {
@@ -97,17 +107,21 @@ export async function GET() {
       const baselineCount = baselineTotal.count ?? 0;
       const baselineDailyAvg = Number((baselineCount / 7).toFixed(2));
       const thresholdPct = normalizeThreshold(metric.thresholdPct);
+      const minBaseline = normalizeMinBaseline(minBaselineDaily);
       const dropPct = computeDropPct(currentCount, baselineDailyAvg);
-      const triggered = baselineDailyAvg > 0 && dropPct >= thresholdPct;
+      const hasEnoughBaseline = baselineDailyAvg >= minBaseline;
+      const triggered = hasEnoughBaseline && dropPct >= thresholdPct;
 
       return {
         key: metric.key,
         event: metric.event,
         thresholdPct,
+        minBaseline,
         currentCount,
         baselineDailyAvg,
         dropPct,
         triggered,
+        suppressed: !hasEnoughBaseline,
         severity: triggered ? pickSeverity(dropPct, thresholdPct) : null,
       };
     }),
@@ -121,6 +135,7 @@ export async function GET() {
       message: `${item.key} dropped by ${item.dropPct}% vs previous 7-day daily average`,
       currentCount: item.currentCount,
       baselineDailyAvg: item.baselineDailyAvg,
+      minBaseline: item.minBaseline,
       thresholdPct: item.thresholdPct,
       dropPct: item.dropPct,
     }));

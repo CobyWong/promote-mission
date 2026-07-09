@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getMissionCatalog } from "@/lib/backend";
+import { getMissionRequiredLevel } from "@/lib/mission-rules";
 
 export async function GET() {
   const catalog = await getMissionCatalog();
@@ -11,6 +12,7 @@ export async function GET() {
     brand: mission.brand,
     points: mission.points,
     difficulty: mission.difficulty,
+    requiredLevel: getMissionRequiredLevel(mission.difficulty),
     eta: mission.eta,
     category: mission.category,
     imageUrl: mission.imageUrl ?? null,

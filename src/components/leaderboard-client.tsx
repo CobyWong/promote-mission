@@ -17,7 +17,7 @@ const PLATFORM_COLORS: Record<string, string> = {
 type Props = {
   locale: Locale;
   leaders: Leader[];
-  mode: "demo" | "live";
+  mode: "unavailable" | "live";
 };
 
 export function LeaderboardClient({ locale, leaders, mode }: Props) {
@@ -27,7 +27,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
     locale === "en"
       ? {
           tabs: { coins: "Coins Earned", missions: "Missions Done", followers: "Followers" },
-          demo: "Demo data — real rankings will appear after Supabase setup.",
+          unavailable: "Leaderboard is unavailable until backend services are configured.",
           rank: "Rank",
           creator: "Creator",
           platform: "Platform",
@@ -41,7 +41,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
         }
       : {
           tabs: { coins: "金幣收益", missions: "完成任務", followers: "追蹤數" },
-          demo: "示範資料 — 完成 Supabase 設定後會顯示真實排名。",
+          unavailable: "後端服務完成設定後，先會顯示排行榜。",
           rank: "排名",
           creator: "創作者",
           platform: "平台",
@@ -64,9 +64,9 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
 
   return (
     <div className="mt-10">
-      {mode === "demo" && (
+      {mode === "unavailable" && (
         <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
-          {t.demo}
+          {t.unavailable}
         </div>
       )}
 

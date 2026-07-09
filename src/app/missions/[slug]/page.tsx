@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 
 import { MissionAcceptCard } from "@/components/mission-accept-card";
-import { getMissionBySlug } from "@/lib/backend";
+import { getMissionBySlug, getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getMissionImage } from "@/lib/mission-media";
 import { getMissionRequiredLevel, getRankingRewardsByDifficulty } from "@/lib/mission-rules";
@@ -20,6 +20,9 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
   const missionImage = mission.imageUrl ?? getMissionImage(mission.slug);
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
   const rewards = getRankingRewardsByDifficulty(mission.difficulty);
+  const missionCenterData = await getMissionCenterData();
+  const userLevel = missionCenterData.userLevel ?? 1;
+  const isLevelLocked = userLevel < requiredLevel;
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -57,23 +60,44 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Reward" : "獎勵"}</p>
               <p className="mt-2 text-2xl font-semibold text-cyan-300">
-                {`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
+                {isLevelLocked
+                  ? (locale === "en" ? "Unlock required" : "需解鎖後查看")
+                  : `#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
               </p>
               <p className="mt-2 text-xs text-slate-400">
-                {locale === "en"
-                  ? `Split by likes ranking from total pool HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`
-                  : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`}
+                {isLevelLocked
+                  ? (locale === "en"
+                    ? `Reach Lv.${requiredLevel} to view ranking rewards.`
+                    : `達到 Lv.${requiredLevel} 後可查看排名獎勵。`)
+                  : (locale === "en"
+                    ? `Split by likes ranking from total pool HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`
+                    : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`)}
               </p>
             </div>
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Difficulty" : "難度"}</p>
               <p className="mt-2 text-2xl font-semibold text-white">{mission.difficulty}</p>
               <p className="mt-2 text-xs text-slate-400">{locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}</p>
+              <p className="mt-2 text-xs text-cyan-200">{locale === "en" ? `Your level: Lv.${userLevel}` : `你的等級：Lv.${userLevel}`}</p>
             </div>
           </div>
         </div>
 
         <div className="space-y-6">
+          {isLevelLocked ? (
+            <div className="glass-panel p-8">
+              <h2 className="text-2xl font-semibold text-amber-100">{locale === "en" ? "Mission Locked" : "任務未解鎖"}</h2>
+              <p className="mt-4 text-slate-200">
+                {locale === "en"
+                  ? `This ${mission.difficulty.toLowerCase()} mission unlocks at Lv.${requiredLevel}. Your current level is Lv.${userLevel}.`
+                  : `此${mission.difficulty === "Medium" ? "中等" : mission.difficulty === "Hard" ? "困難" : "簡單"}任務需 Lv.${requiredLevel} 才可接取，你目前為 Lv.${userLevel}。`}
+              </p>
+              <Link href="/missions" className="mt-5 inline-flex rounded-full border border-amber-300/45 px-5 py-2 text-sm font-semibold text-amber-100 transition hover:border-amber-200">
+                {locale === "en" ? "Back to mission zones" : "返回任務分區"}
+              </Link>
+            </div>
+          ) : null}
+
           <div className="glass-panel p-8">
             <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
             <ul className="mt-5 space-y-3 text-slate-300">
@@ -98,12 +122,14 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             </div>
           </div>
 
-          <MissionAcceptCard
-            missionSlug={mission.slug}
-            locale={locale}
-            minParticipants={mission.minParticipants}
-            currentParticipants={mission.currentParticipants}
-          />
+          {!isLevelLocked ? (
+            <MissionAcceptCard
+              missionSlug={mission.slug}
+              locale={locale}
+              minParticipants={mission.minParticipants}
+              currentParticipants={mission.currentParticipants}
+            />
+          ) : null}
         </div>
       </div>
     </section>

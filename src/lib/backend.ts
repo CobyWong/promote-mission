@@ -1,4 +1,3 @@
-import { missions, rewards, sampleRewardRedemptions, leaders } from "@/lib/data";
 import type { AdminReviewer, CreatorProfile, Leader, Mission, MissionRankingEntry, Reward, RewardRedemption, Submission } from "@/lib/data";
 import { cache } from "react";
 import { hasAdminSession } from "@/lib/admin-session";
@@ -8,23 +7,7 @@ import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConf
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getRewardRequiredLevel } from "@/lib/mission-rules";
 
-const hiddenMissionSlugs = new Set([
-  "spark-hydration-bottle",
-  "fitbyte-protein-chips",
-]);
-
 const REDEMPTION_RETENTION_DAYS = 30;
-
-const fallbackCreatorProfile: CreatorProfile = {
-  userId: "USR-DEMO001",
-  name: "Chloe Wong",
-  handle: "@chloe.creates",
-  platform: "Instagram",
-  niche: "Lifestyle / Beauty",
-  followersRange: "10K-20K",
-  ageGroup: "25-34",
-  joinedAt: "May 2026",
-};
 
 type SubmissionRow = Database["public"]["Tables"]["submissions"]["Row"];
 type TransactionRow = Database["public"]["Tables"]["coin_transactions"]["Row"];
@@ -94,7 +77,7 @@ function getCoinsPerReferralBatch(invitedCount: number) {
 
 function getFallbackReferralCode(userId: string) {
   const normalized = userId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  return normalized.slice(0, 8) || "MISSIONON";
+  return normalized.slice(0, 8) || "REFERRAL";
 }
 
 function toMission(row: MissionRow): Mission {
@@ -380,10 +363,10 @@ async function getReferralHistoryForUser(
 export async function getReferralStats() {
   if (!hasSupabaseConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       isAuthenticated: false,
       stats: {
-        referralCode: "MISSIONON",
+        referralCode: "",
         invitedCount: 0,
         paidBatches: 0,
         totalRewardCoins: 0,
@@ -394,10 +377,10 @@ export async function getReferralStats() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       isAuthenticated: false,
       stats: {
-        referralCode: "MISSIONON",
+        referralCode: "",
         invitedCount: 0,
         paidBatches: 0,
         totalRewardCoins: 0,
@@ -414,7 +397,7 @@ export async function getReferralStats() {
       mode: "live" as const,
       isAuthenticated: false,
       stats: {
-        referralCode: "MISSIONON",
+        referralCode: "",
         invitedCount: 0,
         paidBatches: 0,
         totalRewardCoins: 0,
@@ -432,7 +415,7 @@ export async function getReferralStats() {
 export async function getReferralHistory() {
   if (!hasSupabaseConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       isAuthenticated: false,
       items: [] as ReferralHistoryItem[],
     };
@@ -441,7 +424,7 @@ export async function getReferralHistory() {
   const supabase = await createSupabaseServerClient();
   if (!supabase) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       isAuthenticated: false,
       items: [] as ReferralHistoryItem[],
     };
@@ -467,7 +450,7 @@ export async function getReferralHistory() {
 }
 
 function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null = null): CreatorProfile {
-  const fallbackNameFromEmail = user?.email?.split("@")[0] ?? fallbackCreatorProfile.name;
+  const fallbackNameFromEmail = user?.email?.split("@")[0] ?? "Creator";
   const name = profile?.full_name ?? getMetaString(user, "full_name") ?? fallbackNameFromEmail;
   const handle = profile?.instagram_handle ?? getMetaString(user, "instagram_handle") ?? "@-";
   const niche = profile?.niche ?? getMetaString(user, "niche") ?? "-";
@@ -492,7 +475,7 @@ function toCreatorProfile(profile: ProfileRow | null, user: AuthUserLike | null 
         month: "short",
         year: "numeric",
       })
-      : fallbackCreatorProfile.joinedAt,
+      : "-",
   };
 }
 
@@ -516,30 +499,20 @@ export const getCurrentViewer = cache(async () => {
 
 export async function getMissionCatalog() {
   if (!hasSupabaseConfig()) {
-    return { mode: "demo" as const, missions };
+    return { mode: "unavailable" as const, missions: [] as Mission[] };
   }
 
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return { mode: "demo" as const, missions };
+    return { mode: "unavailable" as const, missions: [] as Mission[] };
   }
 
   const { data } = await supabase.from("missions").select("*").order("display_order", { ascending: true });
   const missionRows = (data ?? []) as MissionRow[];
   const liveMissions = missionRows.filter(isMissionVisibleForCreators).map(toMission);
 
-  // Keep live missions as source of truth, but include local fallback missions
-  // that are not yet migrated into the database.
-  const mergedMissionMap = new Map<string, Mission>();
-  for (const item of missions) {
-    mergedMissionMap.set(item.slug, item);
-  }
-  for (const item of liveMissions) {
-    mergedMissionMap.set(item.slug, item);
-  }
-
-  const mergedMissions = Array.from(mergedMissionMap.values()).sort((a, b) => {
+  const sortedMissions = liveMissions.sort((a, b) => {
     const aOrder = a.displayOrder ?? Number.MAX_SAFE_INTEGER;
     const bOrder = b.displayOrder ?? Number.MAX_SAFE_INTEGER;
     return aOrder - bOrder;
@@ -547,23 +520,23 @@ export async function getMissionCatalog() {
 
   return {
     mode: "live" as const,
-    missions: mergedMissions,
+    missions: sortedMissions,
   };
 }
 
 export async function getMissionCenterData() {
   const missionCatalog = await getMissionCatalog();
-  const rankingMap = await getMissionRankingMap(missionCatalog.missions.map((mission) => mission.slug));
-  const rankedMissions = withMissionRankings(missionCatalog.missions, rankingMap);
 
-  if (!hasSupabaseConfig()) {
+  if (missionCatalog.mode === "unavailable") {
     return {
       ...missionCatalog,
-      missions: rankedMissions,
       userLevel: 1,
       approvedMissionCount: 0,
     };
   }
+
+  const rankingMap = await getMissionRankingMap(missionCatalog.missions.map((mission) => mission.slug));
+  const rankedMissions = withMissionRankings(missionCatalog.missions, rankingMap);
 
   const supabase = await createSupabaseServerClient();
 
@@ -610,26 +583,26 @@ export async function getMissionCenterData() {
     ...missionCatalog,
     userLevel,
     approvedMissionCount,
-    missions: rankedMissions.filter((mission) => !completedMissionSlugs.has(mission.slug) && !hiddenMissionSlugs.has(mission.slug)),
+    missions: rankedMissions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
   };
 }
 
 export async function getMissionBySlug(slug: string) {
   if (!hasSupabaseConfig()) {
-    return missions.find((mission) => mission.slug === slug) ?? null;
+    return null;
   }
 
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return missions.find((mission) => mission.slug === slug) ?? null;
+    return null;
   }
 
   const { data } = await supabase.from("missions").select("*").eq("slug", slug).maybeSingle();
   const missionRow = (data ?? null) as MissionRow | null;
 
   if (!missionRow || !isMissionVisibleForCreators(missionRow)) {
-    return missions.find((mission) => mission.slug === slug) ?? null;
+    return null;
   }
 
   return toMission(missionRow);
@@ -637,13 +610,13 @@ export async function getMissionBySlug(slug: string) {
 
 export async function getRewardsCatalog() {
   if (!hasSupabaseConfig()) {
-    return { mode: "demo" as const, rewards };
+    return { mode: "unavailable" as const, rewards: [] as Reward[] };
   }
 
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return { mode: "demo" as const, rewards };
+    return { mode: "unavailable" as const, rewards: [] as Reward[] };
   }
 
   const { data } = await supabase.from("rewards_catalog").select("*").eq("is_active", true).order("display_order", { ascending: true });
@@ -651,7 +624,7 @@ export async function getRewardsCatalog() {
 
   return {
     mode: "live" as const,
-    rewards: rewardRows.length > 0 ? rewardRows.map(toReward) : rewards,
+    rewards: rewardRows.map(toReward),
   };
 }
 
@@ -660,12 +633,23 @@ export async function getRewardsPageData() {
 
   await pruneExpiredRewardRedemptions();
 
+  if (rewardCatalog.mode === "unavailable") {
+    return {
+      mode: "unavailable" as const,
+      rewards: [] as Reward[],
+      balance: 0,
+      redemptions: [] as RewardRedemption[],
+      isAuthenticated: false,
+      userLevel: 1,
+    };
+  }
+
   if (!hasSupabaseConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       rewards: rewardCatalog.rewards,
-      balance: 6840,
-      redemptions: sampleRewardRedemptions,
+      balance: 0,
+      redemptions: [] as RewardRedemption[],
       isAuthenticated: false,
       userLevel: 1,
     };
@@ -675,10 +659,10 @@ export async function getRewardsPageData() {
 
   if (!supabase) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       rewards: rewardCatalog.rewards,
-      balance: 6840,
-      redemptions: sampleRewardRedemptions,
+      balance: 0,
+      redemptions: [] as RewardRedemption[],
       isAuthenticated: false,
       userLevel: 1,
     };
@@ -723,27 +707,53 @@ export async function getRewardsPageData() {
 export async function getDashboardData() {
   const missionCatalog = await getMissionCatalog();
 
-  if (!hasSupabaseConfig()) {
+  if (missionCatalog.mode === "unavailable") {
     return {
-      mode: "demo" as const,
-      profile: fallbackCreatorProfile,
-      submissions: [],
-      balance: 6840,
-      totalEarned: 6840,
+      mode: "unavailable" as const,
+      profile: null,
+      submissions: [] as Submission[],
+      balance: 0,
+      totalEarned: 0,
       withdrawnSoFar: 0,
-      availableToWithdraw: 6840,
+      availableToWithdraw: 0,
       pendingCount: 0,
-      activeMissions: [],
+      activeMissions: [] as Mission[],
       missionStatusMap: new Map<string, SubmissionStatus>(),
       instagramConnection: null as InstagramConnectionRow | null,
       recentInsights: [] as ReelInsightRow[],
       referralStats: {
-        referralCode: "MISSIONON",
+        referralCode: "",
         invitedCount: 0,
         paidBatches: 0,
         totalRewardCoins: 0,
       } as ReferralStats,
       referralHistory: [] as ReferralHistoryItem[],
+      userEmail: null,
+    };
+  }
+
+  if (!hasSupabaseConfig()) {
+    return {
+      mode: "unavailable" as const,
+      profile: null,
+      submissions: [] as Submission[],
+      balance: 0,
+      totalEarned: 0,
+      withdrawnSoFar: 0,
+      availableToWithdraw: 0,
+      pendingCount: 0,
+      activeMissions: [] as Mission[],
+      missionStatusMap: new Map<string, SubmissionStatus>(),
+      instagramConnection: null as InstagramConnectionRow | null,
+      recentInsights: [] as ReelInsightRow[],
+      referralStats: {
+        referralCode: "",
+        invitedCount: 0,
+        paidBatches: 0,
+        totalRewardCoins: 0,
+      } as ReferralStats,
+      referralHistory: [] as ReferralHistoryItem[],
+      userEmail: null,
     };
   }
 
@@ -751,25 +761,26 @@ export async function getDashboardData() {
 
   if (!supabase) {
     return {
-      mode: "demo" as const,
-      profile: fallbackCreatorProfile,
-      submissions: [],
-      balance: 6840,
-      totalEarned: 6840,
+      mode: "unavailable" as const,
+      profile: null,
+      submissions: [] as Submission[],
+      balance: 0,
+      totalEarned: 0,
       withdrawnSoFar: 0,
-      availableToWithdraw: 6840,
+      availableToWithdraw: 0,
       pendingCount: 0,
-      activeMissions: [],
+      activeMissions: [] as Mission[],
       missionStatusMap: new Map<string, SubmissionStatus>(),
       instagramConnection: null as InstagramConnectionRow | null,
       recentInsights: [] as ReelInsightRow[],
       referralStats: {
-        referralCode: "MISSIONON",
+        referralCode: "",
         invitedCount: 0,
         paidBatches: 0,
         totalRewardCoins: 0,
       } as ReferralStats,
       referralHistory: [] as ReferralHistoryItem[],
+      userEmail: null,
     };
   }
 
@@ -792,7 +803,7 @@ export async function getDashboardData() {
       instagramConnection: null as InstagramConnectionRow | null,
       recentInsights: [] as ReelInsightRow[],
       referralStats: {
-        referralCode: "MISSIONON",
+        referralCode: "",
         invitedCount: 0,
         paidBatches: 0,
         totalRewardCoins: 0,
@@ -872,7 +883,7 @@ export async function getDashboardData() {
 export async function getAdminReviewData() {
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       submissions: [],
       reviewers: [] as AdminReviewer[],
       authorized: false,
@@ -884,7 +895,7 @@ export async function getAdminReviewData() {
 
   if (!supabase || !admin) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       submissions: [],
       reviewers: [] as AdminReviewer[],
       authorized: false,
@@ -1007,9 +1018,9 @@ export async function getAdminRedemptionsData() {
 
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       authorized: false,
-      redemptions: sampleRewardRedemptions,
+      redemptions: [] as RewardRedemption[],
     };
   }
 
@@ -1018,9 +1029,9 @@ export async function getAdminRedemptionsData() {
 
   if (!supabase || !admin) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       authorized: false,
-      redemptions: sampleRewardRedemptions,
+      redemptions: [] as RewardRedemption[],
     };
   }
 
@@ -1051,9 +1062,9 @@ export async function getBrandMissionManagerData() {
 
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       authorized: false,
-      missions: missionCatalog.missions,
+      missions: [] as Mission[],
     };
   }
 
@@ -1061,9 +1072,9 @@ export async function getBrandMissionManagerData() {
 
   if (!supabase) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       authorized: false,
-      missions: missionCatalog.missions,
+      missions: [] as Mission[],
     };
   }
 
@@ -1089,7 +1100,7 @@ export async function getBrandMissionManagerData() {
 export async function getAdminUsersData() {
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       authorized: false,
       users: [] as AdminManagedUser[],
     };
@@ -1102,7 +1113,7 @@ export async function getAdminUsersData() {
 
   if (!supabase || !admin) {
     return {
-      mode: "demo" as const,
+      mode: "unavailable" as const,
       authorized: false,
       users: [] as AdminManagedUser[],
     };
@@ -1177,15 +1188,15 @@ export async function getAdminUsersData() {
   };
 }
 
-export async function getLeaderboardData(): Promise<{ mode: "demo" | "live"; leaders: Leader[] }> {
+export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "live"; leaders: Leader[] }> {
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
-    return { mode: "demo" as const, leaders };
+    return { mode: "unavailable" as const, leaders: [] };
   }
 
   const admin = createSupabaseAdminClient();
 
   if (!admin) {
-    return { mode: "demo" as const, leaders };
+    return { mode: "unavailable" as const, leaders: [] };
   }
 
   // Aggregate coins per user from coin_transactions, join with profiles

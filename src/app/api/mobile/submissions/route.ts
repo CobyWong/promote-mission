@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 
-import { missions } from "@/lib/data";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -336,7 +335,7 @@ export async function POST(request: Request) {
         points: missionRow.reward_coins,
         difficulty: missionRow.difficulty,
       }
-      : missions.find((item) => item.slug === slug);
+      : null;
 
     if (!mission) {
       return NextResponse.json({ error: "Mission not found." }, { status: 404 });

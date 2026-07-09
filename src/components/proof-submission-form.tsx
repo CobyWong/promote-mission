@@ -144,8 +144,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           }
 
           if (!backendReady) {
-            setError(locale === "en" ? "Supabase is not configured. Submission stays in demo mode." : "未設定 Supabase env，提交會停留喺 demo mode。");
-            setSubmitted(true);
+            setError(locale === "en" ? "Submission service is unavailable until backend setup is complete." : "後端未完成設定，暫時未能提交。請稍後再試。");
             return;
           }
 

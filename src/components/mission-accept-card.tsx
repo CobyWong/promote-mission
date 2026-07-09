@@ -81,7 +81,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
     try {
       await fetch(`/api/missions/${missionSlug}/interest`, { method: "POST" });
     } catch {
-      // Silently fail in demo mode
+      // Keep registration UX responsive even if the backend request fails.
     }
   };
 

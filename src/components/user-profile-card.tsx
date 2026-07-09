@@ -46,7 +46,7 @@ export function UserProfileCard({
       error: "Unable to save profile. Please try again.",
       edit: "Edit",
       close: "Close",
-      demo: "Demo mode only. Connect Supabase to save real profile data.",
+      demo: "Profile saving is unavailable until Supabase is configured.",
       noEmail: "No email",
     }
     : {
@@ -63,7 +63,7 @@ export function UserProfileCard({
       error: "更新失敗，請稍後再試。",
       edit: "編輯",
       close: "關閉",
-      demo: "目前為示範模式，連接 Supabase 後先可儲存真實資料。",
+      demo: "未完成 Supabase 設定前，暫時未能儲存個人資料。",
       noEmail: "未有電郵",
     };
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig } from "@/lib/supabase/env";
+import { getCreatorLevelFromTotalExp } from "@/lib/mission-rules";
 
 export async function GET(request: Request) {
   if (!hasSupabaseAdminConfig()) {
@@ -41,12 +42,15 @@ export async function GET(request: Request) {
       .eq("user_id", user.id),
     admin
       .from("submissions")
-      .select("id")
+      .select("id, reward_coins")
       .eq("user_id", user.id)
       .eq("status", "Approved"),
   ]);
 
   const balance = (transactions ?? []).reduce((sum, item) => sum + (item.amount ?? 0), 0);
+  const approvedMissionCount = (submissions ?? []).length;
+  const approvedExp = (submissions ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const userLevel = getCreatorLevelFromTotalExp(approvedExp);
 
   return NextResponse.json({
     user: {
@@ -57,7 +61,8 @@ export async function GET(request: Request) {
       niche: profile?.niche ?? null,
       followersRange: profile?.followers_range ?? null,
       balance,
-      approvedMissionCount: (submissions ?? []).length,
+      approvedMissionCount,
+      userLevel,
     },
   });
 }

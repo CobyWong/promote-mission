@@ -2,14 +2,25 @@ const baseUrl = process.env.STAGING_BASE_URL?.trim();
 const adminEmail = process.env.STAGING_ADMIN_EMAIL?.trim();
 const adminPassword = process.env.STAGING_ADMIN_PASSWORD?.trim();
 const failOnWarn = process.env.FAIL_ON_FUNNEL_WARN === "1";
+const softFailOnCheckError = process.env.SOFT_FAIL_ON_ALERT_CHECK_ERROR !== "0";
 
 if (!baseUrl) {
-  console.error("Missing STAGING_BASE_URL.");
+  const message = "Missing STAGING_BASE_URL.";
+  if (softFailOnCheckError) {
+    console.warn(`${message} Skipping alert check because SOFT_FAIL_ON_ALERT_CHECK_ERROR is enabled.`);
+    process.exit(0);
+  }
+  console.error(message);
   process.exit(1);
 }
 
 if (!adminEmail || !adminPassword) {
-  console.error("Missing STAGING_ADMIN_EMAIL or STAGING_ADMIN_PASSWORD.");
+  const message = "Missing STAGING_ADMIN_EMAIL or STAGING_ADMIN_PASSWORD.";
+  if (softFailOnCheckError) {
+    console.warn(`${message} Skipping alert check because SOFT_FAIL_ON_ALERT_CHECK_ERROR is enabled.`);
+    process.exit(0);
+  }
+  console.error(message);
   process.exit(1);
 }
 
@@ -62,18 +73,29 @@ async function loginAdmin() {
 
 async function main() {
   console.log(`Checking funnel alerts at ${baseUrl}`);
-  const adminCookie = await loginAdmin();
+  let payload = null;
 
-  const response = await fetch(`${baseUrl}/api/admin/kpi/funnel/alerts`, {
-    headers: {
-      cookie: adminCookie,
-    },
-  });
+  try {
+    const adminCookie = await loginAdmin();
 
-  const payload = await response.json().catch(() => null);
+    const response = await fetch(`${baseUrl}/api/admin/kpi/funnel/alerts`, {
+      headers: {
+        cookie: adminCookie,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Funnel alerts endpoint failed (${response.status}): ${payload?.error ?? "unknown"}`);
+    payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(`Funnel alerts endpoint failed (${response.status}): ${payload?.error ?? "unknown"}`);
+    }
+  } catch (error) {
+    if (softFailOnCheckError) {
+      console.warn(`Alert check skipped: ${error instanceof Error ? error.message : String(error)}`);
+      console.warn("SOFT_FAIL_ON_ALERT_CHECK_ERROR is enabled; treating this run as non-blocking.");
+      return;
+    }
+    throw error;
   }
 
   const alerts = Array.isArray(payload?.alerts) ? payload.alerts : [];

@@ -3,8 +3,7 @@ import Link from "next/link";
 import { DashboardMissionActions } from "@/components/dashboard-mission-actions";
 import { ReferralRewardsCard } from "@/components/referral-rewards-card";
 import { SupportContactForm } from "@/components/support-contact-form";
-import { rewards } from "@/lib/data";
-import { getDashboardData } from "@/lib/backend";
+import { getDashboardData, getRewardsCatalog } from "@/lib/backend";
 import { getGamePassLevelRewardCoins } from "@/lib/game-pass";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getLevelProgressFromTotalExp, getMissionTotalPrizeByDifficulty, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
@@ -36,7 +35,8 @@ export default async function DashboardPage() {
       activeMissions: "Active missions",
       pendingReviews: "Pending reviews",
       userId: "User ID",
-      demoNotice: "Showing demo data for now. After Supabase setup, this section will reflect your real account.",
+      unavailableTitle: "Service setup required",
+      unavailableDesc: "Dashboard data is unavailable until backend services are configured.",
       due: "Due",
       reward: "Reward",
       viewBrief: "View brief →",
@@ -79,7 +79,8 @@ export default async function DashboardPage() {
       activeMissions: "進行中任務",
       pendingReviews: "待審核提交",
       userId: "用戶編號",
-      demoNotice: "暫時顯示示範資料。設定 Supabase 後，呢度會改為你實際帳號資料。",
+      unavailableTitle: "服務尚未完成設定",
+      unavailableDesc: "後端服務未完成設定前，儀表板資料暫時不可用。",
       due: "截止",
       reward: "獎勵",
       viewBrief: "查看詳情 →",
@@ -101,9 +102,12 @@ export default async function DashboardPage() {
     };
 
   const dashboard = await getDashboardData();
+  const rewardsCatalog = await getRewardsCatalog();
   const activeMissions = dashboard.activeMissions;
-  const nextReward = rewards.find((reward) => reward.cost > dashboard.balance) ?? rewards[rewards.length - 1];
-  const pointsToNextReward = Math.max(nextReward.cost - dashboard.balance, 0);
+  const nextReward = rewardsCatalog.rewards.find((reward) => reward.cost > dashboard.balance)
+    ?? rewardsCatalog.rewards[rewardsCatalog.rewards.length - 1]
+    ?? null;
+  const pointsToNextReward = nextReward ? Math.max(nextReward.cost - dashboard.balance, 0) : 0;
   const avatarInitial = dashboard.profile?.name?.trim().slice(0, 1).toUpperCase() ?? "C";
   const referralStatusLabel = (status: string) => {
     if (status === "Rewarded") return t.statusRewarded;
@@ -115,6 +119,29 @@ export default async function DashboardPage() {
     .reduce((sum, item) => sum + Math.max(item.coins ?? 0, 0), 0);
   const levelProgress = getLevelProgressFromTotalExp(approvedExp);
   const nextLevelCoins = levelProgress.isMaxLevel ? 0 : getGamePassLevelRewardCoins(levelProgress.level + 1);
+
+  if (dashboard.mode === "unavailable") {
+    return (
+      <section className="section-shell py-12 sm:py-16">
+        <div className="tactical-card mx-auto max-w-3xl p-8 text-center">
+          <p className="tactical-section-kicker">{t.profileCenter}</p>
+          <h1 className="tactical-section-title">{t.unavailableTitle}</h1>
+          <p className="tactical-section-lead mx-auto">
+            {t.unavailableDesc}
+          </p>
+        </div>
+
+        <div id="support-center" className="mt-8 mx-auto max-w-3xl scroll-mt-28">
+          <SupportContactForm
+            locale={locale}
+            defaultEmail=""
+            supportEmail={getSupportEmail()}
+            supportWhatsappUrl={getSupportWhatsappUrl()}
+          />
+        </div>
+      </section>
+    );
+  }
 
   if (dashboard.mode === "unauthenticated") {
     return (
@@ -258,12 +285,6 @@ export default async function DashboardPage() {
       </div>
 
       <div className="tactical-card mt-8 p-5 sm:p-8">
-        {dashboard.mode === "demo" ? (
-          <div className="mb-6 rounded-xl border border-amber-300/50 bg-amber-300/10 px-4 py-4 text-sm text-amber-200">
-            {t.demoNotice}
-          </div>
-        ) : null}
-
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm text-slate-500">{dashboard.profile.platform} · {dashboard.profile.niche}</p>
@@ -334,11 +355,13 @@ export default async function DashboardPage() {
               })}
             </div>
 
-            <div className="mt-8 rounded-xl border border-amber-300/50 bg-amber-300/10 p-5">
-              <p className="text-sm text-amber-200">{t.nextReward}</p>
-              <p className="mt-2 text-xl font-semibold text-slate-100">{nextReward.name}</p>
-              <p className="mt-2 text-sm text-slate-300">{t.pointsAway} {pointsToNextReward} {t.pointsAwaySuffix}</p>
-            </div>
+            {nextReward ? (
+              <div className="mt-8 rounded-xl border border-amber-300/50 bg-amber-300/10 p-5">
+                <p className="text-sm text-amber-200">{t.nextReward}</p>
+                <p className="mt-2 text-xl font-semibold text-slate-100">{nextReward.name}</p>
+                <p className="mt-2 text-sm text-slate-300">{t.pointsAway} {pointsToNextReward} {t.pointsAwaySuffix}</p>
+              </div>
+            ) : null}
           </>
         )}
       </div>

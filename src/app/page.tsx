@@ -3,8 +3,8 @@ import { redirect } from "next/navigation";
 
 import { MissionCard } from "@/components/mission-card";
 import { RewardCard } from "@/components/reward-card";
-import { getCurrentViewer, getMissionCatalog, getRewardsCatalog } from "@/lib/backend";
-import { leaders, perks, reelIdeas, stats } from "@/lib/data";
+import { getCurrentViewer, getLeaderboardData, getMissionCatalog, getRewardsCatalog } from "@/lib/backend";
+import { perks, reelIdeas } from "@/lib/data";
 import { getCurrentLocale } from "@/lib/i18n";
 
 export default async function Home() {
@@ -17,8 +17,19 @@ export default async function Home() {
   const locale = await getCurrentLocale();
   const missionCatalog = await getMissionCatalog();
   const rewardCatalog = await getRewardsCatalog();
+  const leaderboardData = await getLeaderboardData();
   const featuredMissions = missionCatalog.missions;
   const featuredRewards = rewardCatalog.rewards;
+  const featuredMission = featuredMissions[0] ?? null;
+  const landingStats = [
+    { label: locale === "en" ? "Active missions" : "進行中任務", value: String(featuredMissions.length) },
+    { label: locale === "en" ? "Rewards catalog" : "可兌換獎賞", value: String(featuredRewards.length) },
+    { label: locale === "en" ? "Leaderboard entries" : "排行榜人數", value: String(leaderboardData.leaders.length) },
+    {
+      label: locale === "en" ? "System status" : "系統狀態",
+      value: missionCatalog.mode === "live" && rewardCatalog.mode === "live" ? (locale === "en" ? "Live" : "已連接") : (locale === "en" ? "Setup required" : "待設定"),
+    },
+  ];
 
   return (
     <div className="pb-20">
@@ -45,7 +56,7 @@ export default async function Home() {
             </div>
 
             <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {stats.map((stat) => (
+              {landingStats.map((stat) => (
                 <div key={stat.label} className="glass-panel p-4">
                   <p className="text-sm text-slate-400">{stat.label}</p>
                   <p className="mt-2 text-2xl font-semibold text-white">{stat.value}</p>
@@ -56,33 +67,41 @@ export default async function Home() {
 
           <div className="glass-panel overflow-hidden p-6">
             <div className="rounded-[1.5rem] border border-white/10 bg-slate-950/80 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-slate-400">今日推薦任務</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">{featuredMissions[0].title}</h2>
-                </div>
-                <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-sm text-emerald-200">審核快</span>
-              </div>
+              {featuredMission ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-slate-400">今日推薦任務</p>
+                      <h2 className="mt-2 text-2xl font-semibold text-white">{featuredMission.title}</h2>
+                    </div>
+                    <span className="rounded-full bg-emerald-400/10 px-3 py-1 text-sm text-emerald-200">審核快</span>
+                  </div>
 
-              <div className="mt-6 space-y-3 text-sm text-slate-300">
-                <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
-                  <span>品牌</span>
-                  <span className="font-medium text-white">{featuredMissions[0].brand}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
-                  <span>任務獎勵</span>
-                  <span className="font-medium text-cyan-300">{featuredMissions[0].points} Coins</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
-                  <span>交稿時間</span>
-                  <span className="font-medium text-white">{featuredMissions[0].eta}</span>
-                </div>
-              </div>
+                  <div className="mt-6 space-y-3 text-sm text-slate-300">
+                    <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+                      <span>品牌</span>
+                      <span className="font-medium text-white">{featuredMission.brand}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+                      <span>任務獎勵</span>
+                      <span className="font-medium text-cyan-300">{featuredMission.points} Coins</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-3">
+                      <span>交稿時間</span>
+                      <span className="font-medium text-white">{featuredMission.eta}</span>
+                    </div>
+                  </div>
 
-              <div className="mt-6 rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
-                <p className="text-sm font-medium text-cyan-200">拍片 Hook 建議</p>
-                <p className="mt-2 text-lg text-white">{featuredMissions[0].hook}</p>
-              </div>
+                  <div className="mt-6 rounded-[1.5rem] border border-cyan-400/20 bg-cyan-400/10 p-5">
+                    <p className="text-sm font-medium text-cyan-200">拍片 Hook 建議</p>
+                    <p className="mt-2 text-lg text-white">{featuredMission.hook}</p>
+                  </div>
+                </>
+              ) : (
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-slate-300">
+                  {locale === "en" ? "No active missions published yet." : "目前未有已發佈任務。"}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -135,6 +154,11 @@ export default async function Home() {
           {featuredMissions.slice(0, 3).map((mission) => (
             <MissionCard key={mission.slug} mission={mission} locale={locale} />
           ))}
+          {featuredMissions.length === 0 ? (
+            <div className="glass-panel p-6 text-slate-300 lg:col-span-3">
+              {locale === "en" ? "No missions yet. Publish missions to populate this section." : "暫未有任務，發佈任務後會顯示喺呢度。"}
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -148,7 +172,7 @@ export default async function Home() {
             <p className="mt-1 text-xs text-slate-400">按本月 Coins 排名派發</p>
           </div>
           <div className="mt-6 space-y-3">
-            {leaders.map((leader, index) => (
+            {leaderboardData.leaders.map((leader, index) => (
               <div key={leader.name} className="flex items-center justify-between rounded-2xl bg-white/5 px-4 py-4">
                 <div>
                   <p className="font-medium text-white">#{index + 1} {leader.name}</p>
@@ -157,6 +181,11 @@ export default async function Home() {
                 <span className="font-semibold text-cyan-300">{leader.coins.toLocaleString()} C</span>
               </div>
             ))}
+            {leaderboardData.leaders.length === 0 ? (
+              <div className="rounded-2xl bg-white/5 px-4 py-4 text-sm text-slate-300">
+                {locale === "en" ? "No leaderboard entries yet." : "排行榜暫時未有資料。"}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -187,6 +216,11 @@ export default async function Home() {
           {featuredRewards.map((reward) => (
             <RewardCard key={reward.slug} reward={reward} locale={locale} />
           ))}
+          {featuredRewards.length === 0 ? (
+            <div className="glass-panel p-6 text-slate-300 lg:col-span-2">
+              {locale === "en" ? "No rewards configured yet." : "暫未設定可兌換獎賞。"}
+            </div>
+          ) : null}
         </div>
       </section>
 

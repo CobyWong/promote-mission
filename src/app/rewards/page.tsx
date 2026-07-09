@@ -18,11 +18,11 @@ export default async function RewardsPage() {
         </p>
       </div>
 
-      {rewardsPageData.mode === "demo" ? (
+      {rewardsPageData.mode === "unavailable" ? (
         <div className="mt-8 rounded-xl border border-amber-300/50 bg-amber-300/10 px-4 py-4 text-sm text-amber-200">
           {locale === "en"
-            ? "Demo balance/history is shown until Supabase is configured."
-            : "獎賞頁暫時顯示示範結餘同示範紀錄。設定 Supabase schema 後會使用真實獎賞目錄同兌換流程。"}
+            ? "Rewards are unavailable until backend services are configured."
+            : "後端服務完成設定前，獎賞功能暫時不可用。"}
         </div>
       ) : null}
 

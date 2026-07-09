@@ -17,8 +17,8 @@ export async function Footer() {
         </div>
         <p>
           {locale === "en"
-            ? "Prototype experience for an IG Reels mission marketplace."
-            : "IG Reels 任務平台原型體驗。"}
+            ? "IG Reels mission marketplace for creators and brands."
+            : "面向創作者同品牌嘅 IG Reels 任務平台。"}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <Link href="/dashboard#support-center" className="font-semibold text-cyan-300 hover:text-cyan-200">

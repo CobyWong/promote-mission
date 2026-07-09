@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getMissionBySlug } from "@/lib/backend";
+import { getMissionRequiredLevel } from "@/lib/mission-rules";
 
 export async function GET(
   _request: Request,
@@ -21,6 +22,7 @@ export async function GET(
       product: mission.product,
       points: mission.points,
       difficulty: mission.difficulty,
+      requiredLevel: getMissionRequiredLevel(mission.difficulty),
       eta: mission.eta,
       category: mission.category,
       description: mission.description,

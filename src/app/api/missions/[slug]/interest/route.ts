@@ -10,12 +10,12 @@ export async function POST(
   context: { params: Promise<{ slug: string }> },
 ) {
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
-    return NextResponse.json({ ok: true, demo: true });
+    return NextResponse.json({ error: "Mission interest service unavailable." }, { status: 503 });
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ ok: true, demo: true });
+    return NextResponse.json({ error: "Mission interest service unavailable." }, { status: 503 });
   }
 
   const { slug } = await context.params;

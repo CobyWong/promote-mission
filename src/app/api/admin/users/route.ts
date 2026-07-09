@@ -5,7 +5,7 @@ import { getAdminUsersData } from "@/lib/backend";
 export async function GET() {
   const usersData = await getAdminUsersData();
 
-  if (usersData.mode === "demo") {
+  if (usersData.mode === "unavailable") {
     return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
   }
 

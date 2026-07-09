@@ -9,6 +9,10 @@ on:
         description: "Fail on warning-level regressions (1 or 0)"
         required: false
         default: "0"
+      softFailCheck:
+        description: "Do not fail workflow when alert-check infra/auth is unavailable (1 or 0)"
+        required: false
+        default: "1"
 
 jobs:
   funnel-alerts:
@@ -35,4 +39,5 @@ jobs:
           STAGING_ADMIN_EMAIL: ${{ secrets.STAGING_ADMIN_EMAIL }}
           STAGING_ADMIN_PASSWORD: ${{ secrets.STAGING_ADMIN_PASSWORD }}
           FAIL_ON_FUNNEL_WARN: ${{ github.event.inputs.failOnWarn || '0' }}
+          SOFT_FAIL_ON_ALERT_CHECK_ERROR: ${{ github.event.inputs.softFailCheck || '1' }}
         run: npm run alerts:funnel
