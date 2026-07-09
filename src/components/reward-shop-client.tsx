@@ -350,26 +350,25 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                 : t.redeemNow;
 
           return (
-            <article key={reward.slug} className="tactical-card overflow-hidden p-0 transition hover:-translate-y-0.5">
-              <div className="relative border-b border-slate-600/65 bg-gradient-to-br from-cyan-300/12 via-slate-900/45 to-slate-900/80 p-5">
-                <div className="absolute right-4 top-4">
-                  <span className="inline-flex rounded-full border border-slate-400/70 bg-slate-900/55 px-2.5 py-1 text-xs font-semibold text-slate-200">
+            <article key={reward.slug} className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45">
+              <div className="relative overflow-hidden px-5 pb-4 pt-5">
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/16 via-transparent to-slate-900/10" />
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-lg font-bold text-cyan-100">
+                      {rewardInitial}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-[1.65rem] font-bold leading-tight text-slate-100">{reward.name}</h3>
+                      <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2.5 py-1 text-xs font-semibold text-slate-200">
                     {stateTag}
                   </span>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-xl font-bold text-cyan-100">
-                    {rewardInitial}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="text-xl font-semibold text-slate-100">{reward.name}</h3>
-                    <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-4 p-5">
-                <div className="flex items-center gap-2">
+                <div className="relative mt-4 flex flex-wrap items-center gap-2">
                   {reward.badge ? (
                     <span className="tactical-chip">
                       {reward.badge}
@@ -379,30 +378,33 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                     {t.unlockLevel}: Lv.{minLevel}
                   </span>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="tactical-subcard px-3 py-2.5">
-                    <p className="text-xs text-slate-400">{locale === "en" ? "Price" : "售價"}</p>
-                    <p className="mt-1 text-2xl font-black text-amber-200">{reward.cost.toLocaleString()}</p>
-                    <p className="text-xs text-slate-400">{t.coins}</p>
+              <div className="border-t border-slate-600/60 bg-slate-900/35 px-5 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{locale === "en" ? "Price" : "售價"}</p>
+                    <p className="mt-1 text-4xl font-black leading-none text-amber-200">{reward.cost.toLocaleString()}</p>
+                    <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
-                  <div className="tactical-subcard px-3 py-2.5">
-                    <p className="text-xs text-slate-400">{t.stock}</p>
-                    <p className="mt-1 text-2xl font-black text-slate-100">{stockLabel}</p>
-                    <p className="text-xs text-slate-400">{etaLabel}</p>
+                  <div className="text-right">
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{t.stock}</p>
+                    <p className="mt-1 text-4xl font-black leading-none text-slate-100">{stockLabel}</p>
+                    <p className="mt-1 text-xs text-slate-400">{etaLabel}</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center justify-between text-xs text-slate-400">
+              <div className="px-5 pb-5 pt-3">
+                <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
                   <span>{etaLabel}</span>
                   <span>{t.stock} {stockLabel}</span>
                 </div>
-
                 <button
                   type="button"
                   disabled={!canRedeem || pendingSlug === reward.slug}
                   onClick={() => handleRedeem(reward)}
-                  className="tactical-btn-primary w-full px-5 py-3 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
+                  className="tactical-btn-primary h-12 w-full rounded-2xl px-5 text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
                 >
                   {pendingSlug === reward.slug
                     ? t.redeeming
