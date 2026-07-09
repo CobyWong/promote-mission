@@ -111,11 +111,11 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
     }
     : {
       networkError: "無法連線到伺服器，請再試一次。",
-      registerTitle: "設定你的個人檔案",
-      registerSubtitle: "幾個簡單步驟即可解鎖活動同提款。",
+      registerTitle: "設定個人檔案",
+      registerSubtitle: "完成以下步驟即可解鎖任務與收益功能。",
       continue: "繼續",
       back: "返回",
-      create: "建立帳戶",
+      create: "建立帳號",
       stepBasic: "基本資料",
       stepInstagram: "Instagram",
       stepCoverage: "內容覆蓋範圍",
@@ -127,16 +127,16 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       phone: "電話號碼",
       bio: "個人簡介",
       instagram: "Instagram 用戶名稱",
-      instagramHint: "可以貼上 @帳號或個人檔案 URL，系統會自動提取帳號名稱。",
+      instagramHint: "可貼上 @帳號或個人檔案 URL，系統將自動擷取帳號名稱。",
       niches: "內容範疇",
-      nicheHint: "請選擇 2-5 個最符合你內容的範疇。",
+      nicheHint: "請選擇 2-5 個最符合內容定位的範疇。",
       languages: "語言",
       regions: "覆蓋地區",
       gender: "性別",
       age: "年齡組別",
       followersBand: "追蹤數區間",
       referral: "推薦碼（選填）",
-      termsPrefix: "我同意",
+      termsPrefix: "本人同意",
       termsLink: "服務條款",
       and: "及",
       privacyLink: "私隱政策",
@@ -144,7 +144,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       needBasic: "請先填妥名稱、電郵及密碼。",
       needInstagram: "請填寫 Instagram 用戶名稱。",
       needAudience: "請選擇性別、年齡組別及追蹤數區間。",
-      needTerms: "請先同意服務條款。",
+      needTerms: "請先同意服務條款及私隱政策。",
     };
 
   const registerStepLabels = [t.stepBasic, t.stepInstagram, t.stepCoverage, t.stepAudience, t.stepFinal];
@@ -217,7 +217,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
     const supabase = getSupabaseBrowserClient();
 
     if (!supabase) {
-      setError(locale === "en" ? "Supabase is not configured. Please set .env.local first." : "未設定 Supabase env，請先填好 .env.local 再登入／註冊。");
+      setError(locale === "en" ? "Supabase is not configured. Please set .env.local first." : "尚未完成 Supabase 環境設定，請先設定 .env.local 後再登入或註冊。");
       return;
     }
 
@@ -326,7 +326,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       } = await supabase.auth.getSession();
 
       if (!session) {
-        setError(locale === "en" ? "Login succeeded, but the session could not be loaded." : "登入成功，但無法讀取 session。請再試一次。" );
+        setError(locale === "en" ? "Login succeeded, but the session could not be loaded." : "登入成功，但無法載入 session，請再試一次。");
         return;
       }
 
@@ -362,7 +362,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         <div className="mb-6 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-700">
           {locale === "en"
             ? "Backend mode is disabled. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY first."
-            : "Backend mode 未啟用。請先設定 NEXT_PUBLIC_SUPABASE_URL 同 NEXT_PUBLIC_SUPABASE_ANON_KEY。"}
+            : "後端模式尚未啟用。請先設定 NEXT_PUBLIC_SUPABASE_URL 與 NEXT_PUBLIC_SUPABASE_ANON_KEY。"}
         </div>
       ) : null}
 
@@ -422,7 +422,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                       <label className="block text-base font-medium text-slate-900">
                         {t.bio}
-                        <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="mt-2 min-h-36 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder={locale === "en" ? "Tell brands about your style and audience..." : "介紹你的內容風格、受眾，以及你的 Reels 有什麼特色..."} />
+                        <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="mt-2 min-h-36 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder={locale === "en" ? "Tell brands about your style and audience..." : "請介紹你的內容風格、受眾特徵及 Reels 特色。"} />
                       </label>
                     </>
                   ) : null}
@@ -650,7 +650,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                 </button>
 
                 <p className="text-center text-sm text-slate-500">
-                  {locale === "en" ? "No account yet?" : "未有帳號？"}{" "}
+                  {locale === "en" ? "No account yet?" : "尚未建立帳號？"}{" "}
                   <Link href="/register" className="font-semibold text-blue-600 hover:text-blue-700">
                     {locale === "en" ? "Register now" : "立即註冊"}
                   </Link>

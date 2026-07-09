@@ -25,19 +25,39 @@ export function BrandRewardManager({ initialRewards, locale }: BrandRewardManage
       cancelEdit: "Cancel edit",
       edit: "Edit",
       delete: "Delete",
+      fieldSlug: "Slug",
+      fieldName: "Name",
+      fieldCost: "Cost",
+      fieldBadge: "Badge",
+      fieldEta: "Fulfillment ETA",
+      fieldStock: "Stock",
+      fieldDisplayOrder: "Display Order",
+      fieldDescription: "Description",
+      fieldActive: "Active",
+      stockLabel: "Stock",
     }
     : {
-      refreshFailed: "無法更新 reward 清單。",
-      saveFailed: "儲存 reward 失敗。",
-      deleteFailed: "刪除 reward 失敗。",
-      editReward: "編輯 reward",
-      createReward: "建立新 reward",
+      refreshFailed: "無法更新獎賞清單。",
+      saveFailed: "儲存獎賞失敗。",
+      deleteFailed: "刪除獎賞失敗。",
+      editReward: "編輯獎賞",
+      createReward: "建立新獎賞",
       processing: "處理中...",
-      updateReward: "更新 reward",
-      createRewardBtn: "建立 reward",
+      updateReward: "更新獎賞",
+      createRewardBtn: "建立獎賞",
       cancelEdit: "取消編輯",
       edit: "編輯",
       delete: "刪除",
+      fieldSlug: "Slug",
+      fieldName: "名稱",
+      fieldCost: "兌換成本",
+      fieldBadge: "徽章",
+      fieldEta: "履約時程",
+      fieldStock: "庫存",
+      fieldDisplayOrder: "顯示排序",
+      fieldDescription: "描述",
+      fieldActive: "啟用",
+      stockLabel: "庫存",
     };
 
   const router = useRouter();
@@ -151,13 +171,13 @@ export function BrandRewardManager({ initialRewards, locale }: BrandRewardManage
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           {[
-            { key: "slug", label: "Slug", type: "text" },
-            { key: "name", label: "Name", type: "text" },
-            { key: "cost", label: "Cost", type: "number" },
-            { key: "badge", label: "Badge", type: "text" },
-            { key: "eta", label: "Fulfillment ETA", type: "text" },
-            { key: "stock", label: "Stock", type: "number" },
-            { key: "displayOrder", label: "Display Order", type: "number" },
+            { key: "slug", label: t.fieldSlug, type: "text" },
+            { key: "name", label: t.fieldName, type: "text" },
+            { key: "cost", label: t.fieldCost, type: "number" },
+            { key: "badge", label: t.fieldBadge, type: "text" },
+            { key: "eta", label: t.fieldEta, type: "text" },
+            { key: "stock", label: t.fieldStock, type: "number" },
+            { key: "displayOrder", label: t.fieldDisplayOrder, type: "number" },
           ].map((field) => (
             <label key={field.key} className="block text-sm text-slate-300">
               {field.label}
@@ -178,7 +198,7 @@ export function BrandRewardManager({ initialRewards, locale }: BrandRewardManage
         </div>
 
         <label className="mt-4 block text-sm text-slate-300">
-          Description
+          {t.fieldDescription}
           <textarea
             value={form.description}
             onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))}
@@ -193,7 +213,7 @@ export function BrandRewardManager({ initialRewards, locale }: BrandRewardManage
             onChange={(event) => setForm((current) => ({ ...current, isActive: event.target.checked }))}
             className="h-4 w-4"
           />
-          Active
+          {t.fieldActive}
         </label>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -232,7 +252,7 @@ export function BrandRewardManager({ initialRewards, locale }: BrandRewardManage
               <div>
                 <p className="text-sm text-slate-400">{reward.slug}</p>
                 <h3 className="mt-1 text-xl font-semibold text-white">{reward.name}</h3>
-                <p className="mt-2 text-sm text-slate-300">{reward.cost} Coins · {reward.badge ?? "-"} · Stock {reward.stock ?? "∞"}</p>
+                <p className="mt-2 text-sm text-slate-300">{reward.cost} Coins · {reward.badge ?? "-"} · {t.stockLabel} {reward.stock ?? "∞"}</p>
               </div>
               <div className="flex gap-3">
                 <button

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createAppLog } from "@/lib/observability";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function PATCH(_request: Request, context: { params: Promise<{ id: string }> }) {
+  const isZh = isZhRequest(_request);
   const [{ id }, supabase] = await Promise.all([
     context.params,
     createSupabaseServerClient(),
@@ -18,7 +20,7 @@ export async function PATCH(_request: Request, context: { params: Promise<{ id: 
       route: "/api/notifications/[id]",
       context: { notificationId: id },
     });
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "通知服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const {
@@ -34,7 +36,7 @@ export async function PATCH(_request: Request, context: { params: Promise<{ id: 
       route: "/api/notifications/[id]",
       context: { notificationId: id },
     });
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "請先登入後再操作通知。" : "Authentication required." }, { status: 401 });
   }
 
   const { error } = await supabase
@@ -56,7 +58,7 @@ export async function PATCH(_request: Request, context: { params: Promise<{ id: 
       userId: user.id,
       context: { notificationId: id },
     });
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "更新通知狀態失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true });

@@ -6,6 +6,7 @@ import { awardGamePassLevelUpRewards } from "@/lib/game-pass";
 import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
 import { handleReferralPostSettlement } from "@/lib/referral-growth";
+import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/supabase/env";
@@ -83,6 +84,16 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const isZh = isZhRequest(request);
+  const t = {
+    serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
+    forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
+    notFound: isZh ? "找不到提交紀錄。" : "Submission not found.",
+    invalidStatus: isZh ? "提交狀態無效。" : "Invalid submission status.",
+    invalidDueTime: isZh ? "審核期限格式無效。" : "Invalid review due time.",
+    updateFailed: isZh ? "更新提交資料失敗，請稍後再試。" : "Unable to update submission. Please try again.",
+  };
+
   const [{ id }, supabase, admin] = await Promise.all([
     context.params,
     createSupabaseServerClient(),
@@ -98,7 +109,7 @@ export async function PATCH(
       route: "/api/admin/submissions/[id]",
       context: { submissionId: id },
     });
-    return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+    return NextResponse.json({ error: t.serviceUnavailable }, { status: 503 });
   }
 
   const [adminSession, {
@@ -115,7 +126,7 @@ export async function PATCH(
       userId: user?.id ?? null,
       context: { submissionId: id },
     });
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    return NextResponse.json({ error: t.forbidden }, { status: 403 });
   }
 
   const reviewerId = user?.id ?? null;
@@ -127,7 +138,7 @@ export async function PATCH(
     .maybeSingle();
 
   if (!existingSubmission) {
-    return NextResponse.json({ error: "Submission not found." }, { status: 404 });
+    return NextResponse.json({ error: t.notFound }, { status: 404 });
   }
 
   const body = await request.json();
@@ -138,11 +149,11 @@ export async function PATCH(
   const reviewDueAt = toIsoOrNull(body.reviewDueAt);
 
   if (status && !allowedStatuses.includes(status)) {
-    return NextResponse.json({ error: "Invalid submission status." }, { status: 400 });
+    return NextResponse.json({ error: t.invalidStatus }, { status: 400 });
   }
 
   if (body.reviewDueAt !== undefined && reviewDueAt === undefined) {
-    return NextResponse.json({ error: "Invalid review due time." }, { status: 400 });
+    return NextResponse.json({ error: t.invalidDueTime }, { status: 400 });
   }
 
   if (status === "Approved") {
@@ -171,7 +182,7 @@ export async function PATCH(
         userId: reviewerId,
         context: { submissionId: id },
       });
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: t.updateFailed }, { status: 400 });
     }
 
     const settleArgs: Database["public"]["Functions"]["settle_referral_reward"]["Args"] = {
@@ -323,7 +334,7 @@ export async function PATCH(
       userId: reviewerId,
       context: { submissionId: id, status: status ?? null },
     });
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: t.updateFailed }, { status: 400 });
   }
 
   await syncSlaBreachForIds(admin, [id]);

@@ -1,24 +1,26 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig } from "@/lib/supabase/env";
 import { getCreatorLevelFromTotalExp } from "@/lib/mission-rules";
 
 export async function GET(request: Request) {
+  const isZh = isZhRequest(request);
   if (!hasSupabaseAdminConfig()) {
-    return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "使用者資料服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
   }
 
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 
   if (!token) {
-    return NextResponse.json({ error: "Missing bearer token." }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "缺少登入憑證，請重新登入。" : "Missing bearer token." }, { status: 401 });
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "使用者資料服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
   }
 
   const {
@@ -27,7 +29,7 @@ export async function GET(request: Request) {
   } = await admin.auth.getUser(token);
 
   if (userError || !user) {
-    return NextResponse.json({ error: userError?.message ?? "Unauthorized." }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "登入狀態無效或已過期，請重新登入。" : (userError?.message ?? "Unauthorized.") }, { status: 401 });
   }
 
   const [{ data: profile }, { data: transactions }, { data: submissions }] = await Promise.all([

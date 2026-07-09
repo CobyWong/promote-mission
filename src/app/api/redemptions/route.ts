@@ -7,8 +7,23 @@ import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
+import { isZhRequest } from "@/lib/api-locale";
 
 export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
+  const t = {
+    rateLimited: isZh ? "兌換嘗試過於頻繁，請稍後再試。" : "Too many redemption attempts. Please try again shortly.",
+    serviceUnavailable: isZh ? "兌換服務暫時不可用，請稍後再試。" : "Supabase is not configured.",
+    authRequired: isZh ? "請先登入後再兌換獎賞。" : "Please log in before redeeming rewards.",
+    rewardSlugRequired: isZh ? "請提供獎賞識別碼。" : "Reward slug is required.",
+    levelRequired: (requiredLevel: number, userLevel: number) => isZh
+      ? `此獎賞需達 Lv.${requiredLevel} 方可兌換；你目前等級為 Lv.${userLevel}/${MAX_CREATOR_LEVEL}。`
+      : `This reward unlocks at level ${requiredLevel}. Your current level is ${userLevel}/${MAX_CREATOR_LEVEL}.`,
+    inflight: isZh
+      ? "相同兌換請求仍在處理中，請稍候再試。"
+      : "A redemption with the same idempotency key is already in progress.",
+  };
+
   const limiter = await evaluateRateLimit({
     namespace: "web-redemption-create",
     key: getClientFingerprint(request),
@@ -27,7 +42,7 @@ export async function POST(request: Request) {
       context: { retryAfter },
     });
     return NextResponse.json(
-      { error: "Too many redemption attempts. Please try again shortly." },
+      { error: t.rateLimited },
       {
         status: 429,
         headers: {
@@ -47,7 +62,7 @@ export async function POST(request: Request) {
       message: "Supabase is not configured.",
       route: "/api/redemptions",
     });
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: t.serviceUnavailable }, { status: 503 });
   }
 
   const {
@@ -62,14 +77,14 @@ export async function POST(request: Request) {
       message: "Please log in before redeeming rewards.",
       route: "/api/redemptions",
     });
-    return NextResponse.json({ error: "Please log in before redeeming rewards." }, { status: 401 });
+    return NextResponse.json({ error: t.authRequired }, { status: 401 });
   }
 
   const body = (await request.json()) as { rewardSlug?: string };
   const rewardSlug = String(body.rewardSlug ?? "").trim();
 
   if (!rewardSlug) {
-    return NextResponse.json({ error: "Reward slug is required." }, { status: 400 });
+    return NextResponse.json({ error: t.rewardSlugRequired }, { status: 400 });
   }
 
   const requiredLevel = getRewardRequiredLevel(rewardSlug);
@@ -83,7 +98,7 @@ export async function POST(request: Request) {
 
   if (userLevel < requiredLevel) {
     return NextResponse.json(
-      { error: `This reward unlocks at level ${requiredLevel}. Your current level is ${userLevel}/${MAX_CREATOR_LEVEL}.` },
+      { error: t.levelRequired(requiredLevel, userLevel) },
       { status: 403 },
     );
   }
@@ -124,7 +139,7 @@ export async function POST(request: Request) {
       },
     });
     return NextResponse.json(
-      { error: "A redemption with the same idempotency key is already in progress." },
+      { error: t.inflight },
       { status: 409 },
     );
   }

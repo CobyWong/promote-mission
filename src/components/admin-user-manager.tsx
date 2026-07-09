@@ -67,7 +67,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
       adminUsers: "管理員",
       brandUsers: "品牌帳號",
       recentlyActive: "30日內登入",
-      search: "用 email / 名稱 / IG 搜尋",
+      search: "以 Email / 名稱 / IG 帳號搜尋",
       noResults: "找不到符合條件的用戶。",
       joined: "註冊時間",
       lastSignIn: "最後登入",

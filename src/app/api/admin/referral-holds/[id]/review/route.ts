@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import { createUserNotification } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
@@ -10,14 +11,15 @@ type Body = {
 };
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  const isZh = isZhRequest(request);
   const isAuthed = await hasAdminSession();
   if (!isAuthed) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "未授權存取。" : "Unauthorized" }, { status: 401 });
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "推薦審核服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const { id } = await context.params;
@@ -25,7 +27,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
   const action = body?.action;
   if (action !== "approve" && action !== "reject") {
-    return NextResponse.json({ error: "Invalid action." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "操作指令無效。" : "Invalid action." }, { status: 400 });
   }
 
   const { data: hold } = await admin
@@ -35,11 +37,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     .maybeSingle();
 
   if (!hold?.id) {
-    return NextResponse.json({ error: "Hold not found." }, { status: 404 });
+    return NextResponse.json({ error: isZh ? "找不到指定的審核暫緩紀錄。" : "Hold not found." }, { status: 404 });
   }
 
   if (hold.status !== "pending") {
-    return NextResponse.json({ error: "Hold already reviewed." }, { status: 409 });
+    return NextResponse.json({ error: isZh ? "此暫緩紀錄已完成審核。" : "Hold already reviewed." }, { status: 409 });
   }
 
   if (action === "approve") {
@@ -71,8 +73,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     await createUserNotification({
       userId: hold.inviter_user_id,
       type: "system",
-      title: "Referral reward released",
-      message: `Your held referral reward (+${hold.amount} Coins) has been approved and released.`,
+      title: isZh ? "推薦獎勵已發放" : "Referral reward released",
+      message: isZh
+        ? `你的暫緩推薦獎勵（+${hold.amount} Coins）已通過審核並完成發放。`
+        : `Your held referral reward (+${hold.amount} Coins) has been approved and released.`,
       link: "/dashboard",
       metadata: {
         holdId: hold.id,
@@ -102,8 +106,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   await createUserNotification({
     userId: hold.inviter_user_id,
     type: "system",
-    title: "Referral reward not approved",
-    message: "Your held referral reward did not pass review.",
+    title: isZh ? "推薦獎勵未獲批准" : "Referral reward not approved",
+    message: isZh ? "你的暫緩推薦獎勵未能通過審核。" : "Your held referral reward did not pass review.",
     link: "/dashboard",
     metadata: {
       holdId: hold.id,

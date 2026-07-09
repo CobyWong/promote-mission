@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-async function assertBrandAccess() {
+async function assertBrandAccess(request: Request) {
+  const isZh = isZhRequest(request);
   const [supabase, admin] = await Promise.all([
     createSupabaseServerClient(),
     Promise.resolve(createSupabaseAdminClient()),
   ]);
 
   if (!supabase || !admin) {
-    return { error: NextResponse.json({ error: "Supabase brand mode is not configured." }, { status: 503 }) };
+    return { error: NextResponse.json({ error: isZh ? "品牌管理服務暫時不可用，請稍後再試。" : "Supabase brand mode is not configured." }, { status: 503 }) };
   }
 
   const [adminSession, {
@@ -21,7 +23,7 @@ async function assertBrandAccess() {
   }] = await Promise.all([hasAdminSession(), supabase.auth.getUser()]);
 
   if (!adminSession && (!user || !isBrandOrAdminEmail(user.email))) {
-    return { error: NextResponse.json({ error: "Brand/admin access required." }, { status: 403 }) };
+    return { error: NextResponse.json({ error: isZh ? "你目前沒有品牌或管理員權限。" : "Brand/admin access required." }, { status: 403 }) };
   }
 
   return { admin };
@@ -56,7 +58,8 @@ function toIsoOrUndefined(value: unknown) {
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ slug: string }> }) {
-  const access = await assertBrandAccess();
+  const isZh = isZhRequest(request);
+  const access = await assertBrandAccess(request);
 
   if ("error" in access) {
     return access.error;
@@ -98,14 +101,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
   const { error } = await access.admin.from("missions").update(payload).eq("slug", slug);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "更新任務失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_request: Request, context: { params: Promise<{ slug: string }> }) {
-  const access = await assertBrandAccess();
+export async function DELETE(request: Request, context: { params: Promise<{ slug: string }> }) {
+  const isZh = isZhRequest(request);
+  const access = await assertBrandAccess(request);
 
   if ("error" in access) {
     return access.error;
@@ -116,7 +120,7 @@ export async function DELETE(_request: Request, context: { params: Promise<{ slu
   const { error } = await access.admin.from("missions").delete().eq("slug", slug);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "刪除任務失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true });

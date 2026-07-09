@@ -47,7 +47,7 @@ export function DashboardMissionActions({ missionSlug, eta, locale }: DashboardM
 
   return (
     <Link href={`/missions/${missionSlug}`} className="inline-flex min-h-11 items-center text-amber-300 hover:text-amber-200">
-      {locale === "en" ? "Accept mission first →" : "請先接受任務 →"}
+      {locale === "en" ? "Accept mission first →" : "請先完成任務接受流程 →"}
     </Link>
   );
 }

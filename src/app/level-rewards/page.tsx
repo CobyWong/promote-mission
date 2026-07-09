@@ -25,8 +25,8 @@ export default async function LevelRewardsPage() {
       backDashboard: "返回個人檔案",
       level: "等級",
       reward: "獎勵",
-      note: "每逢 5 級屬里程碑，已包含額外 +250 Coins 加成。",
-      swipeHint: "左右滑動查看更多等級",
+      note: "每逢 5 級里程碑均包含額外 +250 Coins 獎勵。",
+      swipeHint: "請左右滑動以查看更多等級",
     };
 
   return (

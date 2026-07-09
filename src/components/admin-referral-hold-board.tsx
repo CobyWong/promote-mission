@@ -36,12 +36,12 @@ export function AdminReferralHoldBoard({ locale }: Props) {
     }
     : {
       title: "推薦獎勵暫扣審核隊列",
-      desc: "審核被暫扣嘅推薦獎勵，可批准或拒絕。",
+      desc: "審核已暫扣的推薦獎勵，並可執行批准或拒絕。",
       refresh: "重新載入",
       approve: "批准",
       reject: "拒絕",
       pending: "待審核暫扣",
-      empty: "暫時未有待審核暫扣。",
+      empty: "目前尚無待審核暫扣項目。",
       reviewing: "處理中...",
     };
 

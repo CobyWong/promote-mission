@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createAppLog } from "@/lib/observability";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig, hasSupabaseConfig } from "@/lib/supabase/env";
@@ -9,13 +10,14 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ slug: string }> },
 ) {
+  const isZh = isZhRequest(request);
   if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
-    return NextResponse.json({ error: "Mission interest service unavailable." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "任務參與服務暫時不可用，請稍後再試。" : "Mission interest service unavailable." }, { status: 503 });
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ error: "Mission interest service unavailable." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "任務參與服務暫時不可用，請稍後再試。" : "Mission interest service unavailable." }, { status: 503 });
   }
 
   const { slug } = await context.params;
@@ -34,7 +36,7 @@ export async function POST(
     .eq("slug", slug);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "更新任務參與人數失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   const supabase = await createSupabaseServerClient();

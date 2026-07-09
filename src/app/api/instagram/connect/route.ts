@@ -2,14 +2,16 @@ import { randomUUID } from "crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { buildInstagramOAuthUrl, getMissingInstagramConfig, hasInstagramConfig } from "@/lib/instagram";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
+  const isZh = isZhRequest(request);
   if (!hasInstagramConfig()) {
     return NextResponse.json(
       {
-        error: "Instagram integration is not configured.",
+        error: isZh ? "Instagram 整合服務尚未完成設定。" : "Instagram integration is not configured.",
         missing: getMissingInstagramConfig(),
       },
       { status: 503 },
@@ -19,7 +21,7 @@ export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "Instagram 連線服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const {

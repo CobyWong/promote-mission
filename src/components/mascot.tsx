@@ -20,28 +20,28 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     path: "/dashboard",
     zhTitle: "控制台 Dashboard",
     enTitle: "Dashboard",
-    zhDesc: "睇你嘅 Coins、提交狀態同進度，呢度係你每日最常用頁面。",
+    zhDesc: "可在此查看 Coins、提交狀態與任務進度，為每日常用頁面。",
     enDesc: "Check your Coins, submission status, and progress. This is your daily command center.",
   },
   {
     path: "/missions",
     zhTitle: "任務中心 Missions",
     enTitle: "Missions",
-    zhDesc: "揀任務前先睇清楚 requirements 同 deliverables，避免交稿被退回。",
+    zhDesc: "接受任務前請先確認 requirements 與 deliverables，以降低退件風險。",
     enDesc: "Review requirements and deliverables before accepting to avoid rework.",
   },
   {
     path: "/rewards",
     zhTitle: "獎賞商城 Rewards",
     enTitle: "Rewards",
-    zhDesc: "用 Coins 換獎賞，記得留意庫存同兌換所需 Coins。",
+    zhDesc: "可使用 Coins 兌換獎賞，並請留意庫存與所需 Coins。",
     enDesc: "Redeem your Coins for rewards. Watch stock and required Coins.",
   },
   {
     path: "/leaderboard",
     zhTitle: "排行榜 Leaderboard",
     enTitle: "Leaderboard",
-    zhDesc: "跟住本月排名衝榜，第一名有每月大獎。",
+    zhDesc: "可追蹤本月排名並爭取晉升，第一名可獲每月大獎。",
     enDesc: "Track monthly rankings and climb to #1 for the monthly grand prize.",
   },
 ];
@@ -62,30 +62,30 @@ function findOnboardingStepIndex(pathname: string) {
 
 const TIPS: Record<string, { zh: string; en: string }[]> = {
   "/": [
-    { zh: "嘿！我係小P，你嘅任務嚮導～ 完成任務就可以賺金幣換獎賞！", en: "Hey! I'm P-Bot, your mission guide! Complete missions to earn Coins and redeem rewards!" },
-    { zh: "想開始？去「任務中心」揀一個你鍾意嘅品牌任務！", en: "Ready to start? Head to Missions and pick a brand task you like!" },
+    { zh: "你好，我是小P，你的任務嚮導。完成任務即可賺取金幣並兌換獎賞。", en: "Hey! I'm P-Bot, your mission guide! Complete missions to earn Coins and redeem rewards!" },
+    { zh: "如欲開始，請前往「任務中心」選擇適合的品牌任務。", en: "Ready to start? Head to Missions and pick a brand task you like!" },
   ],
   "/missions": [
-    { zh: "呢度有晒可以接嘅任務！點擊任務睇清楚要求先好接！", en: "All available missions are here! Click one to read the brief before accepting." },
-    { zh: "任務難度越高，金幣獎勵越多！量力而為喎～", en: "Higher difficulty = more Coins! Choose wisely." },
+    { zh: "此處提供可接受任務；建議先閱讀任務要求後再接受。", en: "All available missions are here! Click one to read the brief before accepting." },
+    { zh: "任務難度越高，金幣獎勵通常越高；請按內容能力選擇。", en: "Higher difficulty = more Coins! Choose wisely." },
   ],
   "/rewards": [
-    { zh: "呢度可以用金幣換心水獎賞！記得注意庫存，先到先得！", en: "Spend your Coins here on rewards! Watch the stock — first come, first served!" },
-    { zh: "金幣唔夠？去接多幾個任務先！", en: "Not enough Coins? Go complete more missions first!" },
+    { zh: "可於此使用金幣兌換獎賞；請留意庫存狀態。", en: "Spend your Coins here on rewards! Watch the stock — first come, first served!" },
+    { zh: "如金幣不足，建議先完成更多任務。", en: "Not enough Coins? Go complete more missions first!" },
   ],
   "/leaderboard": [
-    { zh: "本月金幣收益排第一，可以攞名錶獎勵！衝啊！", en: "The #1 creator this month wins a luxury watch! Go for it!" },
-    { zh: "完成任務數量同追蹤數都有排名，唔止金幣先算！", en: "Rankings also track missions done and followers — not just Coins!" },
+    { zh: "本月金幣收益排名第一可獲名錶獎勵。", en: "The #1 creator this month wins a luxury watch! Go for it!" },
+    { zh: "排行榜亦涵蓋完成任務數量與追蹤數，不僅限於金幣。", en: "Rankings also track missions done and followers — not just Coins!" },
   ],
   "/dashboard": [
-    { zh: "呢度係你嘅個人控制台，追蹤任務進度同提交記錄！", en: "This is your personal dashboard — track your missions and submission history!" },
-    { zh: "有待審核嘅提交？耐心等等，審核通過就即刻入帳！", en: "Submissions pending? Sit tight — Coins land as soon as you're approved!" },
+    { zh: "此處為你的個人控制台，可追蹤任務進度與提交記錄。", en: "This is your personal dashboard — track your missions and submission history!" },
+    { zh: "如提交仍在審核中，待審核通過後將自動入帳。", en: "Submissions pending? Sit tight — Coins land as soon as you're approved!" },
   ],
   "/login": [
-    { zh: "登入就可以接任務、賺金幣、換獎賞！", en: "Log in to start accepting missions, earning Coins, and redeeming rewards!" },
+    { zh: "登入後即可接受任務、累積金幣並兌換獎賞。", en: "Log in to start accepting missions, earning Coins, and redeeming rewards!" },
   ],
   "/register": [
-    { zh: "加入我哋！建立帳號就可以立即開始接任務！", en: "Join us! Create an account and start accepting missions right away!" },
+    { zh: "歡迎加入。建立帳號後即可立即開始接受任務。", en: "Join us! Create an account and start accepting missions right away!" },
   ],
 };
 
@@ -100,15 +100,15 @@ function getTips(pathname: string, locale: Locale) {
     const tips = TIPS[prefix];
     if (prefix === "/missions") {
       const missionTips = [
-        { zh: "睇清楚任務要求，特別係 Deliverables，確保你嘅內容符合要求先好接！", en: "Read the deliverables carefully before accepting — make sure your content fits!" },
+        { zh: "請先確認任務要求，尤其 Deliverables，確保內容符合規範後再接受。", en: "Read the deliverables carefully before accepting — make sure your content fits!" },
         { zh: "接受任務後倒數就開始，記得準時提交！", en: "The countdown starts the moment you accept — don't miss the deadline!" },
       ];
       return locale === "en" ? missionTips.map((t) => t.en) : missionTips.map((t) => t.zh);
     }
     if (prefix === "/submit") {
       const submitTips = [
-        { zh: "提交時要填 Reel 連結，並將 @missionone.hk 設為協作者！", en: "Submit with your Reel URL and add @missionone.hk as collaborator." },
-        { zh: "記得檢查品牌標註同 hashtag，再交稿會更快過審！", en: "Double-check brand tags and hashtags to speed up review." },
+        { zh: "提交時請填寫 Reel 連結，並將 @missionone_hk 設為協作者。", en: "Submit with your Reel URL and add @missionone_hk as collaborator." },
+        { zh: "請再次確認品牌標註與 hashtag，可提升審核效率。", en: "Double-check brand tags and hashtags to speed up review." },
       ];
       return locale === "en" ? submitTips.map((t) => t.en) : submitTips.map((t) => t.zh);
     }
@@ -117,7 +117,7 @@ function getTips(pathname: string, locale: Locale) {
 
   // Default
   const defaultTips = [
-    { zh: "有問題？我係小P，隨時喺度幫你！", en: "Need help? I'm P-Bot, always here for you!" },
+    { zh: "如有任何問題，我是小P，隨時為你提供協助。", en: "Need help? I'm P-Bot, always here for you!" },
   ];
   return locale === "en" ? defaultTips.map((t) => t.en) : defaultTips.map((t) => t.zh);
 }

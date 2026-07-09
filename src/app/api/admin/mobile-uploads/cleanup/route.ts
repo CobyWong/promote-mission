@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getCleanupCronToken,
@@ -137,6 +138,7 @@ async function isAuthorized(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
   if (!hasSupabaseAdminConfig()) {
     return NextResponse.json(
       {
@@ -151,7 +153,7 @@ export async function POST(request: Request) {
 
   const authorized = await isAuthorized(request);
   if (!authorized) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "未授權存取。" : "Unauthorized" }, { status: 401 });
   }
 
   const url = new URL(request.url);
@@ -173,7 +175,7 @@ export async function POST(request: Request) {
 
   const userList = await listAllEntries(admin, UPLOAD_ROOT_PREFIX);
   if (userList.error) {
-    return NextResponse.json({ error: userList.error }, { status: 500 });
+    return NextResponse.json({ error: isZh ? "讀取上傳資料失敗，請稍後再試。" : userList.error }, { status: 500 });
   }
 
   const userFolders = userList.entries.filter((entry) => isFolderEntry(entry));

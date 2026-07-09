@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAdminEmails, getBrandEmails, isAdminEmail } from "@/lib/supabase/env";
@@ -41,13 +42,24 @@ async function assertAdminAccess() {
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const isZh = isZhRequest(request);
+  const t = {
+    serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
+    forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
+    profileUpdateFailed: isZh ? "更新用戶資料失敗，請稍後再試。" : "Failed to update user profile.",
+    authMetadataFailed: isZh ? "更新帳號資料失敗，請稍後再試。" : "Failed to update auth metadata.",
+    deleteSelfForbidden: isZh ? "不可刪除目前登入的管理員帳號。" : "You cannot delete your own admin account.",
+    deleteFailed: isZh ? "刪除用戶失敗，請稍後再試。" : "Failed to delete user.",
+  };
+
   const [{ id }, access] = await Promise.all([
     context.params,
     assertAdminAccess(),
   ]);
 
   if ("error" in access) {
-    return access.error;
+    const status = access.error.status;
+    return NextResponse.json({ error: status === 503 ? t.serviceUnavailable : t.forbidden }, { status });
   }
 
   const body = (await request.json()) as ProfileUpdatePayload;
@@ -78,7 +90,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     .single();
 
   if (profileError) {
-    return NextResponse.json({ error: profileError.message }, { status: 400 });
+    return NextResponse.json({ error: t.profileUpdateFailed }, { status: 400 });
   }
 
   const { data: authUserData, error: authUserError } = await access.admin.auth.admin.updateUserById(id, {
@@ -92,7 +104,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   });
 
   if (authUserError || !authUserData.user) {
-    return NextResponse.json({ error: authUserError?.message ?? "Failed to update auth metadata." }, { status: 400 });
+    return NextResponse.json({ error: t.authMetadataFailed }, { status: 400 });
   }
 
   const user = authUserData.user;
@@ -117,24 +129,33 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   });
 }
 
-export async function DELETE(_request: Request, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
+  const isZh = isZhRequest(request);
+  const t = {
+    serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
+    forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
+    deleteSelfForbidden: isZh ? "不可刪除目前登入的管理員帳號。" : "You cannot delete your own admin account.",
+    deleteFailed: isZh ? "刪除用戶失敗，請稍後再試。" : "Failed to delete user.",
+  };
+
   const [{ id }, access] = await Promise.all([
     context.params,
     assertAdminAccess(),
   ]);
 
   if ("error" in access) {
-    return access.error;
+    const status = access.error.status;
+    return NextResponse.json({ error: status === 503 ? t.serviceUnavailable : t.forbidden }, { status });
   }
 
   if (access.viewerId && access.viewerId === id) {
-    return NextResponse.json({ error: "You cannot delete your own admin account." }, { status: 400 });
+    return NextResponse.json({ error: t.deleteSelfForbidden }, { status: 400 });
   }
 
   const { error } = await access.admin.auth.admin.deleteUser(id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: t.deleteFailed }, { status: 400 });
   }
 
   return NextResponse.json({ ok: true });

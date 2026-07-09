@@ -6,11 +6,13 @@ import {
   hasAdminCredentialConfig,
   isAdminCredential,
 } from "@/lib/admin-auth";
+import { isZhRequest } from "@/lib/api-locale";
 import { getClientFingerprint, evaluateRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { logApiEvent, reportApiError } from "@/lib/observability";
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const isZh = isZhRequest(request);
 
   try {
     if (!hasAdminCredentialConfig()) {
@@ -22,7 +24,7 @@ export async function POST(request: Request) {
         requestId,
         message: "Admin credentials are not configured safely.",
       });
-      return NextResponse.json({ error: "Admin login is not configured." }, { status: 503 });
+      return NextResponse.json({ error: isZh ? "管理員登入功能尚未完成設定。" : "Admin login is not configured." }, { status: 503 });
     }
 
     const body = (await request.json()) as { email?: string; password?: string };
@@ -51,7 +53,7 @@ export async function POST(request: Request) {
         },
       });
       return NextResponse.json(
-        { error: "Too many login attempts. Please try again later." },
+        { error: isZh ? "登入嘗試次數過多，請稍後再試。" : "Too many login attempts. Please try again later." },
         {
           status: 429,
           headers: {
@@ -76,7 +78,7 @@ export async function POST(request: Request) {
           email: email.trim().toLowerCase(),
         },
       });
-      return NextResponse.json({ error: "Invalid admin credentials." }, { status: 401 });
+      return NextResponse.json({ error: isZh ? "管理員帳號或密碼不正確。" : "Invalid admin credentials." }, { status: 401 });
     }
 
     const response = NextResponse.json({ ok: true });
@@ -108,6 +110,6 @@ export async function POST(request: Request) {
       requestId,
       error,
     });
-    return NextResponse.json({ error: "Unexpected error while logging in." }, { status: 500 });
+    return NextResponse.json({ error: isZh ? "管理員登入時發生未預期錯誤，請稍後再試。" : "Unexpected error while logging in." }, { status: 500 });
   }
 }

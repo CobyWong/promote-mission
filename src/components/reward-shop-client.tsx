@@ -126,8 +126,8 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
           </p>
           <p className="mt-3 text-sm text-slate-300">
             {isAuthenticated
-              ? locale === "en" ? "Pick your reward and redeem instantly." : "揀中心儀獎賞即刻兌換。"
-              : locale === "en" ? "Log in to use live redemption." : "登入後先可以使用真實兌換流程。"}
+              ? locale === "en" ? "Pick your reward and redeem instantly." : "請選擇心儀獎賞並即時兌換。"
+              : locale === "en" ? "Log in to use live redemption." : "登入後方可使用正式兌換流程。"}
           </p>
           {!isAuthenticated ? (
             <Link href="/login?next=/rewards" className="tactical-btn-primary mt-5 px-5 py-3">
@@ -152,7 +152,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
               ))
             ) : (
               <div className="tactical-subcard px-4 py-4 text-sm text-slate-300">
-                {locale === "en" ? "No redemption history yet." : "未有兌換紀錄。完成任務後可以返嚟兌換。"}
+                {locale === "en" ? "No redemption history yet." : "目前尚無兌換紀錄。完成任務後即可回到此頁兌換。"}
               </div>
             )}
           </div>
@@ -204,7 +204,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                     ? locale === "en" ? "Redeem now" : "立即兌換"
                     : isAuthenticated
                       ? !hasRequiredLevel
-                        ? locale === "en" ? `Locked until Lv.${minLevel}` : `Lv.${minLevel} 先可兌換`
+                        ? locale === "en" ? `Locked until Lv.${minLevel}` : `Lv.${minLevel} 起可兌換`
                         : !hasStock
                         ? locale === "en" ? "Sold out" : "已售罄"
                         : !hasEnoughCoins

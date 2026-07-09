@@ -3,7 +3,7 @@ import { getCurrentLocale } from "@/lib/i18n";
 import { DIFFICULTY_REQUIRED_LEVEL, getMissionRequiredLevel } from "@/lib/mission-rules";
 import Link from "next/link";
 
-const zhMissionIntro = "揀返最適合你嘅受眾同內容風格任務。";
+const zhMissionIntro = "請選擇最符合受眾定位與內容風格的任務。";
 
 export default async function MissionsPage() {
   const locale = await getCurrentLocale();
@@ -39,10 +39,10 @@ export default async function MissionsPage() {
     }
 
     return key === "Easy"
-      ? "快速上手，適合新手創作者"
+      ? "適合入門創作者的基礎任務"
       : key === "Medium"
-        ? "要求更高，獎勵更高"
-        : "高強度挑戰，高手專屬";
+        ? "執行要求與獎勵水準同步提升"
+        : "高標準挑戰，適合進階創作者";
   };
 
   const sectionAccent = (key: "Easy" | "Medium" | "Hard") => {
@@ -96,7 +96,7 @@ export default async function MissionsPage() {
                   <p className="text-4xl font-semibold text-slate-100 sm:text-5xl">{sectionLabel(section.key)} 🔒</p>
                   <p className="mt-2 text-sm text-slate-400">{sectionSubLabel(section.key)}</p>
                   <p className="mt-4 text-lg text-slate-200">
-                    {locale === "en" ? `Unlock at Lv.${section.requiredLevel}` : `達到${section.requiredLevel}等解鎖`}
+                    {locale === "en" ? `Unlock at Lv.${section.requiredLevel}` : `達到 Lv.${section.requiredLevel} 後解鎖`}
                   </p>
                 </div>
               </div>
@@ -119,7 +119,7 @@ export default async function MissionsPage() {
       <div className="mt-10 rounded-2xl border border-slate-500/40 bg-slate-900/30 px-5 py-4 text-sm text-slate-300">
         {locale === "en"
           ? "Choose a mission zone above to open a dedicated page for that level."
-          : "請先選擇上方任務區，系統會跳轉到對應等級的任務頁面。"}
+          : "請先選擇上方任務分區，系統將跳轉至對應等級頁面。"}
       </div>
     </section>
   );

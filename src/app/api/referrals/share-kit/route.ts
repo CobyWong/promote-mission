@@ -1,16 +1,18 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const isZh = isZhRequest(request);
   const [supabase, admin] = await Promise.all([
     createSupabaseServerClient(),
     Promise.resolve(createSupabaseAdminClient()),
   ]);
 
   if (!supabase || !admin) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "分享工具暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const {
@@ -18,7 +20,7 @@ export async function GET() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "請先登入後再取得分享連結。" : "Authentication required." }, { status: 401 });
   }
 
   const { data: profile } = await admin

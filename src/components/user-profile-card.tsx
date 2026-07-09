@@ -51,7 +51,7 @@ export function UserProfileCard({
     }
     : {
       title: "你的帳號",
-      subtitle: "建立創作者個人檔案，風格類似帳號中心。",
+      subtitle: "建立並管理創作者個人檔案。",
       name: "姓名",
       handle: "Instagram 帳號",
       niche: "內容類型",
@@ -64,7 +64,7 @@ export function UserProfileCard({
       edit: "編輯",
       close: "關閉",
       demo: "未完成 Supabase 設定前，暫時未能儲存個人資料。",
-      noEmail: "未有電郵",
+      noEmail: "尚未提供電郵",
     };
 
   const [name, setName] = useState(initialName);

@@ -30,7 +30,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       needIg: "Requires linked Instagram account",
       styleFit: "Content style matching required",
       dailyCap: "Platform can set daily order limits",
-      collaborator: "Add @missionone.hk as collaborator before submission",
+      collaborator: "Add @missionone_hk as collaborator before submission",
       accept: "Accept mission",
       accepted: "Mission accepted",
       restart: "Re-accept mission",
@@ -43,20 +43,20 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
     }
     : {
       title: "立即申請",
-      desc: "請先接任務，接單後會即時開始倒數。",
+      desc: "請先接受任務；接受後將即時開始倒數。",
       needIg: "需要綁定 Instagram 帳號",
       styleFit: "需要過往內容風格配對",
       dailyCap: "平台可設定每日接單上限",
-      collaborator: "交稿前需將 @missionone.hk 加為協作者",
+      collaborator: "提交前需將 @missionone_hk 設為協作者",
       accept: "接受任務",
       accepted: "已接受任務",
-      restart: "重新接任務",
+      restart: "重新接受任務",
       lockedTitle: "等待人數開放",
       lockedDesc: "此任務需要達到最低人數才會正式開放。立即登記參加，讓任務更快開放！",
       participants: "已登記創作者",
       stillNeed: "還差 {n} 人即可開放",
       registerInterest: "✋ 立即登記參加",
-      registeredMsg: "你已成功登記！人數達到後，任務將正式開放。",
+      registeredMsg: "已完成登記；達到指定人數後，任務將正式開放。",
     };
 
   useEffect(() => {

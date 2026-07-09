@@ -15,8 +15,8 @@ export default async function AdminUsersPage() {
     : {
       title: "用戶管理",
       desc: "管理員可搜尋用戶、更新個人檔案欄位，及刪除帳號。",
-      needAdmin: "需要 admin 權限",
-      needAdminDesc: "請使用 ADMIN_EMAILS 內的帳號登入先可管理用戶。",
+      needAdmin: "需要管理員權限",
+      needAdminDesc: "請使用 ADMIN_EMAILS 指定帳號登入，方可管理用戶。",
       unavailable: "未完成 Supabase admin 設定，暫時未能使用真實用戶管理。",
     };
 

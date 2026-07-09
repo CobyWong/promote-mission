@@ -93,7 +93,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       deliverablesPerLine: "提交內容（每行一項）",
       tagsComma: "標籤（用逗號分隔）",
       productPhoto: "產品相片",
-      productPhotoHint: "上傳 JPG/PNG/WebP，最多 5MB。此相片會顯示喺任務卡片。",
+      productPhotoHint: "請上傳 JPG/PNG/WebP，大小上限 5MB。此相片將顯示於任務卡片。",
       uploadFailed: "上傳任務相片失敗。",
       uploadProcessing: "相片上傳中...",
       photoPreview: "目前預覽",

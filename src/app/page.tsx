@@ -56,43 +56,43 @@ export default async function Home() {
     }
     : {
       badge: "創作者任務平台",
-      title: "Mission One 係一個俾創作者完成品牌內容任務並獲得獎勵嘅平台。",
-      desc: "創作者可以接任務、發佈 Instagram Reels、提交 proof，審核後換取獎賞。",
+      title: "Mission One 為創作者提供品牌內容任務媒合、審核與獎勵兌換的一站式平台。",
+      desc: "創作者可於本平台接受任務、發佈 Instagram Reels 並提交 Proof，經審核後獲得對應獎勵。",
       primaryCta: "瀏覽任務",
       secondaryCta: "聯絡支援",
-      overviewTitle: "呢個網站做咩",
+      overviewTitle: "平台核心功能",
       overviewItems: [
         {
           title: "任務平台",
-          desc: "創作者可以揀選合適自己風格嘅品牌任務並開始執行。",
+          desc: "創作者可依內容定位選擇合適的品牌任務，並依規範有序執行。",
         },
         {
-          title: "proof 審核",
-          desc: "每次提交都經 proof 記錄審核，令獎勵派發更一致。",
+          title: "Proof 審核",
+          desc: "每次提交皆以 Proof 記錄進行審核，確保流程透明且派發標準一致。",
         },
         {
           title: "獎勵兌換",
-          desc: "任務通過後獲得 Coins，之後可以去獎賞中心兌換。",
+          desc: "任務通過後可獲得 Coins，並於獎賞中心完成兌換流程。",
         },
       ],
       flowTitle: "流程簡介",
       flowSteps: [
-        "先揀一個適合你內容定位嘅任務。",
-        "發佈內容後提交 proof 連結。",
-        "審核通過後收 Coins，再兌換獎賞。",
+        "選擇符合內容定位之任務，並確認任務要求與交付規範。",
+        "發佈 Instagram Reels 後，將 @missionone_hk 設為協作者，並提交 Proof 連結。",
+        "經審核通過後獲得 Coins，並可進一步兌換平台獎賞。",
       ],
-      benefitsTitle: "同時照顧兩邊需要",
-      creatorBenefitsTitle: "俾創作者",
+      benefitsTitle: "兼顧雙方營運需求",
+      creatorBenefitsTitle: "創作者價值",
       creatorBenefits: [
-        "任務要求清晰",
+        "任務要求明確",
         "審核進度透明",
-        "獎勵兌換流程簡單",
+        "獎勵機制清晰",
       ],
-      brandBenefitsTitle: "俾品牌方",
+      brandBenefitsTitle: "品牌方價值",
       brandBenefits: [
-        "提交資料更有結構",
+        "提交資料結構化",
         "審核流程集中管理",
-        "活動執行更一致",
+        "活動執行品質一致",
       ],
     };
 

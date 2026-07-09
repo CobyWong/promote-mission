@@ -41,7 +41,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
         }
       : {
           tabs: { coins: "金幣收益", missions: "完成任務", followers: "追蹤數" },
-          unavailable: "後端服務完成設定後，先會顯示排行榜。",
+          unavailable: "完成後端服務設定後，方可顯示排行榜資料。",
           rank: "排名",
           creator: "創作者",
           platform: "平台",
@@ -51,7 +51,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
           topBadge: "頂尖創作者",
           thisMonth: "本月",
           emptyTitle: "暫無排名",
-          emptyDesc: "完成第一個任務，搶佔 #1 寶座！",
+          emptyDesc: "完成首個任務後，即可參與排行榜競逐。",
         };
 
   const sorted = [...leaders].sort((a, b) => {

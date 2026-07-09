@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   getCleanupCronToken,
@@ -25,11 +26,12 @@ function computeCutoffIso(retentionDays: number): string {
   return cutoffDate.toISOString();
 }
 
-function unauthorizedResponse() {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+function unauthorizedResponse(isZh: boolean) {
+  return NextResponse.json({ error: isZh ? "未授權存取。" : "Unauthorized" }, { status: 401 });
 }
 
 export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
   if (!hasSupabaseConfig()) {
     return NextResponse.json(
       {
@@ -56,7 +58,7 @@ export async function POST(request: Request) {
   const providedToken = request.headers.get("x-cron-token") ?? "";
 
   if (!providedToken || providedToken !== expectedToken) {
-    return unauthorizedResponse();
+    return unauthorizedResponse(isZh);
   }
 
   const url = new URL(request.url);
@@ -91,7 +93,7 @@ export async function POST(request: Request) {
   if (error) {
     return NextResponse.json(
       {
-        error: "Unable to cleanup idempotency keys.",
+        error: isZh ? "清理冪等鍵失敗，請稍後再試。" : "Unable to cleanup idempotency keys.",
         detail: error.message,
       },
       { status: 500 },

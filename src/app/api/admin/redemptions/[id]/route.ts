@@ -4,6 +4,7 @@ import type { RewardRedemptionStatus } from "@/lib/data";
 import { hasAdminSession } from "@/lib/admin-session";
 import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
+import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/supabase/env";
@@ -12,6 +13,15 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 const allowedStatuses: RewardRedemptionStatus[] = ["Pending", "Fulfilled", "Rejected"];
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
+  const isZh = isZhRequest(request);
+  const t = {
+    serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
+    forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
+    notFound: isZh ? "找不到兌換申請紀錄。" : "Redemption not found.",
+    invalidStatus: isZh ? "兌換狀態無效。" : "Invalid redemption status.",
+    updateFailed: isZh ? "更新兌換狀態失敗，請稍後再試。" : "Unable to update redemption. Please try again.",
+  };
+
   const [{ id }, supabase, admin] = await Promise.all([
     context.params,
     createSupabaseServerClient(),
@@ -27,7 +37,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       route: "/api/admin/redemptions/[id]",
       context: { redemptionId: id },
     });
-    return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+    return NextResponse.json({ error: t.serviceUnavailable }, { status: 503 });
   }
 
   const [adminSession, {
@@ -44,7 +54,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       userId: user?.id ?? null,
       context: { redemptionId: id },
     });
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    return NextResponse.json({ error: t.forbidden }, { status: 403 });
   }
 
   const reviewerId = user?.id ?? null;
@@ -56,7 +66,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     .maybeSingle();
 
   if (!existingRedemption) {
-    return NextResponse.json({ error: "Redemption not found." }, { status: 404 });
+    return NextResponse.json({ error: t.notFound }, { status: 404 });
   }
 
   const body = (await request.json()) as { status?: string; notes?: string };
@@ -64,7 +74,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   const notes = String(body.notes ?? "") || null;
 
   if (!allowedStatuses.includes(status)) {
-    return NextResponse.json({ error: "Invalid redemption status." }, { status: 400 });
+    return NextResponse.json({ error: t.invalidStatus }, { status: 400 });
   }
 
   const payload: Database["public"]["Tables"]["reward_redemptions"]["Update"] = {
@@ -86,7 +96,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       userId: reviewerId,
       context: { redemptionId: id, status },
     });
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: t.updateFailed }, { status: 400 });
   }
 
   if (status === "Fulfilled") {

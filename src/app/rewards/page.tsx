@@ -14,7 +14,7 @@ export default async function RewardsPage() {
         <p className="tactical-section-lead">
           {locale === "en"
             ? "Complete missions to earn Coins and redeem vouchers, USDT, headphones, and more."
-            : "完成任務累積金幣，之後就可以兌換禮券、USDT、耳機等真實獎賞。之後亦可以擴充成多級會員或限量商品模式。"}
+            : "完成任務累積 Coins 後，可兌換禮券、USDT、耳機等獎賞。"}
         </p>
       </div>
 

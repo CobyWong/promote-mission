@@ -78,7 +78,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               <p className="text-sm text-slate-400">{locale === "en" ? "Difficulty" : "難度"}</p>
               <p className="mt-2 text-2xl font-semibold text-white">{mission.difficulty}</p>
               <p className="mt-2 text-xs text-slate-400">{locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}</p>
-              <p className="mt-2 text-xs text-cyan-200">{locale === "en" ? `Your level: Lv.${userLevel}` : `你的等級：Lv.${userLevel}`}</p>
+              <p className="mt-2 text-xs text-cyan-200">{locale === "en" ? `Your level: Lv.${userLevel}` : `目前等級：Lv.${userLevel}`}</p>
             </div>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               <p className="mt-4 text-slate-200">
                 {locale === "en"
                   ? `This ${mission.difficulty.toLowerCase()} mission unlocks at Lv.${requiredLevel}. Your current level is Lv.${userLevel}.`
-                  : `此${mission.difficulty === "Medium" ? "中等" : mission.difficulty === "Hard" ? "困難" : "簡單"}任務需 Lv.${requiredLevel} 才可接取，你目前為 Lv.${userLevel}。`}
+                  : `此${mission.difficulty === "Medium" ? "中等" : mission.difficulty === "Hard" ? "困難" : "簡單"}任務需達 Lv.${requiredLevel} 方可接取；你目前等級為 Lv.${userLevel}。`}
               </p>
               <Link href="/missions" className="mt-5 inline-flex rounded-full border border-amber-300/45 px-5 py-2 text-sm font-semibold text-amber-100 transition hover:border-amber-200">
                 {locale === "en" ? "Back to mission zones" : "返回任務分區"}
@@ -112,7 +112,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {(locale === "en"
                 ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", `Rewards are settled by likes ranking from HK$${rewards.totalPrize.toLocaleString()}: #1 60%, #2 30%, #3 10%`]
-                : ["拍攝並公開發佈 IG Reels", "將 @missionone.hk 加為協作者並提交 Reels 連結", `獎勵按 Like 排名由 HK$${rewards.totalPrize.toLocaleString()} 派發：第 1 名 60%、第 2 名 30%、第 3 名 10%`]
+                : ["拍攝並公開發佈 Instagram Reels", "將 @missionone_hk 設為協作者，並提交 Reels 連結", `獎勵按 Like 排名自 HK$${rewards.totalPrize.toLocaleString()} 獎金池派發：第 1 名 60%、第 2 名 30%、第 3 名 10%`]
               ).map((step, index) => (
                 <div key={step} className="rounded-2xl bg-white/5 p-5">
                   <p className="text-sm text-cyan-300">Step {index + 1}</p>

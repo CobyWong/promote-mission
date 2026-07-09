@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import {
   fetchRecentReelsInsights,
   normalizeInstagramPermalink,
@@ -12,11 +13,12 @@ type SubmissionRef = Pick<
   "id" | "reel_url"
 >;
 
-export async function POST() {
+export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "Instagram 同步服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const {
@@ -24,7 +26,7 @@ export async function POST() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Please log in first." }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "請先登入後再同步 Instagram。" : "Please log in first." }, { status: 401 });
   }
 
   const { data: connectionData, error: connectionError } = await supabase
@@ -35,11 +37,11 @@ export async function POST() {
     .maybeSingle();
 
   if (connectionError) {
-    return NextResponse.json({ error: connectionError.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "讀取 Instagram 連線狀態失敗，請稍後再試。" : connectionError.message }, { status: 400 });
   }
 
   if (!connectionData) {
-    return NextResponse.json({ error: "Instagram account is not connected." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "尚未連接 Instagram 帳戶。" : "Instagram account is not connected." }, { status: 400 });
   }
 
   try {
@@ -106,7 +108,9 @@ export async function POST() {
 
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Instagram sync failed.",
+        error: isZh
+          ? "Instagram 同步失敗，請稍後再試。"
+          : (error instanceof Error ? error.message : "Instagram sync failed."),
       },
       { status: 400 },
     );

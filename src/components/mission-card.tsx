@@ -112,7 +112,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                 </div>
               ))
             ) : (
-              <p className="text-slate-400">{locale === "en" ? "No ranking entries yet." : "暫時未有排名紀錄。"}</p>
+              <p className="text-slate-400">{locale === "en" ? "No ranking entries yet." : "目前尚無排名紀錄。"}</p>
             )}
           </div>
         ) : null}
@@ -227,7 +227,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                 ))
               ) : (
                 <div className="rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-400">
-                  {locale === "en" ? "No top creators yet." : "暫時未有頂尖創作者資料。"}
+                  {locale === "en" ? "No top creators yet." : "目前尚無頂尖創作者資料。"}
                 </div>
               )}
             </div>

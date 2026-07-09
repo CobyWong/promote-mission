@@ -64,7 +64,7 @@ export default async function MissionLevelPage({ params }: { params: Promise<{ l
           <p className="tactical-section-lead">
             {locale === "en"
               ? "Choose missions in this difficulty zone and start creating."
-              : "選擇此難度區任務，立即開始創作。"}
+              : "請選擇此難度分區任務並開始創作。"}
           </p>
         </div>
 

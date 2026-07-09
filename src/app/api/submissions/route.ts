@@ -4,6 +4,7 @@ import { createAppLog, reportApiError } from "@/lib/observability";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
+import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -17,6 +18,24 @@ type SubmissionRequestBody = {
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const isZh = isZhRequest(request);
+  const t = {
+    rateLimited: isZh ? "提交次數過於頻繁，請稍後再試。" : "Too many submissions. Please wait and try again.",
+    serviceUnavailable: isZh ? "提交服務暫時不可用，請稍後再試。" : "Supabase is not configured.",
+    authRequired: isZh ? "請先登入後再提交 Proof。" : "Please log in before submitting proof.",
+    missionNotFound: isZh ? "找不到此任務或任務已下架。" : "Mission not found.",
+    levelRequired: (requiredLevel: number, creatorLevel: number) => isZh
+      ? `此任務需達 Lv.${requiredLevel} 方可提交；你目前等級為 Lv.${creatorLevel}/${MAX_CREATOR_LEVEL}。`
+      : `This mission requires level ${requiredLevel}. Your current level is ${creatorLevel}/${MAX_CREATOR_LEVEL}.`,
+    invalidReelUrl: isZh ? "請提供有效的 Reels 連結。" : "A valid reel URL is required.",
+    missingCollaborator: isZh
+      ? "提交前請先將 @missionone_hk 設為協作者。"
+      : "Please add @missionone_hk as collaborator before submission.",
+    inflight: isZh
+      ? "相同提交請求仍在處理中，請稍候再試。"
+      : "A submission with the same idempotency key is already in progress.",
+    unexpected: isZh ? "提交時發生未預期錯誤，請稍後再試。" : "Unexpected error while creating submission.",
+  };
 
   try {
     const limiter = await evaluateRateLimit({
@@ -38,7 +57,7 @@ export async function POST(request: Request) {
         context: { retryAfter },
       });
       return NextResponse.json(
-        { error: "Too many submissions. Please wait and try again." },
+        { error: t.rateLimited },
         {
           status: 429,
           headers: {
@@ -50,7 +69,7 @@ export async function POST(request: Request) {
 
     const supabase = await createSupabaseServerClient();
     if (!supabase) {
-      return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+      return NextResponse.json({ error: t.serviceUnavailable }, { status: 503 });
     }
 
     const {
@@ -58,7 +77,7 @@ export async function POST(request: Request) {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: "Please log in before submitting proof." }, { status: 401 });
+      return NextResponse.json({ error: t.authRequired }, { status: 401 });
     }
 
     const contentType = request.headers.get("content-type") ?? "";
@@ -103,7 +122,7 @@ export async function POST(request: Request) {
       : null;
 
     if (!mission) {
-      return NextResponse.json({ error: "Mission not found." }, { status: 404 });
+      return NextResponse.json({ error: t.missionNotFound }, { status: 404 });
     }
 
     const { data: approvedSubmissions } = await supabase
@@ -118,17 +137,17 @@ export async function POST(request: Request) {
 
     if (creatorLevel < missionRequiredLevel) {
       return NextResponse.json(
-        { error: `This mission requires level ${missionRequiredLevel}. Your current level is ${creatorLevel}/${MAX_CREATOR_LEVEL}.` },
+        { error: t.levelRequired(missionRequiredLevel, creatorLevel) },
         { status: 403 },
       );
     }
 
     if (!reelUrl.startsWith("http")) {
-      return NextResponse.json({ error: "A valid reel URL is required." }, { status: 400 });
+      return NextResponse.json({ error: t.invalidReelUrl }, { status: 400 });
     }
 
     if (!checks.addedCollaborator) {
-      return NextResponse.json({ error: "Please add @missionone.hk as collaborator before submission." }, { status: 400 });
+      return NextResponse.json({ error: t.missingCollaborator }, { status: 400 });
     }
 
     const { data: profile } = await supabase
@@ -197,7 +216,7 @@ export async function POST(request: Request) {
         },
       });
       return NextResponse.json(
-        { error: "A submission with the same idempotency key is already in progress." },
+        { error: t.inflight },
         { status: 409 },
       );
     }
@@ -253,6 +272,6 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ error: "Unexpected error while creating submission." }, { status: 500 });
+    return NextResponse.json({ error: t.unexpected }, { status: 500 });
   }
 }

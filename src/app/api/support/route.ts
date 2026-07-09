@@ -4,6 +4,7 @@ import { createAppLog } from "@/lib/observability";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupportEmail } from "@/lib/supabase/env";
+import { isZhRequest } from "@/lib/api-locale";
 
 function sanitizeInput(value: unknown, maxLength: number) {
   return String(value ?? "").trim().slice(0, maxLength);
@@ -14,6 +15,16 @@ function isValidEmail(email: string) {
 }
 
 export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
+  const t = {
+    invalidPayload: isZh ? "請求內容格式無效。" : "Invalid payload.",
+    nameRequired: isZh ? "請填寫稱呼。" : "Please enter your name.",
+    invalidEmail: isZh ? "請輸入有效的電郵地址。" : "Please enter a valid email.",
+    messageTooShort: isZh ? "請至少以 10 個字描述問題。" : "Please describe the issue in at least 10 characters.",
+    inboxUnavailable: isZh ? "客服系統暫時不可用，請稍後再試。" : "Support inbox is temporarily unavailable.",
+    sendFailed: isZh ? "目前無法送出客服請求，請稍後再試。" : "Failed to send support request right now.",
+  };
+
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
   if (!body) {
@@ -24,7 +35,7 @@ export async function POST(request: Request) {
       message: "Invalid payload.",
       route: "/api/support",
     });
-    return NextResponse.json({ error: "Invalid payload." }, { status: 400 });
+    return NextResponse.json({ error: t.invalidPayload }, { status: 400 });
   }
 
   const name = sanitizeInput(body.name, 120);
@@ -34,15 +45,15 @@ export async function POST(request: Request) {
   const pagePath = sanitizeInput(body.pagePath, 180) || null;
 
   if (!name) {
-    return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
+    return NextResponse.json({ error: t.nameRequired }, { status: 400 });
   }
 
   if (!isValidEmail(email)) {
-    return NextResponse.json({ error: "Please enter a valid email." }, { status: 400 });
+    return NextResponse.json({ error: t.invalidEmail }, { status: 400 });
   }
 
   if (message.length < 10) {
-    return NextResponse.json({ error: "Please describe the issue in at least 10 characters." }, { status: 400 });
+    return NextResponse.json({ error: t.messageTooShort }, { status: 400 });
   }
 
   const supportEmail = getSupportEmail();
@@ -59,7 +70,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(
       {
-        error: "Support inbox is temporarily unavailable.",
+        error: t.inboxUnavailable,
         supportEmail,
       },
       { status: 503 },
@@ -99,7 +110,7 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(
       {
-        error: "Failed to send support request right now.",
+        error: t.sendFailed,
         supportEmail,
       },
       { status: 500 },

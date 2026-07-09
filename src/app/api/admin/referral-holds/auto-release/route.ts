@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import { createUserNotification } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
   const isAuthed = await hasAdminSession();
   if (!isAuthed) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "未授權存取。" : "Unauthorized" }, { status: 401 });
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "推薦審核服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const nowIso = new Date().toISOString();
@@ -55,8 +57,10 @@ export async function POST() {
     await createUserNotification({
       userId: hold.inviter_user_id,
       type: "system",
-      title: "Referral reward auto released",
-      message: `Your held referral reward (+${hold.amount} Coins) has been auto released.`,
+      title: isZh ? "推薦獎勵已自動發放" : "Referral reward auto released",
+      message: isZh
+        ? `你的暫緩推薦獎勵（+${hold.amount} Coins）已完成自動發放。`
+        : `Your held referral reward (+${hold.amount} Coins) has been auto released.`,
       link: "/dashboard",
     });
 

@@ -12,10 +12,10 @@ export default async function AdminRedemptionsPage() {
       needAdminDesc: "Please sign in with an account listed in ADMIN_EMAILS to process redemption fulfillment.",
     }
     : {
-      title: "Reward Redemption 後台",
-      desc: "Operations 可以喺呢度處理 creator 兌換申請，更新 fulfillment 狀態為 Pending / Fulfilled / Rejected。",
-      needAdmin: "需要 admin 權限",
-      needAdminDesc: "請使用 ADMIN_EMAILS 內的帳號登入先可處理 redemption fulfillment。",
+      title: "獎賞兌換管理台",
+      desc: "營運團隊可於此處理創作者兌換申請，並更新履約狀態為 Pending / Fulfilled / Rejected。",
+      needAdmin: "需要管理員權限",
+      needAdminDesc: "請使用 ADMIN_EMAILS 指定帳號登入，方可處理兌換履約流程。",
     };
 
   const redemptionData = await getAdminRedemptionsData();

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -65,14 +66,15 @@ function pickSeverity(dropPct: number, thresholdPct: number): AlertSeverity {
   return "warn";
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const isZh = isZhRequest(request);
   const [supabase, admin] = await Promise.all([
     createSupabaseServerClient(),
     Promise.resolve(createSupabaseAdminClient()),
   ]);
 
   if (!supabase || !admin) {
-    return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "漏斗預警服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
   }
 
   const [adminSession, {
@@ -80,7 +82,7 @@ export async function GET() {
   }] = await Promise.all([hasAdminSession(), supabase.auth.getUser()]);
 
   if (!adminSession && (!user || !isAdminEmail(user.email))) {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    return NextResponse.json({ error: isZh ? "需要管理員權限。" : "Admin access required." }, { status: 403 });
   }
 
   const now = Date.now();
@@ -133,6 +135,9 @@ export async function GET() {
       key: item.key,
       severity: item.severity,
       message: `${item.key} dropped by ${item.dropPct}% vs previous 7-day daily average`,
+      message: isZh
+        ? `${item.key} 相較過去 7 天日均值下跌 ${item.dropPct}%`
+        : `${item.key} dropped by ${item.dropPct}% vs previous 7-day daily average`,
       currentCount: item.currentCount,
       baselineDailyAvg: item.baselineDailyAvg,
       minBaseline: item.minBaseline,

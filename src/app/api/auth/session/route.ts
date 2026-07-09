@@ -5,9 +5,11 @@ import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseAnonKey, getSupabaseUrl, hasSupabaseConfig } from "@/lib/supabase/env";
 import { getClientFingerprint, evaluateRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { logApiEvent, reportApiError } from "@/lib/observability";
+import { isZhRequest } from "@/lib/api-locale";
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const isZh = isZhRequest(request);
 
   try {
     const limiter = await evaluateRateLimit({
@@ -30,7 +32,7 @@ export async function POST(request: Request) {
       });
 
       return NextResponse.json(
-        { error: "Too many requests. Please try again later." },
+        { error: isZh ? "請求次數過於頻繁，請稍後再試。" : "Too many requests. Please try again later." },
         {
           status: 429,
           headers: {
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
         requestId,
         message: "Missing session tokens.",
       });
-      return NextResponse.json({ error: "Missing session tokens." }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "缺少登入工作階段憑證。" : "Missing session tokens." }, { status: 400 });
     }
 
     if (!hasSupabaseConfig()) {
@@ -67,7 +69,7 @@ export async function POST(request: Request) {
         requestId,
         message: "Supabase is not configured.",
       });
-      return NextResponse.json({ error: "Supabase is not configured." }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "登入服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 400 });
     }
 
     const response = NextResponse.json({ ok: true });
@@ -101,7 +103,7 @@ export async function POST(request: Request) {
         requestId,
         message: error.message,
       });
-      return NextResponse.json({ error: error.message }, { status: 401 });
+      return NextResponse.json({ error: isZh ? "登入憑證無效或已過期，請重新登入。" : error.message }, { status: 401 });
     }
 
     await logApiEvent({
@@ -121,6 +123,6 @@ export async function POST(request: Request) {
       error,
     });
 
-    return NextResponse.json({ error: "Unexpected error while setting session." }, { status: 500 });
+    return NextResponse.json({ error: isZh ? "設定登入狀態時發生未預期錯誤，請稍後再試。" : "Unexpected error while setting session." }, { status: 500 });
   }
 }

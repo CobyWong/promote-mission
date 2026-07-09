@@ -41,7 +41,7 @@ export function HeaderNotificationCenter({ locale, theme }: HeaderNotificationCe
     }
     : {
       title: "通知中心",
-      empty: "暫時未有通知。",
+      empty: "目前尚無通知。",
       markAll: "全部標記為已讀",
       markRead: "標記已讀",
       openLink: "開啟",

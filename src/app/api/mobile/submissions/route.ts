@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -107,22 +108,23 @@ function buildTimeline(submission: Database["public"]["Tables"]["submissions"]["
 
 export async function GET(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const isZh = isZhRequest(request);
 
   try {
     if (!hasSupabaseAdminConfig()) {
-      return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+      return NextResponse.json({ error: isZh ? "投稿服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
     }
 
     const authHeader = request.headers.get("authorization") ?? "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 
     if (!token) {
-      return NextResponse.json({ error: "Missing bearer token." }, { status: 401 });
+      return NextResponse.json({ error: isZh ? "缺少登入憑證，請重新登入。" : "Missing bearer token." }, { status: 401 });
     }
 
     const admin = createSupabaseAdminClient();
     if (!admin) {
-      return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+      return NextResponse.json({ error: isZh ? "投稿服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
     }
 
     const {
@@ -131,7 +133,7 @@ export async function GET(request: Request) {
     } = await admin.auth.getUser(token);
 
     if (userError || !user) {
-      return NextResponse.json({ error: userError?.message ?? "Unauthorized." }, { status: 401 });
+      return NextResponse.json({ error: isZh ? "登入狀態無效或已過期，請重新登入。" : (userError?.message ?? "Unauthorized.") }, { status: 401 });
     }
 
     const url = new URL(request.url);
@@ -143,7 +145,7 @@ export async function GET(request: Request) {
     const limit = Number.isNaN(requestedLimit) ? 20 : Math.min(Math.max(requestedLimit, 1), 50);
 
     if (url.searchParams.get("cursor") && !requestedCursor) {
-      return NextResponse.json({ error: "Invalid cursor." }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "分頁游標格式無效。" : "Invalid cursor." }, { status: 400 });
     }
 
     const columns = "id, mission_slug, mission_title, mission_brand, reward_coins, status, submitted_at, reviewed_at, review_due_at, sla_breached_at, reel_url, caption_summary, notes, reviewed_by";
@@ -175,7 +177,7 @@ export async function GET(request: Request) {
       .limit(limit + 1);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "讀取投稿紀錄失敗，請稍後再試。" : error.message }, { status: 400 });
     }
 
     const rawRows = data ?? [];
@@ -247,23 +249,24 @@ export async function GET(request: Request) {
         handler: "GET",
       },
     });
-    return NextResponse.json({ error: "Unexpected error while loading submissions." }, { status: 500 });
+    return NextResponse.json({ error: isZh ? "載入投稿資料時發生未預期錯誤，請稍後再試。" : "Unexpected error while loading submissions." }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
+  const isZh = isZhRequest(request);
 
   try {
     if (!hasSupabaseAdminConfig()) {
-      return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+      return NextResponse.json({ error: isZh ? "投稿服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
     }
 
     const authHeader = request.headers.get("authorization") ?? "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 
     if (!token) {
-      return NextResponse.json({ error: "Missing bearer token." }, { status: 401 });
+      return NextResponse.json({ error: isZh ? "缺少登入憑證，請重新登入。" : "Missing bearer token." }, { status: 401 });
     }
 
     const limiter = await evaluateRateLimit({
@@ -285,7 +288,7 @@ export async function POST(request: Request) {
         context: { retryAfter },
       });
       return NextResponse.json(
-        { error: "Too many submissions. Please wait and try again." },
+        { error: isZh ? "提交次數過於頻繁，請稍後再試。" : "Too many submissions. Please wait and try again." },
         {
           status: 429,
           headers: {
@@ -297,7 +300,7 @@ export async function POST(request: Request) {
 
     const admin = createSupabaseAdminClient();
     if (!admin) {
-      return NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 });
+      return NextResponse.json({ error: isZh ? "投稿服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 });
     }
 
     const {
@@ -306,7 +309,7 @@ export async function POST(request: Request) {
     } = await admin.auth.getUser(token);
 
     if (userError || !user) {
-      return NextResponse.json({ error: userError?.message ?? "Unauthorized." }, { status: 401 });
+      return NextResponse.json({ error: isZh ? "登入狀態無效或已過期，請重新登入。" : (userError?.message ?? "Unauthorized.") }, { status: 401 });
     }
 
     const body = (await request.json().catch(() => null)) as SubmissionBody | null;
@@ -317,7 +320,7 @@ export async function POST(request: Request) {
     const checks = body?.checks && typeof body.checks === "object" ? body.checks : {};
 
     if (!slug) {
-      return NextResponse.json({ error: "Mission slug is required." }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "請提供任務識別碼。" : "Mission slug is required." }, { status: 400 });
     }
 
     const { data: missionRow } = await admin
@@ -338,7 +341,7 @@ export async function POST(request: Request) {
       : null;
 
     if (!mission) {
-      return NextResponse.json({ error: "Mission not found." }, { status: 404 });
+      return NextResponse.json({ error: isZh ? "找不到指定任務。" : "Mission not found." }, { status: 404 });
     }
 
     const { data: approvedSubmissions } = await admin
@@ -353,17 +356,21 @@ export async function POST(request: Request) {
 
     if (creatorLevel < missionRequiredLevel) {
       return NextResponse.json(
-        { error: `This mission requires level ${missionRequiredLevel}. Your current level is ${creatorLevel}/${MAX_CREATOR_LEVEL}.` },
+        {
+          error: isZh
+            ? `此任務需達等級 ${missionRequiredLevel}，你目前等級為 ${creatorLevel}/${MAX_CREATOR_LEVEL}。`
+            : `This mission requires level ${missionRequiredLevel}. Your current level is ${creatorLevel}/${MAX_CREATOR_LEVEL}.`,
+        },
         { status: 403 },
       );
     }
 
     if (!reelUrl.startsWith("http")) {
-      return NextResponse.json({ error: "A valid reel URL is required." }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "請提供有效的 Reel 連結。" : "A valid reel URL is required." }, { status: 400 });
     }
 
     if (!checks.addedCollaborator) {
-      return NextResponse.json({ error: "Please add @missionone.hk as collaborator before submission." }, { status: 400 });
+      return NextResponse.json({ error: isZh ? "提交前請先把 @missionone.hk 加為協作者。" : "Please add @missionone.hk as collaborator before submission." }, { status: 400 });
     }
 
     const { data: profile } = await admin
@@ -432,7 +439,11 @@ export async function POST(request: Request) {
         },
       });
       return NextResponse.json(
-        { error: "A submission with the same idempotency key is already in progress." },
+        {
+          error: isZh
+            ? "相同冪等鍵的提交正在處理中，請稍後再試。"
+            : "A submission with the same idempotency key is already in progress.",
+        },
         { status: 409 },
       );
     }
@@ -444,7 +455,7 @@ export async function POST(request: Request) {
       .single();
 
     if (error) {
-      const errorBody = { error: error.message };
+      const errorBody = { error: isZh ? "建立投稿失敗，請稍後再試。" : error.message };
       await finalizeIdempotentOperation({
         storageKey: operation.storageKey,
         ttlMs: operation.ttlMs,
@@ -498,6 +509,6 @@ export async function POST(request: Request) {
         handler: "POST",
       },
     });
-    return NextResponse.json({ error: "Unexpected error while creating submission." }, { status: 500 });
+    return NextResponse.json({ error: isZh ? "建立投稿時發生未預期錯誤，請稍後再試。" : "Unexpected error while creating submission." }, { status: 500 });
   }
 }

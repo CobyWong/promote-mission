@@ -14,7 +14,7 @@ export default async function TermsPage() {
           <p>
             {isEn
               ? "By using Mission One, you agree to comply with campaign rules, platform policies, and applicable laws."
-              : "使用 Mission One 即代表你同意遵守活動規則、平台政策及適用法律。"}
+              : "使用 Mission One 即表示你同意遵守活動規則、平台政策及適用法律。"}
           </p>
 
           <div>

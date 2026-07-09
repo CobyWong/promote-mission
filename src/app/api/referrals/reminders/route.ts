@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createUserNotification } from "@/lib/notifications";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export async function POST() {
+export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
   const [supabase, admin] = await Promise.all([
     createSupabaseServerClient(),
     Promise.resolve(createSupabaseAdminClient()),
   ]);
 
   if (!supabase || !admin) {
-    return NextResponse.json({ error: "Supabase is not configured." }, { status: 503 });
+    return NextResponse.json({ error: isZh ? "推薦提醒服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
   }
 
   const {
@@ -19,7 +21,7 @@ export async function POST() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    return NextResponse.json({ error: isZh ? "請先登入後再發送推薦提醒。" : "Authentication required." }, { status: 401 });
   }
 
   const { data: referrals } = await admin
@@ -48,8 +50,10 @@ export async function POST() {
     await createUserNotification({
       userId: candidate.invited_user_id,
       type: "system",
-      title: "Mission reminder",
-      message: "You are one approved mission away from unlocking referral rewards. Complete your first mission now.",
+      title: isZh ? "任務提醒" : "Mission reminder",
+      message: isZh
+        ? "你距離解鎖推薦獎勵只差一個已通過任務，請盡快完成首個任務。"
+        : "You are one approved mission away from unlocking referral rewards. Complete your first mission now.",
       link: "/missions",
       metadata: {
         reminderType: "referral_nudge",

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createHash } from "node:crypto";
 
+import { isZhRequest } from "@/lib/api-locale";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig } from "@/lib/supabase/env";
 
@@ -55,20 +56,21 @@ function normalizeMd5(raw: string | null | undefined) {
 }
 
 async function authenticateMobileUser(request: Request) {
+  const isZh = isZhRequest(request);
   if (!hasSupabaseAdminConfig()) {
-    return { error: NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 }) };
+    return { error: NextResponse.json({ error: isZh ? "上傳服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 }) };
   }
 
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length).trim() : "";
 
   if (!token) {
-    return { error: NextResponse.json({ error: "Missing bearer token." }, { status: 401 }) };
+    return { error: NextResponse.json({ error: isZh ? "缺少登入憑證，請重新登入。" : "Missing bearer token." }, { status: 401 }) };
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return { error: NextResponse.json({ error: "Supabase admin mode is not configured." }, { status: 503 }) };
+    return { error: NextResponse.json({ error: isZh ? "上傳服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured." }, { status: 503 }) };
   }
 
   const {
@@ -77,13 +79,14 @@ async function authenticateMobileUser(request: Request) {
   } = await admin.auth.getUser(token);
 
   if (userError || !user) {
-    return { error: NextResponse.json({ error: userError?.message ?? "Unauthorized." }, { status: 401 }) };
+    return { error: NextResponse.json({ error: isZh ? "登入狀態無效或已過期，請重新登入。" : (userError?.message ?? "Unauthorized.") }, { status: 401 }) };
   }
 
   return { admin, user };
 }
 
 export async function POST(request: Request) {
+  const isZh = isZhRequest(request);
   const auth = await authenticateMobileUser(request);
   if ("error" in auth) {
     return auth.error;
@@ -97,19 +100,19 @@ export async function POST(request: Request) {
   const fileChecksumMd5 = normalizeMd5(body?.fileChecksumMd5);
 
   if (!Number.isFinite(fileSize) || fileSize <= 0) {
-    return NextResponse.json({ error: "A valid file size is required." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "請提供有效的檔案大小。" : "A valid file size is required." }, { status: 400 });
   }
 
   if (fileSize > MAX_FILE_SIZE_BYTES) {
-    return NextResponse.json({ error: "Media file exceeds 250MB limit." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "媒體檔案超過 250MB 上限。" : "Media file exceeds 250MB limit." }, { status: 400 });
   }
 
   if (!mimeType.startsWith("video/") && !mimeType.startsWith("image/")) {
-    return NextResponse.json({ error: "Unsupported media type." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "不支援的媒體格式。" : "Unsupported media type." }, { status: 400 });
   }
 
   if (!fileChecksumMd5) {
-    return NextResponse.json({ error: "A valid full-file MD5 checksum is required." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "請提供有效的整檔 MD5 校驗碼。" : "A valid full-file MD5 checksum is required." }, { status: 400 });
   }
 
   const uploadId = crypto.randomUUID();
@@ -151,7 +154,7 @@ export async function POST(request: Request) {
   );
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "建立上傳工作階段失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   const { error: integrityError } = await auth.admin.storage.from(UPLOAD_BUCKET).upload(
@@ -165,7 +168,7 @@ export async function POST(request: Request) {
 
   if (integrityError) {
     await auth.admin.storage.from(UPLOAD_BUCKET).remove([manifestPath]);
-    return NextResponse.json({ error: integrityError.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "建立上傳完整性檢查失敗，請稍後再試。" : integrityError.message }, { status: 400 });
   }
 
   return NextResponse.json({

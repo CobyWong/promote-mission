@@ -12,10 +12,10 @@ export default async function BrandRewardsPage() {
       needAccessDesc: "Please sign in with an account listed in BRAND_EMAILS or ADMIN_EMAILS.",
     }
     : {
-      title: "Reward CRUD 管理",
-      desc: "Brand side 可以直接新增、編輯、刪除 rewards。更新後會即時反映到獎賞相關頁面。",
-      needAccess: "需要 brand/admin 權限",
-      needAccessDesc: "請使用 BRAND_EMAILS 或 ADMIN_EMAILS 內的帳號登入。",
+      title: "獎賞管理",
+      desc: "品牌方可於此新增、編輯與刪除獎賞；更新內容將即時同步至相關頁面。",
+      needAccess: "需要品牌／管理員權限",
+      needAccessDesc: "請使用 BRAND_EMAILS 或 ADMIN_EMAILS 指定帳號登入。",
     };
 
   const [managerData, rewardCatalog] = await Promise.all([

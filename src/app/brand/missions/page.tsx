@@ -15,9 +15,9 @@ export default async function BrandMissionsPage() {
     : {
       section: "品牌後台",
       title: "任務管理",
-      desc: "品牌方可以直接新增、編輯、刪除任務。更新後會即時反映到首頁、任務中心與任務詳情頁。",
+      desc: "品牌方可於此新增、編輯與刪除任務；更新內容將即時同步至首頁、任務中心及任務詳情頁。",
       needAccess: "需要品牌／管理員權限",
-      needAccessDesc: "請使用 BRAND_EMAILS 或 ADMIN_EMAILS 內的帳號登入。",
+      needAccessDesc: "請使用 BRAND_EMAILS 或 ADMIN_EMAILS 指定帳號登入。",
     };
 
   const managerData = await getBrandMissionManagerData();

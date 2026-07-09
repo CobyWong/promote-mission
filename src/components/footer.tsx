@@ -12,13 +12,13 @@ export async function Footer() {
           <p>
             {locale === "en"
               ? "A creator platform for promotional missions, coin rewards, and real redemption."
-              : "為創作者提供產品宣傳任務、Coins 獎勵同真實兌換體驗。"}
+              : "為創作者提供品牌宣傳任務、Coins 獎勵與正式兌換體驗。"}
           </p>
         </div>
         <p>
           {locale === "en"
             ? "IG Reels mission marketplace for creators and brands."
-            : "面向創作者同品牌嘅 IG Reels 任務平台。"}
+            : "面向創作者與品牌的 Instagram Reels 任務平台。"}
         </p>
         <div className="flex flex-wrap items-center gap-3">
           <Link href="/dashboard#support-center" className="font-semibold text-cyan-300 hover:text-cyan-200">

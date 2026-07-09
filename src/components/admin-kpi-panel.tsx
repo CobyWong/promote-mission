@@ -218,13 +218,13 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       approvedLast7d: "7 日內已批核",
       errorsLast24h: "24 小時錯誤",
       recentErrors: "最近錯誤",
-      noErrors: "最近未有錯誤。",
+      noErrors: "近期未發現錯誤。",
       updatedAt: "更新時間",
       trends: "KPI 趨勢",
       funnel: "轉化漏斗",
       funnelRangeLabel: "時間範圍",
       funnelAlerts: "漏斗回落警示",
-      noFunnelAlerts: "目前未有漏斗回落。",
+      noFunnelAlerts: "目前未偵測到漏斗回落。",
       missionAccepted: "任務接受",
       submissionCreated: "提交建立",
       submissionApproved: "提交批核",
@@ -251,7 +251,7 @@ export function AdminKpiPanel({ locale }: { locale: Locale }) {
       idempotencyReplays: "冪等重播",
       idempotencyInflight: "冪等進行中",
       recentAbuse: "最近濫用／重播事件",
-      noAbuseEvents: "目前未有濫用／重播事件。",
+      noAbuseEvents: "目前未偵測到濫用／重播事件。",
     };
 
   const [kpi, setKpi] = useState<KpiPayload | null>(null);

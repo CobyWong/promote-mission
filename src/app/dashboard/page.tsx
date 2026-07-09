@@ -57,20 +57,20 @@ export default async function DashboardPage() {
       nextLevelReward: "Next level reward",
     }
     : {
-      title: "你嘅創作者個人檔案",
-      unauthTitle: "請先登入先睇到你嘅個人檔案",
-      unauthDesc: "Supabase 啟用後，呢度會顯示你嘅個人資料、收益、進行中任務同客服聯絡。",
+      title: "創作者個人檔案",
+      unauthTitle: "請先登入以檢視個人檔案",
+      unauthDesc: "啟用 Supabase 後，此頁將顯示你的個人資料、收益概況、進行中任務與客服聯絡方式。",
       goLogin: "前往登入",
       createAccount: "建立帳號",
-      subtitle: "喺同一頁管理個人資料、收益、進行中任務同客服支援。",
-      getMore: "接更多任務",
+      subtitle: "在同一頁面集中管理個人資料、收益、進行中任務與客服支援。",
+      getMore: "探索更多任務",
       profileCenter: "個人檔案",
       profileCardTitle: "個人資料",
       ageGroup: "年齡組別",
       followersRange: "追蹤數區間",
       joinedAt: "加入時間",
       earningsTitle: "收益",
-      earningsDesc: "顯示你嘅累計收益同可提現金額。",
+      earningsDesc: "顯示累計收益與可提現金額。",
       totalEarned: "累計收益",
       availableToWithdraw: "可提現",
       withdrawnSoFar: "已提現",
@@ -85,7 +85,7 @@ export default async function DashboardPage() {
       reward: "獎勵",
       viewBrief: "查看詳情 →",
       nextReward: "下一個可兌換獎賞",
-      pointsAway: "距離兌換只差",
+      pointsAway: "距離下一次兌換尚差",
       pointsAwaySuffix: "金幣",
       referralHistory: "推薦獎勵紀錄",
       referralStatus: "狀態",
@@ -306,7 +306,7 @@ export default async function DashboardPage() {
           <div className="tactical-subcard mt-6 px-4 py-4 text-slate-300">
             {locale === "en"
               ? "You don’t have any active missions yet. Accept a mission to start tracking it here."
-              : "你而家未有進行中任務。先接受一個任務，之後就會喺呢度顯示。"}
+              : "你目前尚無進行中任務。接受任務後，將於此處顯示。"}
           </div>
         ) : (
           <>

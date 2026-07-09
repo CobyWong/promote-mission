@@ -14,7 +14,7 @@ export default async function PrivacyPage() {
           <p>
             {isEn
               ? "Mission One collects only the data required to provide creator missions, submission review, reward redemption, and support services."
-              : "Mission One 只會收集提供創作者任務、提交審核、獎賞兌換及客服所需的資料。"}
+              : "Mission One 僅收集提供創作者任務、提交審核、獎賞兌換及客服服務所需之資料。"}
           </p>
 
           <div>
@@ -41,7 +41,7 @@ export default async function PrivacyPage() {
             <p className="mt-2">
               {isEn
                 ? "Operational logs and idempotency records are retained for security and reliability windows, then cleaned by scheduled jobs. You may request account data review or deletion via support."
-                : "營運日誌及冪等記錄會於安全及可靠性所需時段內保留，之後由排程工作清理。你可透過客服要求查閱或刪除帳戶資料。"}
+                : "營運日誌及冪等記錄將於安全與可靠性所需期間內保留，並由排程工作於期後清理。你可透過客服提出查閱或刪除帳戶資料之申請。"}
             </p>
           </div>
 

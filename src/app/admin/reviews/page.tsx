@@ -15,11 +15,11 @@ export default async function AdminReviewsPage() {
       needAdminDesc: "Please sign in with an account listed in ADMIN_EMAILS to view live submissions and perform review actions.",
     }
     : {
-      title: "審核後台",
-      desc: "呢頁示範 admin / operations team 點樣審核 creator 提交、加 reviewer notes，同調整 proof 狀態去觸發 Coins 入帳。",
+      title: "審核管理台",
+      desc: "此頁提供管理與營運團隊審核創作者提交內容之流程，包括新增審核備註與更新 Proof 狀態，以觸發 Coins 入帳。",
       unavailable: "未完成 Supabase admin 設定，暫時未能載入真實審核資料。",
-      needAdmin: "需要 admin 權限",
-      needAdminDesc: "請使用 ADMIN_EMAILS 裡面指定嘅帳號登入，先可以睇到真實 submissions 同執行審核。",
+      needAdmin: "需要管理員權限",
+      needAdminDesc: "請使用 ADMIN_EMAILS 指定帳號登入，方可檢視真實提交資料並執行審核。",
     };
 
   const reviewData = await getAdminReviewData();

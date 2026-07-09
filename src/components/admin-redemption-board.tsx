@@ -40,10 +40,10 @@ export function AdminRedemptionBoard({ initialRedemptions, locale }: AdminRedemp
       pending: "待處理",
       fulfilled: "已完成",
       rejected: "已拒絕",
-      saving: "saving...",
-      noNotes: "No notes",
-      action: "Fulfillment action",
-      updateFailed: "更新 redemption 狀態失敗。",
+      saving: "儲存中...",
+      noNotes: "無備註",
+      action: "履約操作",
+      updateFailed: "更新兌換狀態失敗。",
       markAs: "標記為",
     };
 

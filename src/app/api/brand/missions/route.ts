@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
+import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-async function assertBrandAccess() {
+async function assertBrandAccess(request: Request) {
+  const isZh = isZhRequest(request);
   const [supabase, admin] = await Promise.all([
     createSupabaseServerClient(),
     Promise.resolve(createSupabaseAdminClient()),
   ]);
 
   if (!supabase || !admin) {
-    return { error: NextResponse.json({ error: "Supabase brand mode is not configured." }, { status: 503 }) };
+    return { error: NextResponse.json({ error: isZh ? "品牌管理服務暫時不可用，請稍後再試。" : "Supabase brand mode is not configured." }, { status: 503 }) };
   }
 
   const [adminSession, {
@@ -21,7 +23,7 @@ async function assertBrandAccess() {
   }] = await Promise.all([hasAdminSession(), supabase.auth.getUser()]);
 
   if (!adminSession && (!user || !isBrandOrAdminEmail(user.email))) {
-    return { error: NextResponse.json({ error: "Brand/admin access required." }, { status: 403 }) };
+    return { error: NextResponse.json({ error: isZh ? "你目前沒有品牌或管理員權限。" : "Brand/admin access required." }, { status: 403 }) };
   }
 
   return { admin };
@@ -47,8 +49,9 @@ function toIsoOrNull(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
-export async function GET() {
-  const access = await assertBrandAccess();
+export async function GET(request: Request) {
+  const isZh = isZhRequest(request);
+  const access = await assertBrandAccess(request);
 
   if ("error" in access) {
     return access.error;
@@ -60,7 +63,7 @@ export async function GET() {
     .order("display_order", { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "載入任務清單失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   const missions = (data ?? []).map((item) => ({
@@ -92,7 +95,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const access = await assertBrandAccess();
+  const isZh = isZhRequest(request);
+  const access = await assertBrandAccess(request);
 
   if ("error" in access) {
     return access.error;
@@ -101,7 +105,7 @@ export async function POST(request: Request) {
   const body = (await request.json()) as Partial<Database["public"]["Tables"]["missions"]["Insert"]>;
 
   if (!body.slug || !body.title || !body.brand || !body.product) {
-    return NextResponse.json({ error: "slug/title/brand/product are required." }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "請填寫必要欄位：slug、title、brand、product。" : "slug/title/brand/product are required." }, { status: 400 });
   }
 
   const payload: Database["public"]["Tables"]["missions"]["Insert"] = {
@@ -132,7 +136,7 @@ export async function POST(request: Request) {
   const { data, error } = await access.admin.from("missions").insert(payload).select("slug").single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ error: isZh ? "儲存任務失敗，請稍後再試。" : error.message }, { status: 400 });
   }
 
   return NextResponse.json({ slug: data?.slug }, { status: 201 });
