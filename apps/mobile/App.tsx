@@ -18,7 +18,7 @@ import {
   View,
 } from "react-native";
 
-import { API_BASE_URL, ApiRequestError, fetchJson, postJson } from "./src/lib/api";
+import { API_BASE_URL, ApiRequestError, fetchJson, getUserFacingApiErrorMessage, postJson } from "./src/lib/api";
 import { mobileConfig } from "./src/lib/config";
 import { registerSubmissionUploadBackgroundTask } from "./src/lib/submission-upload-worker";
 import { hasSupabaseMobileConfig, supabase } from "./src/lib/supabase";
@@ -353,6 +353,29 @@ function shouldRetryQueueError(error: ApiRequestError) {
   return error.isNetworkError || error.status === 409 || error.status === 429 || error.status >= 500;
 }
 
+function toDisplayErrorMessage(error: unknown, fallbackMessage: string) {
+  return getUserFacingApiErrorMessage(error, fallbackMessage);
+}
+
+function reportApiErrorDiagnostics(error: unknown, scope: string) {
+  if (!(error instanceof ApiRequestError)) {
+    return;
+  }
+
+  console.info("[mobile-api-error]", {
+    scope,
+    code: error.code,
+    status: error.status,
+    path: error.path,
+    method: error.method,
+    attempt: error.attempt,
+    maxAttempts: error.maxAttempts,
+    retryDelaysMs: error.retryDelaysMs,
+    retryable: error.retryable,
+    requestId: error.requestId,
+  });
+}
+
 function formatRetryCountdown(nextRetryAt: string | null) {
   if (!nextRetryAt) {
     return null;
@@ -536,7 +559,8 @@ export default function App() {
         // Cache failure should not block fresh data render.
       }
     } catch (requestError) {
-      setListError(requestError instanceof Error ? requestError.message : "Unable to load missions.");
+      reportApiErrorDiagnostics(requestError, "loadMissions");
+      setListError(toDisplayErrorMessage(requestError, "Unable to load missions."));
 
       try {
         const raw = await AsyncStorage.getItem(getMissionCacheKey());
@@ -545,7 +569,7 @@ export default function App() {
           const cached = Array.isArray(parsed.missions) ? parsed.missions : [];
           if (cached.length > 0 && parsed.storedAt && Date.now() - parsed.storedAt <= MISSION_CACHE_TTL_MS) {
             applyMissionSnapshot(cached);
-            setListError("Using cached missions due to network issue.");
+            setListError("Network is unstable. Loaded cached missions.");
           } else {
             setMissions([]);
             setSelectedSlug(null);
@@ -574,7 +598,8 @@ export default function App() {
       const data = await fetchJson<{ mission: MobileMissionDetail }>(`/api/mobile/missions/${slug}`);
       setSelectedMission(data.mission);
     } catch (requestError) {
-      setDetailError(requestError instanceof Error ? requestError.message : "Unable to load mission detail.");
+      reportApiErrorDiagnostics(requestError, "loadMissionDetail");
+      setDetailError(toDisplayErrorMessage(requestError, "Unable to load mission detail."));
       setSelectedMission(null);
     } finally {
       setLoadingDetail(false);
@@ -681,7 +706,8 @@ export default function App() {
         setShouldIncludeTotalOnNextHead(false);
       }
     } catch (requestError) {
-      setHistoryError(requestError instanceof Error ? requestError.message : "Unable to load submission history.");
+      reportApiErrorDiagnostics(requestError, "loadSubmissionHistory");
+      setHistoryError(toDisplayErrorMessage(requestError, "Unable to load submission history."));
       if (!append) {
         setSubmissionHistory([]);
         setHistoryCursor(null);
@@ -1125,8 +1151,9 @@ export default function App() {
       await loadSubmissionHistory(token, { includeTotalOverride: true });
       setShouldIncludeTotalOnNextHead(false);
     } catch (requestError) {
+      reportApiErrorDiagnostics(requestError, "processQueuedSubmission");
       const nowMs = Date.now();
-      const message = requestError instanceof Error ? requestError.message : "Submission failed. Please retry.";
+      const message = toDisplayErrorMessage(requestError, "Submission failed. Please retry.");
 
       if (requestError instanceof ApiRequestError && requestError.status === 401) {
         setError("Session expired. Please sign in again.");
@@ -1164,7 +1191,11 @@ export default function App() {
       }));
 
       setSubmissionError(message);
-      setQueueNotice(`Upload failed for ${item.missionTitle}.`);
+      if (requestError instanceof ApiRequestError && shouldRetryQueueError(requestError) && item.attempts < SUBMISSION_QUEUE_MAX_ATTEMPTS) {
+        setQueueNotice(`Upload retry scheduled for ${item.missionTitle}.`);
+      } else {
+        setQueueNotice(`Upload failed for ${item.missionTitle}.`);
+      }
     } finally {
       queueProcessingLocalIdRef.current = null;
     }
@@ -1240,7 +1271,8 @@ export default function App() {
       setSubmissionError(null);
       setQueueNotice(`Attached ${picked.name || "media file"} (${formatBytes(fileSize)}).`);
     } catch (requestError) {
-      setSubmissionError(requestError instanceof Error ? requestError.message : "Unable to select media file.");
+      reportApiErrorDiagnostics(requestError, "handlePickSubmissionMedia");
+      setSubmissionError(toDisplayErrorMessage(requestError, "Unable to select media file."));
     }
   }, [isSelectedMissionLocked]);
 
@@ -1539,7 +1571,8 @@ export default function App() {
 
       await loadProfile(data.session.access_token);
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : "Unable to sign in.");
+      reportApiErrorDiagnostics(authError, "handleSignIn");
+      setError(toDisplayErrorMessage(authError, "Unable to sign in."));
       setProfile(null);
     } finally {
       setAuthBusy(false);
@@ -1561,7 +1594,8 @@ export default function App() {
       setSubmissionQueueHydrated(false);
       setQueueNotice(null);
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : "Unable to sign out.");
+      reportApiErrorDiagnostics(authError, "handleSignOut");
+      setError(toDisplayErrorMessage(authError, "Unable to sign out."));
     } finally {
       setAuthBusy(false);
     }
@@ -1619,7 +1653,8 @@ export default function App() {
       setSubmissionNotes("");
       setSubmissionChecks((current) => ({ ...current, taggedBrand: false, addedCollaborator: false }));
     } catch (requestError) {
-      setSubmissionError(requestError instanceof Error ? requestError.message : "Unable to queue submission.");
+      reportApiErrorDiagnostics(requestError, "handleSubmitProof");
+      setSubmissionError(toDisplayErrorMessage(requestError, "Unable to queue submission."));
     } finally {
       setSubmissionBusy(false);
     }
@@ -1659,7 +1694,8 @@ export default function App() {
       }
       await Linking.openURL(url);
     } catch (requestError) {
-      setHistoryError(requestError instanceof Error ? requestError.message : "Unable to open reel URL.");
+      reportApiErrorDiagnostics(requestError, "openReelLink");
+      setHistoryError(toDisplayErrorMessage(requestError, "Unable to open reel URL."));
     }
   }, []);
 

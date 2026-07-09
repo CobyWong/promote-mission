@@ -16,15 +16,57 @@ type PostJsonOptions = RequestJsonOptions & {
   headers?: HeadersInit;
 };
 
+export type ApiRequestErrorCode =
+  | "UNAUTHORIZED"
+  | "CONFLICT"
+  | "RATE_LIMITED"
+  | "SERVER_ERROR"
+  | "TIMEOUT"
+  | "NETWORK"
+  | "HTTP_ERROR"
+  | "UNKNOWN";
+
+type ApiRequestErrorOptions = {
+  status?: number;
+  isNetworkError?: boolean;
+  isTimeout?: boolean;
+  code?: ApiRequestErrorCode;
+  path?: string;
+  method?: string;
+  attempt?: number;
+  maxAttempts?: number;
+  retryable?: boolean;
+  retryDelaysMs?: number[];
+  requestId?: string | null;
+};
+
 export class ApiRequestError extends Error {
   status: number;
   isNetworkError: boolean;
+  isTimeout: boolean;
+  code: ApiRequestErrorCode;
+  path: string;
+  method: string;
+  attempt: number;
+  maxAttempts: number;
+  retryable: boolean;
+  retryDelaysMs: number[];
+  requestId: string | null;
 
-  constructor(message: string, status = 0, isNetworkError = false) {
+  constructor(message: string, options?: ApiRequestErrorOptions) {
     super(message);
     this.name = "ApiRequestError";
-    this.status = status;
-    this.isNetworkError = isNetworkError;
+    this.status = options?.status ?? 0;
+    this.isNetworkError = options?.isNetworkError ?? false;
+    this.isTimeout = options?.isTimeout ?? false;
+    this.code = options?.code ?? "UNKNOWN";
+    this.path = options?.path ?? "";
+    this.method = options?.method ?? "GET";
+    this.attempt = options?.attempt ?? 1;
+    this.maxAttempts = options?.maxAttempts ?? 1;
+    this.retryable = options?.retryable ?? false;
+    this.retryDelaysMs = options?.retryDelaysMs ?? [];
+    this.requestId = options?.requestId ?? null;
   }
 }
 
@@ -48,6 +90,78 @@ function getErrorMessage(status: number) {
   return `Request failed (${status})`;
 }
 
+function getErrorCodeFromStatus(status: number): ApiRequestErrorCode {
+  if (status === 401) {
+    return "UNAUTHORIZED";
+  }
+
+  if (status === 409) {
+    return "CONFLICT";
+  }
+
+  if (status === 429) {
+    return "RATE_LIMITED";
+  }
+
+  if (status >= 500) {
+    return "SERVER_ERROR";
+  }
+
+  if (status >= 400) {
+    return "HTTP_ERROR";
+  }
+
+  return "UNKNOWN";
+}
+
+function isRetryableStatus(status: number) {
+  return status === 409 || status === 429 || status >= 500;
+}
+
+async function extractErrorMessage(response: Response) {
+  const contentType = (response.headers.get("content-type") ?? "").toLowerCase();
+
+  if (contentType.includes("application/json")) {
+    try {
+      const payload = (await response.json()) as { error?: unknown; message?: unknown };
+      const errorMessage = typeof payload?.error === "string" ? payload.error.trim() : "";
+      if (errorMessage) {
+        return errorMessage;
+      }
+
+      const message = typeof payload?.message === "string" ? payload.message.trim() : "";
+      if (message) {
+        return message;
+      }
+    } catch {
+      // Fallback to generic message when response body cannot be parsed.
+    }
+  }
+
+  try {
+    const text = (await response.text()).trim();
+    if (text) {
+      return text;
+    }
+  } catch {
+    // Ignore body parse failure and fall back to generic status message.
+  }
+
+  return null;
+}
+
+export function getUserFacingApiErrorMessage(error: unknown, fallbackMessage: string) {
+  if (error instanceof ApiRequestError) {
+    return error.message || fallbackMessage;
+  }
+
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  return fallbackMessage;
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -68,10 +182,13 @@ async function requestJson<T>(
   init: RequestInit,
   options?: RequestJsonOptions,
 ): Promise<T> {
+  const method = (init.method ?? "GET").toUpperCase();
   const timeoutMs = options?.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const retries = options?.retries ?? 0;
   const retryOnStatuses = options?.retryOnStatuses ?? [];
   const initialRetryDelayMs = options?.initialRetryDelayMs ?? DEFAULT_INITIAL_RETRY_DELAY_MS;
+  const maxAttempts = retries + 1;
+  const retryDelaysMs: number[] = [];
 
   for (let attempt = 0; attempt <= retries; attempt += 1) {
     const controller = new AbortController();
@@ -88,11 +205,27 @@ async function requestJson<T>(
         if (shouldRetryStatus) {
           const headerDelay = getRetryAfterMs(response);
           const backoffDelay = initialRetryDelayMs * 2 ** attempt;
-          await sleep(Math.max(backoffDelay, headerDelay ?? 0));
+          const retryDelay = Math.max(backoffDelay, headerDelay ?? 0);
+          retryDelaysMs.push(retryDelay);
+          await sleep(retryDelay);
           continue;
         }
 
-        throw new ApiRequestError(getErrorMessage(response.status), response.status);
+        const serverMessage = await extractErrorMessage(response);
+        const status = response.status;
+        const requestId = response.headers.get("x-request-id");
+
+        throw new ApiRequestError(serverMessage ?? getErrorMessage(status), {
+          status,
+          code: getErrorCodeFromStatus(status),
+          path,
+          method,
+          attempt: attempt + 1,
+          maxAttempts,
+          retryable: isRetryableStatus(status),
+          retryDelaysMs,
+          requestId,
+        });
       }
 
       return (await response.json()) as T;
@@ -103,6 +236,7 @@ async function requestJson<T>(
 
       if (shouldRetry) {
         const backoffDelay = initialRetryDelayMs * 2 ** attempt;
+        retryDelaysMs.push(backoffDelay);
         await sleep(backoffDelay);
         continue;
       }
@@ -113,15 +247,33 @@ async function requestJson<T>(
 
       throw new ApiRequestError(
         isAbort ? "Request timed out. Check your connection and try again." : "Network request failed.",
-        0,
-        true,
+        {
+          status: 0,
+          isNetworkError: true,
+          isTimeout: isAbort,
+          code: isAbort ? "TIMEOUT" : "NETWORK",
+          path,
+          method,
+          attempt: attempt + 1,
+          maxAttempts,
+          retryable: true,
+          retryDelaysMs,
+        },
       );
     } finally {
       clearTimeout(timer);
     }
   }
 
-  throw new ApiRequestError("Unexpected request state.");
+  throw new ApiRequestError("Unexpected request state.", {
+    code: "UNKNOWN",
+    path,
+    method,
+    attempt: maxAttempts,
+    maxAttempts,
+    retryable: false,
+    retryDelaysMs,
+  });
 }
 
 export async function fetchJson<T>(path: string, token?: string): Promise<T> {
