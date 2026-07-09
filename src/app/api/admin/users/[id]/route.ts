@@ -57,7 +57,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     assertAdminAccess(),
   ]);
 
-  if ("error" in access) {
+  if ("error" in access && access.error) {
     const status = access.error.status;
     return NextResponse.json({ error: status === 503 ? t.serviceUnavailable : t.forbidden }, { status });
   }
@@ -143,7 +143,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
     assertAdminAccess(),
   ]);
 
-  if ("error" in access) {
+  if ("error" in access && access.error) {
     const status = access.error.status;
     return NextResponse.json({ error: status === 503 ? t.serviceUnavailable : t.forbidden }, { status });
   }

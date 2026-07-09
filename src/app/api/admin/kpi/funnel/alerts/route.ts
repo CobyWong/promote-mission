@@ -134,7 +134,6 @@ export async function GET(request: Request) {
     .map((item) => ({
       key: item.key,
       severity: item.severity,
-      message: `${item.key} dropped by ${item.dropPct}% vs previous 7-day daily average`,
       message: isZh
         ? `${item.key} 相較過去 7 天日均值下跌 ${item.dropPct}%`
         : `${item.key} dropped by ${item.dropPct}% vs previous 7-day daily average`,
