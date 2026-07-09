@@ -31,7 +31,7 @@ Required GitHub secrets for scheduled/manual workflows:
 - STAGING_BEARER_TOKEN (for authenticated mobile smoke checks)
 - PROD_BASE_URL (for production mobile smoke workflow)
 - PROD_MOBILE_BEARER_TOKEN (for authenticated production mobile smoke checks)
-- STAGING_BEARER_TOKEN (recommended for authenticated mobile smoke checks)
+- MOBILE_SMOKE_ALERT_WEBHOOK_URL (optional; receives failure alerts from mobile smoke workflow)
 
 ## 1) Local quality gate
 

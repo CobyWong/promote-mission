@@ -109,3 +109,22 @@ jobs:
             echo "- comms: docs/ops/incident-communication-playbook.md"
             echo "- retry command: MOBILE_SMOKE_BASE_URL=${MOBILE_SMOKE_BASE_URL} npm run verify:mobile:smoke"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Failure webhook notification
+        if: failure() && secrets.MOBILE_SMOKE_ALERT_WEBHOOK_URL != ''
+        env:
+          WEBHOOK_URL: ${{ secrets.MOBILE_SMOKE_ALERT_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TARGET: ${{ env.MOBILE_SMOKE_TARGET }}
+          TRIGGER: ${{ github.event_name }}
+          BASE_URL: ${{ env.MOBILE_SMOKE_BASE_URL }}
+        run: |
+          set -euo pipefail
+
+          payload="{\"text\":\"[Mobile Smoke Alert] status=failed target=${TARGET} trigger=${TRIGGER} baseUrl=${BASE_URL} run=${RUN_URL} runbook=docs/ops/release-checklist-staging-production.md comms=docs/ops/incident-communication-playbook.md\"}"
+
+          curl --silent --show-error --fail \
+            -X POST "${WEBHOOK_URL}" \
+            -H "Content-Type: application/json" \
+            --data "${payload}" \
+            || true
