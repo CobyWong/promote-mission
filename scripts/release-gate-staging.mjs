@@ -56,6 +56,10 @@ function main() {
   runStep("Build", "npm", ["run", "build"]);
 
   runStep("Staging abuse/idempotency verification", "npm", ["run", "verify:staging"]);
+  runStep("Mobile API smoke verification", "npm", ["run", "verify:mobile:smoke"], {
+    MOBILE_SMOKE_BASE_URL: process.env.STAGING_BASE_URL,
+    MOBILE_SMOKE_BEARER_TOKEN: process.env.STAGING_BEARER_TOKEN,
+  });
   runStep("Funnel alerts check", "npm", ["run", "alerts:funnel"], {
     FAIL_ON_FUNNEL_WARN: failOnWarn,
   });

@@ -28,6 +28,7 @@ Required GitHub secrets for scheduled jobs:
 - STAGING_BASE_URL
 - STAGING_ADMIN_EMAIL
 - STAGING_ADMIN_PASSWORD
+- STAGING_BEARER_TOKEN (recommended for authenticated mobile smoke checks)
 
 ## 1) Local quality gate
 
@@ -67,6 +68,11 @@ Gate:
 ### 2.3 Staging verification commands
 
 Run in order:
+
+    STAGING_BASE_URL=https://your-staging-domain.com \
+    MOBILE_SMOKE_BASE_URL=https://your-staging-domain.com \
+    MOBILE_SMOKE_BEARER_TOKEN='optional-mobile-user-jwt' \
+    npm run verify:mobile:smoke
 
     STAGING_BASE_URL=https://your-staging-domain.com \
     STAGING_ADMIN_EMAIL=admin@example.com \
@@ -144,6 +150,7 @@ Preferred command (interactive checkpoints + fail-fast):
     PROD_BASE_URL=https://your-production-domain.com \
     PROD_ADMIN_EMAIL=admin@example.com \
     PROD_ADMIN_PASSWORD='your-admin-password' \
+    PROD_MOBILE_BEARER_TOKEN='prod-safe-test-user-access-token' \
     E2E_BASE_URL=https://your-production-domain.com \
     E2E_USER_ACCESS_TOKEN='prod-safe-test-user-access-token' \
     E2E_USER_REFRESH_TOKEN='prod-safe-test-user-refresh-token' \
@@ -153,6 +160,12 @@ Preferred command (interactive checkpoints + fail-fast):
     E2E_REWARD_SLUG='parknshop-voucher-100' \
     FAIL_ON_FUNNEL_WARN=0 \
     npm run release:gate:production
+
+Optional standalone mobile smoke check:
+
+    MOBILE_SMOKE_BASE_URL=https://your-production-domain.com \
+    MOBILE_SMOKE_BEARER_TOKEN='prod-safe-test-user-access-token' \
+    npm run verify:mobile:smoke
 
     STAGING_BASE_URL=https://your-production-domain.com \
     STAGING_ADMIN_EMAIL=admin@example.com \

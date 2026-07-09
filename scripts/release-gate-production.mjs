@@ -75,6 +75,11 @@ async function main() {
       FAIL_ON_FUNNEL_WARN: process.env.FAIL_ON_FUNNEL_WARN ?? "0",
     });
 
+    runStep("Production mobile API smoke", "npm", ["run", "verify:mobile:smoke"], {
+      MOBILE_SMOKE_BASE_URL: process.env.PROD_BASE_URL,
+      MOBILE_SMOKE_BEARER_TOKEN: process.env.PROD_MOBILE_BEARER_TOKEN,
+    });
+
     if (await confirmOptional(rl, "Optional step - Run production-safe E2E smoke.")) {
       if (!hasAllEnv(e2eEnv)) {
         throw new Error("E2E smoke requested but required E2E_* variables are missing.");

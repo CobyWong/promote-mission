@@ -11,6 +11,7 @@
     "mobile:typecheck": "npm --prefix apps/mobile run typecheck",
     "check:env": "node scripts/check-env.mjs",
     "verify:staging": "node scripts/verify-staging.mjs",
+    "verify:mobile:smoke": "node scripts/mobile-smoke.mjs",
     "alerts:funnel": "node scripts/check-funnel-alerts.mjs",
     "funnel:baseline": "node scripts/funnel-baseline-report.mjs",
     "release:gate:staging": "node scripts/release-gate-staging.mjs",

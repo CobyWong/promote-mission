@@ -138,6 +138,14 @@ STAGING_BEARER_TOKEN='optional-mobile-user-jwt' \
 npm run verify:staging
 ```
 
+Mobile API smoke verification:
+
+```bash
+MOBILE_SMOKE_BASE_URL=https://your-staging-domain.com \
+MOBILE_SMOKE_BEARER_TOKEN='optional-mobile-user-jwt' \
+npm run verify:mobile:smoke
+```
+
 Funnel regression alert check:
 
 ```bash
