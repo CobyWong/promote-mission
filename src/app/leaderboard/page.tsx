@@ -41,8 +41,8 @@ export default async function LeaderboardPage() {
         </h1>
         <p className="mt-4 text-lg leading-8 text-slate-300">
           {locale === "en"
-            ? "Top creators ranked by Coins earned this month. Complete missions to climb the ranks."
-            : "本月金幣收益最高的創作者排名。完成任務即可提升排名，贏取額外獎勵。"}
+            ? "Top creators ranked by total Likes this month. Complete missions to climb the ranks."
+            : "本月以總 Like 數排名創作者。完成任務即可提升排名，贏取額外獎勵。"}
         </p>
       </div>
 
@@ -68,8 +68,8 @@ export default async function LeaderboardPage() {
             </p>
             <p className={`mt-1 text-sm leading-relaxed ${descClass}`}>
               {locale === "en"
-                ? "The #1 ranked creator by Coins earned this month receives a luxury watch only when total likes reach 200,000 or above."
-                : "本月金幣收益排名第一的創作者，只有在總 Like 數達到 200,000 或以上時，方可獲得名錶獎勵。"}
+                ? "The #1 ranked creator by total likes this month receives a luxury watch only when total likes reach 200,000 or above."
+                : "本月總 Like 數排名第一的創作者，只有在總 Like 數達到 200,000 或以上時，方可獲得名錶獎勵。"}
             </p>
             <p className="mt-2 text-xs text-slate-300/90">
               {locale === "en"

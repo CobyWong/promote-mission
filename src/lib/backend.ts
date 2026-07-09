@@ -1204,13 +1204,9 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
     .from("coin_transactions")
     .select("user_id, amount");
 
-  if (!transactions || transactions.length === 0) {
-    return { mode: "live" as const, leaders: [] };
-  }
-
   // Sum coins per user
   const coinMap = new Map<string, number>();
-  for (const tx of transactions) {
+  for (const tx of transactions ?? []) {
     coinMap.set(tx.user_id, (coinMap.get(tx.user_id) ?? 0) + tx.amount);
   }
 
@@ -1259,8 +1255,18 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
     totalLikesMap.set(userId, sum);
   }
 
-  // Fetch profiles for names / handles
-  const userIds = Array.from(coinMap.keys());
+  // Fetch profiles for names / handles. Ranking can be driven by likes even when coins are zero,
+  // so include users discovered from any metric source.
+  const userIds = Array.from(new Set([
+    ...coinMap.keys(),
+    ...missionMap.keys(),
+    ...totalLikesMap.keys(),
+  ]));
+
+  if (userIds.length === 0) {
+    return { mode: "live" as const, leaders: [] };
+  }
+
   const { data: profiles } = await admin
     .from("profiles")
     .select("id, full_name, instagram_handle, followers_range")
@@ -1280,7 +1286,12 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
         missionsCompleted: missionMap.get(uid) ?? 0,
       };
     })
-    .sort((a, b) => b.coins - a.coins)
+    .sort((a, b) => {
+      if (b.totalLikes !== a.totalLikes) {
+        return b.totalLikes - a.totalLikes;
+      }
+      return b.coins - a.coins;
+    })
     .slice(0, 20);
 
   return { mode: "live" as const, leaders: leaderRows };

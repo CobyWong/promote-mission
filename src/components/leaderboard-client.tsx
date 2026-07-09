@@ -26,13 +26,13 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
   const t =
     locale === "en"
       ? {
-          tabs: { coins: "Coins Earned", missions: "Missions Done", followers: "Followers" },
+          tabs: { coins: "Total Likes", missions: "Missions Done", followers: "Followers" },
           unavailable: "Leaderboard is unavailable until backend services are configured.",
           rank: "Rank",
           creator: "Creator",
           platform: "Platform",
           followers: "Followers",
-          coins: "Coins",
+          coins: "Likes",
           missions: "Missions",
           topBadge: "Top Creator",
           thisMonth: "This month",
@@ -40,13 +40,13 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
           emptyDesc: "Be the first to complete a mission and claim the #1 spot!",
         }
       : {
-          tabs: { coins: "金幣收益", missions: "完成任務", followers: "追蹤數" },
+          tabs: { coins: "總 Like 數", missions: "完成任務", followers: "追蹤數" },
           unavailable: "完成後端服務設定後，方可顯示排行榜資料。",
           rank: "排名",
           creator: "創作者",
           platform: "平台",
           followers: "追蹤數",
-          coins: "金幣",
+          coins: "Like",
           missions: "任務數",
           topBadge: "頂尖創作者",
           thisMonth: "本月",
@@ -55,7 +55,12 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
         };
 
   const sorted = [...leaders].sort((a, b) => {
-    if (activeTab === "coins") return b.coins - a.coins;
+    if (activeTab === "coins") {
+      if (b.totalLikes !== a.totalLikes) {
+        return b.totalLikes - a.totalLikes;
+      }
+      return b.coins - a.coins;
+    }
     if (activeTab === "missions") return (b.missionsCompleted ?? 0) - (a.missionsCompleted ?? 0);
     return 0; // followers sort — already a string; keep original order
   });
@@ -103,7 +108,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
                     {leader.platform}
                   </p>
                   {activeTab === "coins" && (
-                    <p className="mt-2 text-lg font-bold text-cyan-300">{leader.coins.toLocaleString()}</p>
+                    <p className="mt-2 text-lg font-bold text-cyan-300">{leader.totalLikes.toLocaleString()}</p>
                   )}
                   {activeTab === "missions" && (
                     <p className="mt-2 text-lg font-bold text-cyan-300">{leader.missionsCompleted ?? 0}</p>
@@ -154,7 +159,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
                 <div className="text-right">
                   {activeTab === "coins" && (
                     <>
-                      <p className="font-bold text-cyan-300 text-lg">{leader.coins.toLocaleString()}</p>
+                      <p className="font-bold text-cyan-300 text-lg">{leader.totalLikes.toLocaleString()}</p>
                       <p className="text-xs text-slate-400">{t.coins}</p>
                     </>
                   )}

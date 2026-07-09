@@ -74,8 +74,8 @@ const TIPS: Record<string, { zh: string; en: string }[]> = {
     { zh: "如金幣不足，建議先完成更多任務。", en: "Not enough Coins? Go complete more missions first!" },
   ],
   "/leaderboard": [
-    { zh: "本月金幣收益第一名需同時達成總 Like 200,000，方可獲名錶獎勵。", en: "This month, #1 by Coins must also reach 200,000 total likes to unlock the luxury watch." },
-    { zh: "排行榜亦涵蓋完成任務數量與追蹤數，不僅限於金幣。", en: "Rankings also track missions done and followers — not just Coins!" },
+    { zh: "本月總 Like 數第一名需同時達成總 Like 200,000，方可獲名錶獎勵。", en: "This month, #1 by total likes must also reach 200,000 total likes to unlock the luxury watch." },
+    { zh: "排行榜亦涵蓋完成任務數量與追蹤數，不僅限於總 Like。", en: "Rankings also track missions done and followers — not just total likes!" },
   ],
   "/dashboard": [
     { zh: "此處為你的個人控制台，可追蹤任務進度與提交記錄。", en: "This is your personal dashboard — track your missions and submission history!" },
