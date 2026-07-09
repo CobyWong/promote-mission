@@ -3,9 +3,15 @@ import { getCurrentLocale } from "@/lib/i18n";
 import { LeaderboardClient } from "@/components/leaderboard-client";
 import { getLeaderboardData } from "@/lib/backend";
 
+const MONTHLY_REWARD_MIN_LIKES = 200_000;
+
 export default async function LeaderboardPage() {
   const locale = await getCurrentLocale();
   const data = await getLeaderboardData();
+  const topCreator = data.leaders[0] ?? null;
+  const topCreatorLikes = topCreator?.totalLikes ?? 0;
+  const isRewardEligible = topCreatorLikes >= MONTHLY_REWARD_MIN_LIKES;
+  const numberFormat = new Intl.NumberFormat(locale === "en" ? "en-US" : "zh-HK");
 
   const bannerClass = "border-amber-300/25 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-[#171229]/90 shadow-lg shadow-slate-950/35";
 
@@ -18,8 +24,11 @@ export default async function LeaderboardPage() {
   const headingClass = "text-white";
   const descClass = "text-slate-200/90";
 
-  const rewardPillClass = "border-amber-300/30 bg-slate-900/70";
-  const rewardLabelClass = "text-amber-200";
+  const rewardPillClass = "border-amber-300/30 bg-slate-900/75";
+  const rewardLabelClass = "text-amber-100";
+  const gateBaseClass = "mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-semibold tracking-wide";
+  const gateOkClass = "border-emerald-300/40 bg-emerald-400/15 text-emerald-200";
+  const gateLockedClass = "border-rose-300/35 bg-rose-400/10 text-rose-200";
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -59,22 +68,35 @@ export default async function LeaderboardPage() {
             </p>
             <p className={`mt-1 text-sm leading-relaxed ${descClass}`}>
               {locale === "en"
-                ? "The #1 ranked creator by Coins earned this month receives a luxury watch."
-                : "本月金幣收益排名第一的創作者，將額外獲得名錶獎勵。"}
+                ? "The #1 ranked creator by Coins earned this month receives a luxury watch only when total likes reach 200,000 or above."
+                : "本月金幣收益排名第一的創作者，只有在總 Like 數達到 200,000 或以上時，方可獲得名錶獎勵。"}
             </p>
+            <p className="mt-2 text-xs text-slate-300/90">
+              {locale === "en"
+                ? `Current #1 total likes: ${numberFormat.format(topCreatorLikes)} / ${numberFormat.format(MONTHLY_REWARD_MIN_LIKES)}`
+                : `目前第一名總 Like：${numberFormat.format(topCreatorLikes)} / ${numberFormat.format(MONTHLY_REWARD_MIN_LIKES)}`}
+            </p>
+            <span className={`${gateBaseClass} ${isRewardEligible ? gateOkClass : gateLockedClass}`}>
+              {isRewardEligible
+                ? (locale === "en" ? "Prize unlocked" : "已達獎勵門檻")
+                : (locale === "en" ? "Prize locked: total likes below threshold" : "獎勵未解鎖：總 Like 未達門檻")}
+            </span>
           </div>
 
           {/* Reward pill */}
-          <div className={`shrink-0 rounded-2xl border px-6 py-4 text-center backdrop-blur-sm ${rewardPillClass}`}>
+          <div className={`shrink-0 rounded-2xl border px-7 py-5 text-center backdrop-blur-sm ${rewardPillClass}`}>
             <Image
               src="/watch.jpeg"
               alt={locale === "en" ? "Luxury watch reward" : "名錶獎勵"}
-              width={44}
-              height={44}
-              className="mx-auto h-11 w-11 rounded-lg object-cover"
+              width={84}
+              height={84}
+              className="mx-auto h-20 w-20 rounded-xl object-cover"
             />
-            <p className={`mt-1 text-xs font-semibold tracking-wide ${rewardLabelClass}`}>
+            <p className={`mt-2 text-lg font-extrabold tracking-wide ${rewardLabelClass}`}>
               {locale === "en" ? "Luxury Watch" : "名錶"}
+            </p>
+            <p className="mt-1 text-xs text-slate-300/90">
+              {locale === "en" ? "Base threshold: 200,000 total likes" : "基礎門檻：總 Like 200,000"}
             </p>
           </div>
         </div>

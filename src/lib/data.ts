@@ -49,6 +49,7 @@ export type Leader = {
   platform: string;
   followers: string;
   coins: number;
+  totalLikes: number;
   missionsCompleted?: number;
 };
 

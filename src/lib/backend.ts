@@ -1226,6 +1226,39 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
     }
   }
 
+  // Aggregate total likes by user. For each media_id, keep the max likes value to avoid
+  // double counting snapshots from different metric_date rows.
+  const { data: insights } = await admin
+    .from("reel_insights")
+    .select("user_id, media_id, likes");
+
+  const likesByUserAndMedia = new Map<string, Map<string, number>>();
+  for (const insight of insights ?? []) {
+    const userId = insight.user_id;
+    if (!userId) {
+      continue;
+    }
+
+    const mediaId = insight.media_id?.trim() || "__unknown_media";
+    const likes = Math.max(Number(insight.likes ?? 0), 0);
+
+    const userMap = likesByUserAndMedia.get(userId) ?? new Map<string, number>();
+    const existingLikes = userMap.get(mediaId) ?? 0;
+    if (likes > existingLikes) {
+      userMap.set(mediaId, likes);
+    }
+    likesByUserAndMedia.set(userId, userMap);
+  }
+
+  const totalLikesMap = new Map<string, number>();
+  for (const [userId, mediaMap] of likesByUserAndMedia.entries()) {
+    let sum = 0;
+    for (const likes of mediaMap.values()) {
+      sum += likes;
+    }
+    totalLikesMap.set(userId, sum);
+  }
+
   // Fetch profiles for names / handles
   const userIds = Array.from(coinMap.keys());
   const { data: profiles } = await admin
@@ -1243,6 +1276,7 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
         platform: "Instagram",
         followers: profile?.followers_range ?? "-",
         coins: coinMap.get(uid) ?? 0,
+        totalLikes: totalLikesMap.get(uid) ?? 0,
         missionsCompleted: missionMap.get(uid) ?? 0,
       };
     })
