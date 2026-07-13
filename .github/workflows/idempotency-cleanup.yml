@@ -33,11 +33,35 @@ jobs:
             exit 0
           fi
 
-          curl --fail-with-body --show-error --silent \
-            --retry 2 \
-            --retry-all-errors \
-            --connect-timeout 8 \
-            --max-time 25 \
-            -X POST "${CLEANUP_ENDPOINT_URL}?retentionDays=${RETENTION_DAYS}" \
-            -H "x-cron-token: ${CLEANUP_CRON_TOKEN}" \
-            -H "content-type: application/json"
+          response_body_file="$(mktemp)"
+          http_status="$({
+            curl --silent --show-error \
+              --retry 2 \
+              --retry-all-errors \
+              --connect-timeout 8 \
+              --max-time 25 \
+              --output "${response_body_file}" \
+              --write-out "%{http_code}" \
+              -X POST "${CLEANUP_ENDPOINT_URL}?retentionDays=${RETENTION_DAYS}" \
+              -H "x-cron-token: ${CLEANUP_CRON_TOKEN}" \
+              -H "content-type: application/json";
+          })"
+
+          echo "Cleanup endpoint HTTP status: ${http_status}"
+          echo "Cleanup endpoint response:"
+          cat "${response_body_file}"
+          echo
+
+          if [[ "${http_status}" -ge 400 ]]; then
+            if [[ "${http_status}" == "401" ]]; then
+              echo "::error::Unauthorized (401). Usually CLEANUP_CRON_TOKEN mismatch between GitHub secrets and Vercel env."
+            elif [[ "${http_status}" == "404" ]]; then
+              echo "::error::Not found (404). Check CLEANUP_ENDPOINT_URL points to /api/admin/idempotency/cleanup on the deployed domain."
+            elif [[ "${http_status}" == "503" ]]; then
+              echo "::error::Service unavailable (503). Usually CLEANUP_CRON_TOKEN is missing in Vercel environment or deployment not refreshed."
+            else
+              echo "::error::Cleanup endpoint returned HTTP ${http_status}."
+            fi
+
+            exit 1
+          fi
