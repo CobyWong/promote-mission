@@ -104,12 +104,11 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       back: "Back",
       create: "Create account",
       stepBasic: "Basic info",
-      stepInstagram: "Instagram",
       stepCoverage: "Content coverage",
       stepAudience: "Audience profile",
       stepFinal: "Finish",
       stepOf: "Step",
-      ofTotal: "of 5",
+      ofTotal: "of 4",
       name: "Creator name",
       phone: "Phone",
       instagram: "Instagram username",
@@ -146,12 +145,11 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       back: "返回",
       create: "建立帳號",
       stepBasic: "基本資料",
-      stepInstagram: "Instagram",
       stepCoverage: "內容覆蓋範圍",
       stepAudience: "受眾資料",
       stepFinal: "完成設定",
       stepOf: "第",
-      ofTotal: "步，共 5 步",
+      ofTotal: "步，共 4 步",
       name: "創作者名稱",
       phone: "電話號碼",
       instagram: "Instagram 用戶名稱",
@@ -181,7 +179,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       hidePassword: "隱藏",
     };
 
-  const registerStepLabels = [t.stepBasic, t.stepInstagram, t.stepCoverage, t.stepAudience, t.stepFinal];
+  const registerStepLabels = [t.stepBasic, t.stepCoverage, t.stepAudience, t.stepFinal];
 
   function getHandleFromInput(value: string) {
     const trimmed = value.trim();
@@ -199,30 +197,27 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         setError(t.needBasic);
         return false;
       }
-    }
-
-    if (registerStep === 2) {
       if (!getHandleFromInput(instagramHandle)) {
         setError(t.needInstagram);
         return false;
       }
     }
 
-    if (registerStep === 3) {
+    if (registerStep === 2) {
       if (selectedNiches.length < 2) {
         setError(t.needTwoNiches);
         return false;
       }
     }
 
-    if (registerStep === 4) {
+    if (registerStep === 3) {
       if (!gender || !ageGroup || !followersRange) {
         setError(t.needAudience);
         return false;
       }
     }
 
-    if (registerStep === 5 && !agreedTerms) {
+    if (registerStep === 4 && !agreedTerms) {
       setError(t.needTerms);
       return false;
     }
@@ -236,7 +231,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       return;
     }
 
-    setRegisterStep((step) => Math.min(step + 1, 5));
+    setRegisterStep((step) => Math.min(step + 1, 4));
   }
 
   function goBackRegisterStep() {
@@ -293,7 +288,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
     try {
       if (isRegister) {
-        if (registerStep < 5) {
+        if (registerStep < 4) {
           goNextRegisterStep();
           return;
         }
@@ -447,7 +442,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                 <p className="text-xl text-slate-500">{t.stepOf} {registerStep} {t.ofTotal}</p>
               </div>
               <div className="h-2 rounded-full bg-slate-200">
-                <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(registerStep / 5) * 100}%` }} />
+                <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(registerStep / 4) * 100}%` }} />
               </div>
 
               <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
@@ -506,20 +501,16 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                         </div>
                       </div>
 
+                      <label className="block text-base font-medium text-slate-900">
+                        {t.instagram} <span className="text-rose-500">*</span>
+                        <p className="mt-2 text-sm font-normal text-slate-500">{t.instagramHint}</p>
+                        <input value={instagramHandle} onChange={(event) => setInstagramHandle(event.target.value)} className={lightInputClassName} placeholder="yourhandle" />
+                      </label>
+
                     </>
                   ) : null}
 
                   {registerStep === 2 ? (
-                    <>
-                      <label className="block text-2xl font-semibold text-slate-900">
-                        {t.instagram}
-                        <p className="mt-2 text-base font-normal text-slate-500">{t.instagramHint}</p>
-                        <input value={instagramHandle} onChange={(event) => setInstagramHandle(event.target.value)} className={lightInputClassName} placeholder="yourhandle" />
-                      </label>
-                    </>
-                  ) : null}
-
-                  {registerStep === 3 ? (
                     <>
                       <div>
                         <h3 className="text-xl font-semibold text-slate-900">{t.niches}</h3>
@@ -582,7 +573,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     </>
                   ) : null}
 
-                  {registerStep === 4 ? (
+                  {registerStep === 3 ? (
                     <>
                       <div>
                         <h3 className="text-xl font-semibold text-slate-900">{t.gender} <span className="text-rose-500">*</span></h3>
@@ -643,7 +634,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     </>
                   ) : null}
 
-                  {registerStep === 5 ? (
+                  {registerStep === 4 ? (
                     <>
                       <label className="block text-base font-medium text-slate-900">
                         {t.referral}
@@ -679,7 +670,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     {t.back}
                   </button>
 
-                  {registerStep < 5 ? (
+                  {registerStep < 4 ? (
                     <button
                       type="button"
                       onClick={goNextRegisterStep}
