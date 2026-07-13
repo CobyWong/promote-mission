@@ -80,6 +80,12 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       unavailable: "Unavailable",
       emptyTitle: "No matching rewards",
       emptyDesc: "Try another search keyword or filter.",
+      recommendationTitle: "Recommended for you",
+      tabAll: "All",
+      tabBuy: "Buy vouchers",
+      tabRedeem: "Redeem vouchers",
+      tabClaim: "Claim vouchers",
+      quickSearch: "Daily points",
     }
     : {
       walletTitle: "我的錢包",
@@ -109,6 +115,12 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       unavailable: "暫時不可兌換",
       emptyTitle: "沒有符合條件的商品",
       emptyDesc: "請嘗試其他搜尋關鍵字或篩選條件。",
+      recommendationTitle: "為你推薦",
+      tabAll: "全部",
+      tabBuy: "購買禮券",
+      tabRedeem: "兌換禮券",
+      tabClaim: "領取禮券",
+      quickSearch: "每日拎積分",
     };
 
   const statusLabel = (status: string) => {
@@ -231,7 +243,52 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-7">
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 flex-1 items-center rounded-full border border-white/15 bg-white/8 px-4 text-sm text-slate-300">
+            <span className="mr-2 text-lg leading-none">⌕</span>
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={`${t.quickSearch} 🔥`}
+              className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-400"
+            />
+          </div>
+          <button type="button" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/8 text-xl text-slate-300">◌</button>
+          <button type="button" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/8 text-xl text-slate-300">⌁</button>
+        </div>
+
+        <div className="flex gap-2 overflow-x-auto rounded-full border border-white/10 bg-white/5 p-1">
+          {[
+            ["all", t.tabAll],
+            ["affordable", t.tabBuy],
+            ["unlockable", t.tabRedeem],
+            ["recommended", t.tabClaim],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => {
+                if (key === "recommended") {
+                  setSortBy("recommended");
+                  return;
+                }
+                setFilterBy(key as RewardFilterKey);
+              }}
+              className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
+                (key === "recommended" && sortBy === "recommended") || filterBy === key
+                  ? "bg-cyan-400/20 text-cyan-100"
+                  : "text-slate-300"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="tactical-card p-6">
           <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.walletTitle}</p>
@@ -284,20 +341,14 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       {success ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-4 text-sm text-emerald-100">{success}</div> : null}
 
       <div className="tactical-card p-4 sm:p-5">
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t.searchPlaceholder}
-            className="h-11 rounded-xl border border-slate-500/70 bg-slate-900/55 px-4 text-sm text-slate-100 outline-none transition focus:border-cyan-300/60"
-          />
-          <label className="flex flex-wrap items-center gap-2 text-sm text-slate-300 sm:flex-nowrap">
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <p className="text-sm text-slate-300">{t.searchPlaceholder}</p>
+          <label className="flex items-center gap-2 text-sm text-slate-300">
             <span>{t.sortLabel}</span>
             <select
               value={sortBy}
               onChange={(event) => setSortBy(event.target.value as RewardSortKey)}
-              className="h-11 rounded-xl border border-slate-500/70 bg-slate-900/55 px-3 text-sm text-slate-100"
+              className="h-10 rounded-full border border-slate-500/70 bg-slate-900/55 px-3 text-sm text-slate-100"
             >
               <option value="recommended">{t.sortRecommended}</option>
               <option value="priceAsc">{t.sortPriceAsc}</option>
@@ -305,30 +356,34 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
               <option value="levelAsc">{t.sortLevelAsc}</option>
             </select>
           </label>
-          <div className="flex flex-wrap items-center gap-2">
-            {([
-              ["all", t.filterAll],
-              ["affordable", t.filterAffordable],
-              ["unlockable", t.filterUnlockable],
-            ] as Array<[RewardFilterKey, string]>).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setFilterBy(key)}
-                className={`h-11 rounded-xl border px-3 text-xs font-semibold sm:text-sm ${
-                  filterBy === key
-                    ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
-                    : "border-slate-500/70 bg-slate-900/45 text-slate-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div>
+        <h2 className="text-3xl font-semibold text-slate-100">{t.recommendationTitle}</h2>
+        <div className="mt-4 flex gap-2 overflow-x-auto">
+          {([
+            ["all", t.filterAll],
+            ["affordable", t.filterAffordable],
+            ["unlockable", t.filterUnlockable],
+          ] as Array<[RewardFilterKey, string]>).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setFilterBy(key)}
+              className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold ${
+                filterBy === key
+                  ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
+                  : "border-white/15 bg-white/5 text-slate-300"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {filteredRewards.map((reward) => {
           const minLevel = reward.minLevel ?? 1;
           const hasStock = reward.stock === null || reward.stock === undefined || reward.stock > 0;
@@ -349,19 +404,19 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
           return (
             <article key={reward.slug} className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45">
-              <div className="relative overflow-hidden px-5 pb-4 pt-5">
+              <div className="relative overflow-hidden px-3 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-5">
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/16 via-transparent to-slate-900/10" />
-                <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-lg font-bold text-cyan-100">
+                <div className="relative flex flex-col gap-2">
+                  <div className="flex min-w-0 items-start gap-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-base font-bold text-cyan-100 sm:h-12 sm:w-12 sm:text-lg">
                       {rewardInitial}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="break-words text-2xl font-bold leading-tight text-slate-100 sm:text-[1.65rem]">{reward.name}</h3>
-                      <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
+                      <h3 className="line-clamp-2 break-words text-lg font-bold leading-tight text-slate-100 sm:text-xl">{reward.name}</h3>
+                      <p className="mt-1 line-clamp-2 text-xs text-slate-300 sm:text-sm">{reward.description}</p>
                     </div>
                   </div>
-                  <span className="inline-flex w-fit shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2.5 py-1 text-xs font-semibold text-slate-200">
+                  <span className="inline-flex w-fit shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2 py-0.5 text-[11px] font-semibold text-slate-200">
                     {stateTag}
                   </span>
                 </div>
@@ -378,22 +433,22 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                 </div>
               </div>
 
-              <div className="border-t border-slate-600/60 bg-slate-900/35 px-5 py-4">
+              <div className="border-t border-slate-600/60 bg-slate-900/35 px-3 py-3 sm:px-5 sm:py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-400">{locale === "en" ? "Price" : "售價"}</p>
-                    <p className="mt-1 text-3xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
+                    <p className="mt-1 text-2xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs uppercase tracking-wide text-slate-400">{t.stock}</p>
-                    <p className="mt-1 text-3xl font-black leading-none text-slate-100 sm:text-4xl">{stockLabel}</p>
+                    <p className="mt-1 text-2xl font-black leading-none text-slate-100 sm:text-4xl">{stockLabel}</p>
                     <p className="mt-1 text-xs text-slate-400">{etaLabel}</p>
                   </div>
                 </div>
               </div>
 
-              <div className="px-5 pb-5 pt-3">
+              <div className="px-3 pb-3 pt-2 sm:px-5 sm:pb-5 sm:pt-3">
                 <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
                   <span>{etaLabel}</span>
                   <span>{t.stock} {stockLabel}</span>
@@ -402,7 +457,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                   type="button"
                   disabled={!canRedeem || pendingSlug === reward.slug}
                   onClick={() => handleRedeem(reward)}
-                  className="tactical-btn-primary h-12 w-full rounded-2xl px-5 text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
+                  className="tactical-btn-primary h-11 w-full rounded-2xl px-3 text-sm sm:h-12 sm:px-5 sm:text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
                 >
                   {pendingSlug === reward.slug
                     ? t.redeeming
