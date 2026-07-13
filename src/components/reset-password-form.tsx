@@ -13,6 +13,26 @@ type ResetPasswordFormProps = {
 
 type RecoveryState = "checking" | "ready" | "invalid";
 
+function EyeOpenIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeClosedIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 3l18 18" />
+      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+      <path d="M9.9 5.1A11.1 11.1 0 0 1 12 5c6.4 0 10 7 10 7a18.7 18.7 0 0 1-4 4.9" />
+      <path d="M6.6 6.7C3.9 8.3 2 12 2 12s3.6 6 10 6a10.8 10.8 0 0 0 4.2-.8" />
+    </svg>
+  );
+}
+
 export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
   const supabase = getSupabaseBrowserClient();
   const [newPassword, setNewPassword] = useState("");
@@ -174,44 +194,46 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <label className="block text-sm text-slate-200">
               {t.newPassword}
-              <div className="mt-2 flex items-center gap-2">
+              <div className="relative mt-2">
                 <input
                   type={showNewPassword ? "text" : "password"}
                   minLength={8}
                   required
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/60"
+                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 pr-12 text-slate-100 outline-none transition focus:border-cyan-300/60"
                   placeholder="********"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword((current) => !current)}
-                  className="rounded-xl border border-slate-500/70 bg-slate-900/60 px-3 py-3 text-xs font-semibold text-slate-200 transition hover:border-cyan-300/60"
+                  aria-label={showNewPassword ? t.hidePassword : t.showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 transition hover:text-cyan-100"
                 >
-                  {showNewPassword ? t.hidePassword : t.showPassword}
+                  {showNewPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                 </button>
               </div>
             </label>
 
             <label className="block text-sm text-slate-200">
               {t.confirmPassword}
-              <div className="mt-2 flex items-center gap-2">
+              <div className="relative mt-2">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
                   minLength={8}
                   required
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/60"
+                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 pr-12 text-slate-100 outline-none transition focus:border-cyan-300/60"
                   placeholder="********"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((current) => !current)}
-                  className="rounded-xl border border-slate-500/70 bg-slate-900/60 px-3 py-3 text-xs font-semibold text-slate-200 transition hover:border-cyan-300/60"
+                  aria-label={showConfirmPassword ? t.hidePassword : t.showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 transition hover:text-cyan-100"
                 >
-                  {showConfirmPassword ? t.hidePassword : t.showPassword}
+                  {showConfirmPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                 </button>
               </div>
             </label>
