@@ -204,7 +204,7 @@ export default async function DashboardPage() {
           </div>
         </div>
         <div className="mt-6 space-y-4">
-          <div className="rounded-xl border border-white/10 px-3 py-4 sm:px-4">
+          <div className="px-1 py-1 sm:px-2">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.levelProgress}</p>
               <p className="text-sm font-semibold text-cyan-200">
@@ -226,28 +226,28 @@ export default async function DashboardPage() {
                 : <span>{t.expToNext}: {levelProgress.expToNextLevel.toLocaleString()} / {levelProgress.expForNextLevel.toLocaleString()}</span>}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-3 text-xs text-slate-300">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4 text-xs text-slate-300">
               <span>
                 {t.nextLevelReward}: {levelProgress.isMaxLevel ? t.levelMaxed : `+${nextLevelCoins.toLocaleString()} Coins`}
               </span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-white/10 px-3 py-2 sm:px-4">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 sm:border-b-0 sm:border-r sm:pr-3">
+          <div className="px-1 sm:px-2">
+            <div className="grid gap-0 sm:grid-cols-2">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3 sm:border-r sm:pr-3">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.ageGroup}</p>
                 <p className="text-base font-semibold text-slate-100">{dashboard.profile.ageGroup}</p>
               </div>
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 sm:border-b-0 sm:pl-3">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3 sm:pl-3">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.followersRange}</p>
                 <p className="text-base font-semibold text-slate-100">{dashboard.profile.followersRange}</p>
               </div>
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 sm:border-b-0 sm:border-r sm:pr-3">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3 sm:border-r sm:pr-3 sm:border-b-0">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.joinedAt}</p>
                 <p className="break-words text-base font-semibold text-slate-100">{dashboard.profile.joinedAt}</p>
               </div>
-              <div className="flex items-center justify-between gap-3 py-2 sm:pl-3">
+              <div className="flex items-center justify-between gap-3 py-3 sm:pl-3">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.pendingReviews}</p>
                 <p className="text-base font-semibold text-slate-100">{dashboard.pendingCount}</p>
               </div>
@@ -267,7 +267,7 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-6 rounded-xl border border-white/10 px-3 py-2 sm:px-4">
+        <div className="mt-6 px-1 py-1 sm:px-2">
           <div className="space-y-1">
             <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3">
               <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.totalEarned}</p>
@@ -296,20 +296,20 @@ export default async function DashboardPage() {
             <p className="text-sm text-slate-500">{dashboard.profile.platform} · {dashboard.profile.niche}</p>
             <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.profile.name} · {dashboard.profile.handle}</p>
           </div>
-          <div className="tactical-subcard px-4 py-3 text-xs text-slate-300 sm:text-sm">
+          <div className="text-xs text-slate-300 sm:text-sm">
             {locale === "en" ? "Age" : "年齡"} {dashboard.profile.ageGroup} · {locale === "en" ? "Followers" : "追蹤數"} {dashboard.profile.followersRange} · {locale === "en" ? "Joined" : "加入時間"} {dashboard.profile.joinedAt}
           </div>
         </div>
 
         <div className="mt-6 flex flex-col items-start gap-3 sm:mt-8 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-2xl font-semibold text-slate-100">{t.activeMissions}</h2>
-          <div className="tactical-subcard px-4 py-2 text-sm text-slate-300">
+          <div className="text-sm text-slate-300">
             {t.pendingReviews}: {dashboard.pendingCount}
           </div>
         </div>
 
         {activeMissions.length === 0 ? (
-          <div className="tactical-subcard mt-6 px-4 py-4 text-slate-300">
+          <div className="mt-6 border-t border-white/10 px-1 pt-4 text-slate-300">
             {locale === "en"
               ? "You don’t have any active missions yet. Accept a mission to start tracking it here."
               : "你目前尚無進行中任務。接受任務後，將於此處顯示。"}
@@ -336,7 +336,7 @@ export default async function DashboardPage() {
                         : submissionStatus;
                 const statusColor = submissionStatus ? statusColors[submissionStatus] || statusColors["Pending"] : "";
 
-                return <div key={mission.slug} className="tactical-subcard p-4 sm:p-5">
+                return <div key={mission.slug} className="border-t border-white/10 py-4 first:border-t-0 sm:py-5">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <div className="flex items-center gap-3">
@@ -362,7 +362,7 @@ export default async function DashboardPage() {
             </div>
 
             {nextReward ? (
-              <div className="mt-8 rounded-xl border border-amber-300/50 bg-amber-300/10 p-5">
+              <div className="mt-8 border-t border-white/10 pt-4">
                 <p className="text-sm text-amber-200">{t.nextReward}</p>
                 <p className="mt-2 text-xl font-semibold text-slate-100">{nextReward.name}</p>
                 <p className="mt-2 text-sm text-slate-300">{t.pointsAway} {pointsToNextReward} {t.pointsAwaySuffix}</p>
