@@ -101,14 +101,18 @@ export async function Header() {
         {isAuthenticated ? (
           <div className="ml-auto flex items-center gap-3">
             <HeaderMainNav links={navLinks} theme={theme} />
-            <HeaderNotificationCenter locale={locale} theme={theme} />
+            <div className="hidden md:block">
+              <HeaderNotificationCenter locale={locale} theme={theme} />
+            </div>
 
-            <HeaderSideMenu
-              locale={locale}
-              theme={theme}
-              isAuthenticated={isAuthenticated}
-              isAdmin={isAdmin}
-            />
+            <div className="hidden md:block">
+              <HeaderSideMenu
+                locale={locale}
+                theme={theme}
+                isAuthenticated={isAuthenticated}
+                isAdmin={isAdmin}
+              />
+            </div>
           </div>
         ) : (
           <div className="ml-auto flex items-center gap-3">
