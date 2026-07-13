@@ -54,7 +54,7 @@ export default async function DashboardPage() {
       userId: "User ID",
     }
     : {
-      title: "我的",
+      title: "我的檔案",
       subtitle: "集中管理個人檔案、收益、任務與推薦功能。",
       profileSection: "個人檔案",
       accountSection: "帳戶與進度",
