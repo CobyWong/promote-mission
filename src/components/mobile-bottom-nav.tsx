@@ -2,17 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 
-import type { Theme } from "@/lib/theme";
-
-type NavLink = {
+type MobileBottomNavLink = {
   href: string;
   label: string;
 };
 
-type HeaderMainNavProps = {
-  links: NavLink[];
-  theme: Theme;
+type MobileBottomNavProps = {
+  links: MobileBottomNavLink[];
 };
 
 function NavIcon({ href }: { href: string }) {
@@ -68,36 +66,47 @@ function isActivePath(pathname: string, href: string) {
   return pathname.startsWith(`${href}/`);
 }
 
-export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
+export function MobileBottomNav({ links }: MobileBottomNavProps) {
   const pathname = usePathname();
 
-  const activeClass = theme === "dark"
-    ? "border-amber-300/60 bg-amber-300/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
-    : "border-amber-300/60 bg-amber-300/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]";
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return null;
+  }
 
-  const inactiveClass = theme === "dark"
-    ? "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white"
-    : "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white";
+  const mobileLinks = links.slice(0, 4);
 
-  return (
-    <nav className={`hidden items-center border p-1 text-sm md:flex ${theme === "dark" ? "border-slate-400/60 bg-slate-800/45" : "border-slate-400/60 bg-slate-800/45"}`} style={{ borderRadius: "0.9rem", clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}>
-      {links.map((link) => {
-        const isActive = isActivePath(pathname, link.href);
-
-        return (
-          <Link
-            key={link.href}
-            href={link.href}
-            prefetch
-            className={`flex items-center gap-2 border px-4 py-2 font-semibold tracking-wide transition ${isActive ? activeClass : inactiveClass}`}
-            style={{ borderRadius: "0.75rem", clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}
-            aria-current={isActive ? "page" : undefined}
-          >
-            <NavIcon href={link.href} />
-            {link.label}
-          </Link>
-        );
-      })}
-    </nav>
+  return createPortal(
+    <nav
+      className="fixed inset-x-3 z-[90] md:hidden"
+      style={{ bottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
+      aria-label="Bottom tab navigation"
+    >
+      <div className="relative overflow-hidden rounded-[1.85rem] border border-cyan-200/20 bg-slate-900/62 p-2 shadow-[0_18px_45px_rgba(2,6,23,0.58)] backdrop-blur-2xl">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(148,163,184,0.22),rgba(15,23,42,0.08))]" />
+        <div className="relative grid grid-cols-4 gap-1">
+          {mobileLinks.map((link) => {
+            const isActive = isActivePath(pathname, link.href);
+            return (
+              <Link
+                key={`mobile-${link.href}`}
+                href={link.href}
+                prefetch
+                className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-semibold transition ${isActive
+                  ? "bg-slate-700/65 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.26),0_8px_20px_rgba(2,6,23,0.35)]"
+                  : "text-slate-300 hover:bg-white/10 hover:text-slate-100"
+                  }`}
+                aria-current={isActive ? "page" : undefined}
+              >
+                <span className="text-base">
+                  <NavIcon href={link.href} />
+                </span>
+                <span className="line-clamp-1 leading-none">{link.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </nav>,
+    document.body,
   );
 }

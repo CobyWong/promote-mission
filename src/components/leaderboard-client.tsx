@@ -76,13 +76,13 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
       )}
 
       {/* Tab bar */}
-      <div className="flex gap-2 rounded-2xl border border-white/10 bg-white/5 p-1 w-fit">
+      <div className="flex w-full gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/5 p-1 sm:w-fit">
         {tabs.map((tab) => (
           <button
             key={tab}
             type="button"
             onClick={() => setActiveTab(tab)}
-            className={`rounded-xl px-5 py-2 text-sm font-semibold transition ${
+            className={`min-w-[7.5rem] flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition sm:min-w-0 sm:flex-none sm:px-5 ${
               activeTab === tab
                 ? "bg-cyan-400 text-slate-950"
                 : "text-slate-300 hover:text-white"
@@ -95,7 +95,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
 
       {/* Top-3 podium */}
       {sorted.length >= 3 && (
-        <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
           {([1, 0, 2] as const).map((idx) => {
             const leader = sorted[idx];
             const podiumHeights = ["h-28", "h-36", "h-24"];
@@ -139,24 +139,24 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
             return (
               <div
                 key={leader.name}
-                className={`flex items-center justify-between rounded-2xl border px-5 py-4 transition ${
+                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 sm:px-5 transition ${
                   isTop3
                     ? "border-cyan-400/25 bg-cyan-400/8"
                     : "border-white/8 bg-white/5 hover:bg-white/8"
                 }`}
               >
-                <div className="flex items-center gap-4">
+                <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                   <span className="w-8 text-center text-lg">
                     {isTop3 ? MEDALS[index] : `#${index + 1}`}
                   </span>
-                  <div>
-                    <p className="font-semibold text-white">{leader.name}</p>
-                    <p className={`text-xs mt-0.5 ${PLATFORM_COLORS[leader.platform] ?? "text-slate-400"}`}>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-white">{leader.name}</p>
+                    <p className={`mt-0.5 truncate text-xs ${PLATFORM_COLORS[leader.platform] ?? "text-slate-400"}`}>
                       {leader.platform} · {leader.followers}
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="shrink-0 text-right">
                   {activeTab === "coins" && (
                     <>
                       <p className="font-bold text-cyan-300 text-lg">{leader.totalLikes.toLocaleString()}</p>

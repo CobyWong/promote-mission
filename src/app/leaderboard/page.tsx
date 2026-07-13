@@ -47,19 +47,19 @@ export default async function LeaderboardPage() {
       </div>
 
       {/* Monthly reward banner */}
-      <div className={`relative mt-10 overflow-hidden rounded-3xl border px-8 py-6 ${bannerClass}`}>
+      <div className={`relative mt-10 overflow-hidden rounded-3xl border px-4 py-5 sm:px-8 sm:py-6 ${bannerClass}`}>
         {/* Decorative glow blobs */}
         <div className={`pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full blur-3xl ${glowTopClass}`} />
         <div className={`pointer-events-none absolute -bottom-10 left-1/3 h-36 w-36 rounded-full blur-2xl ${glowBottomClass}`} />
 
-        <div className="relative flex flex-wrap items-center gap-6">
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
           {/* Icon */}
-          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-md shadow-amber-500/30 ${iconClass}`}>
+          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-md shadow-amber-500/30 sm:h-14 sm:w-14 ${iconClass}`}>
             🏆
           </div>
 
           {/* Text */}
-          <div className="flex-1 min-w-0">
+          <div className="w-full min-w-0 sm:flex-1">
             <p className={`text-xs font-semibold uppercase tracking-widest ${titleTagClass}`}>
               {locale === "en" ? "Monthly Exclusive" : "月度專屬獎勵"}
             </p>
@@ -84,7 +84,7 @@ export default async function LeaderboardPage() {
           </div>
 
           {/* Reward pill */}
-          <div className={`shrink-0 rounded-2xl border px-7 py-5 text-center backdrop-blur-sm ${rewardPillClass}`}>
+          <div className={`w-full rounded-2xl border px-5 py-4 text-center backdrop-blur-sm sm:w-auto sm:shrink-0 sm:px-7 sm:py-5 ${rewardPillClass}`}>
             <Image
               src="/watch.jpeg"
               alt={locale === "en" ? "Luxury watch reward" : "名錶獎勵"}

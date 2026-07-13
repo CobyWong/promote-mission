@@ -9,6 +9,7 @@ import { getCurrentViewer } from "@/lib/backend";
 import { HeaderMainNav } from "@/components/header-main-nav";
 import { HeaderNotificationCenter } from "@/components/header-notification-center";
 import { HeaderSideMenu } from "@/components/header-side-menu";
+import { MobileBottomNav } from "@/components/mobile-bottom-nav";
 
 const linkLabels: Record<Locale, Record<string, string>> = {
   "zh-HK": {
@@ -113,6 +114,7 @@ export async function Header() {
                 isAdmin={isAdmin}
               />
             </div>
+            <MobileBottomNav links={navLinks} />
           </div>
         ) : (
           <div className="ml-auto flex items-center gap-3">
