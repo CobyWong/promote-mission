@@ -32,7 +32,7 @@ body {
     radial-gradient(circle at 78% 12%, rgba(150, 202, 230, 0.16), transparent 40%),
     linear-gradient(180deg, #27384a 0%, #223242 45%, #1a2531 100%);
   color: var(--hud-text);
-  font-family: "Rajdhani", "Orbitron", "Noto Sans TC", "PingFang TC", sans-serif;
+  font-family: var(--font-sora), var(--font-noto-tc), "PingFang TC", "Heiti TC", sans-serif;
   line-height: 1.5;
 }
 
