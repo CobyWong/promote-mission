@@ -101,11 +101,6 @@ export default async function MissionsPage() {
         })}
       </div>
 
-      <div className="mt-10 rounded-2xl border border-slate-500/40 bg-slate-900/30 px-5 py-4 text-sm text-slate-300">
-        {locale === "en"
-          ? "Choose a mission zone above to open a dedicated page for that level."
-          : "請先選擇上方任務分區，系統將跳轉至對應等級頁面。"}
-      </div>
     </section>
   );
 }
