@@ -88,7 +88,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       tabClaim: "Top picks",
       quickSearch: "Daily points",
       close: "Close",
-      viewDetails: "Tap to view details",
       detailTitle: "Reward details",
       priceLabel: "Price",
       etaLabel: "Delivery ETA",
@@ -129,7 +128,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       tabClaim: "精選獎賞",
       quickSearch: "每日拎積分",
       close: "關閉",
-      viewDetails: "點擊查看詳情",
       detailTitle: "獎賞詳情",
       priceLabel: "售價",
       etaLabel: "預計到帳",
@@ -422,14 +420,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                   </div>
                 </div>
 
-                <div className="relative mt-4 flex flex-wrap items-center gap-2">
-                  {reward.badge ? (
-                    <span className="tactical-chip">
-                      {reward.badge}
-                    </span>
-                  ) : null}
-                  <p className="text-xs text-slate-300">{t.viewDetails}</p>
-                </div>
               </div>
 
               <div className="border-t border-slate-600/60 bg-slate-900/35 px-3 py-3 sm:px-5 sm:py-4">
