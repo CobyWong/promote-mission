@@ -47,6 +47,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState<RewardSortKey>("recommended");
   const [filterBy, setFilterBy] = useState<RewardFilterKey>("all");
@@ -86,6 +87,12 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       tabRedeem: "Level unlocked",
       tabClaim: "Top picks",
       quickSearch: "Daily points",
+      close: "Close",
+      viewDetails: "Tap to view details",
+      detailTitle: "Reward details",
+      priceLabel: "Price",
+      etaLabel: "Delivery ETA",
+      stockLabel: "Stock",
     }
     : {
       walletTitle: "我的錢包",
@@ -121,6 +128,12 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       tabRedeem: "等級解鎖",
       tabClaim: "精選獎賞",
       quickSearch: "每日拎積分",
+      close: "關閉",
+      viewDetails: "點擊查看詳情",
+      detailTitle: "獎賞詳情",
+      priceLabel: "售價",
+      etaLabel: "預計到帳",
+      stockLabel: "庫存",
     };
 
   const statusLabel = (status: string) => {
@@ -183,7 +196,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
   async function handleRedeem(reward: Reward) {
     if (!isAuthenticated) {
       router.push("/login?next=/rewards");
-      return;
+      return false;
     }
 
     setPendingSlug(reward.slug);
@@ -216,7 +229,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
     if (!response) {
       setError(locale === "en" ? "Redemption request could not be sent." : "未能送出兌換請求。請稍後再試。");
       setPendingSlug(null);
-      return;
+      return false;
     }
 
     const result = (await response.json()) as { error?: string; redemptionId?: string };
@@ -234,12 +247,13 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
         setError(result.error ?? (locale === "en" ? "Redemption failed. Please try again." : "兌換失敗，請稍後再試。"));
       }
       setPendingSlug(null);
-      return;
+      return false;
     }
 
     setSuccess(locale === "en" ? `Redemption submitted (${result.redemptionId ?? reward.slug})` : `已提交兌換申請 (${result.redemptionId ?? reward.slug})`);
     setPendingSlug(null);
     router.refresh();
+    return true;
   }
 
   return (
@@ -385,25 +399,17 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {filteredRewards.map((reward) => {
-          const minLevel = reward.minLevel ?? 1;
-          const hasStock = reward.stock === null || reward.stock === undefined || reward.stock > 0;
-          const hasEnoughCoins = balance >= reward.cost;
-          const hasRequiredLevel = userLevel >= minLevel;
-          const canRedeem = hasEnoughCoins && hasStock && hasRequiredLevel;
-
           const rewardInitial = reward.name.trim().charAt(0).toUpperCase() || "R";
           const etaLabel = reward.eta ?? t.etaFallback;
           const stockLabel = reward.stock ?? "∞";
-          const stateTag = !hasStock
-            ? t.soldOut
-            : !hasRequiredLevel
-              ? `${t.lockedLevel} Lv.${minLevel}`
-              : !hasEnoughCoins
-                ? t.insufficient
-                : t.redeemNow;
 
           return (
-            <article key={reward.slug} className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45">
+            <button
+              key={reward.slug}
+              type="button"
+              onClick={() => setSelectedReward(reward)}
+              className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 text-left shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45"
+            >
               <div className="relative overflow-hidden px-3 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-5">
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/16 via-transparent to-slate-900/10" />
                 <div className="relative flex flex-col gap-2">
@@ -416,9 +422,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                       <p className="mt-1 line-clamp-2 text-xs text-slate-300 sm:text-sm">{reward.description}</p>
                     </div>
                   </div>
-                  <span className="inline-flex w-fit shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2 py-0.5 text-[11px] font-semibold text-slate-200">
-                    {stateTag}
-                  </span>
                 </div>
 
                 <div className="relative mt-4 flex flex-wrap items-center gap-2">
@@ -427,57 +430,105 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                       {reward.badge}
                     </span>
                   ) : null}
-                  <span className="inline-flex rounded-full border border-cyan-300/35 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-200">
-                    {t.unlockLevel}: Lv.{minLevel}
-                  </span>
+                  <p className="text-xs text-slate-300">{t.viewDetails}</p>
                 </div>
               </div>
 
               <div className="border-t border-slate-600/60 bg-slate-900/35 px-3 py-3 sm:px-5 sm:py-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">{locale === "en" ? "Price" : "售價"}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{t.priceLabel}</p>
                     <p className="mt-1 text-2xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">{t.stock}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-400">{t.stockLabel}</p>
                     <p className="mt-1 text-2xl font-black leading-none text-slate-100 sm:text-4xl">{stockLabel}</p>
                     <p className="mt-1 text-xs text-slate-400">{etaLabel}</p>
                   </div>
                 </div>
               </div>
-
-              <div className="px-3 pb-3 pt-2 sm:px-5 sm:pb-5 sm:pt-3">
-                <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
-                  <span>{etaLabel}</span>
-                  <span>{t.stock} {stockLabel}</span>
-                </div>
-                <button
-                  type="button"
-                  disabled={!canRedeem || pendingSlug === reward.slug}
-                  onClick={() => handleRedeem(reward)}
-                  className="tactical-btn-primary h-11 w-full rounded-2xl px-3 text-sm sm:h-12 sm:px-5 sm:text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
-                >
-                  {pendingSlug === reward.slug
-                    ? t.redeeming
-                    : canRedeem
-                      ? t.redeemNow
-                      : isAuthenticated
-                        ? !hasRequiredLevel
-                          ? locale === "en" ? `Locked until Lv.${minLevel}` : `Lv.${minLevel} 起可兌換`
-                          : !hasStock
-                          ? t.soldOut
-                          : !hasEnoughCoins
-                            ? t.insufficient
-                            : t.unavailable
-                        : t.loginToRedeem}
-                </button>
-              </div>
-            </article>
+            </button>
           );
         })}
       </div>
+
+      {selectedReward ? (() => {
+        const minLevel = selectedReward.minLevel ?? 1;
+        const hasStock = selectedReward.stock === null || selectedReward.stock === undefined || selectedReward.stock > 0;
+        const hasEnoughCoins = balance >= selectedReward.cost;
+        const hasRequiredLevel = userLevel >= minLevel;
+        const canRedeem = hasEnoughCoins && hasStock && hasRequiredLevel;
+        const etaLabel = selectedReward.eta ?? t.etaFallback;
+        const stockLabel = selectedReward.stock ?? "∞";
+        const actionLabel = pendingSlug === selectedReward.slug
+          ? t.redeeming
+          : canRedeem
+            ? t.redeemNow
+            : isAuthenticated
+              ? !hasRequiredLevel
+                ? locale === "en" ? `Locked until Lv.${minLevel}` : `Lv.${minLevel} 起可兌換`
+                : !hasStock
+                ? t.soldOut
+                : !hasEnoughCoins
+                  ? t.insufficient
+                  : t.unavailable
+              : t.loginToRedeem;
+
+        return (
+          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/70 p-4 sm:items-center" role="dialog" aria-modal="true">
+            <div className="w-full max-w-lg rounded-3xl border border-slate-500/70 bg-slate-900/95 p-5 shadow-2xl">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.detailTitle}</p>
+                  <h3 className="mt-1 text-2xl font-semibold text-slate-100">{selectedReward.name}</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedReward(null)}
+                  className="rounded-full border border-white/20 px-3 py-1 text-sm text-slate-200"
+                >
+                  {t.close}
+                </button>
+              </div>
+
+              <p className="mt-3 text-sm text-slate-300">{selectedReward.description}</p>
+
+              <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">{t.priceLabel}</p>
+                  <p className="mt-1 text-xl font-black text-amber-200">{selectedReward.cost.toLocaleString()}</p>
+                  <p className="text-xs text-slate-400">{t.coins}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">{t.stockLabel}</p>
+                  <p className="mt-1 text-xl font-black text-slate-100">{stockLabel}</p>
+                </div>
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                  <p className="text-xs text-slate-400">{t.unlockLevel}</p>
+                  <p className="mt-1 text-xl font-black text-cyan-100">Lv.{minLevel}</p>
+                </div>
+              </div>
+
+              <p className="mt-3 text-xs text-slate-400">{t.etaLabel}: {etaLabel}</p>
+
+              <button
+                type="button"
+                disabled={!canRedeem || pendingSlug === selectedReward.slug}
+                onClick={async () => {
+                  const ok = await handleRedeem(selectedReward);
+                  if (ok) {
+                    setSelectedReward(null);
+                  }
+                }}
+                className="tactical-btn-primary mt-5 h-11 w-full rounded-2xl px-4 text-sm sm:h-12 sm:text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
+              >
+                {actionLabel}
+              </button>
+            </div>
+          </div>
+        );
+      })() : null}
 
       {filteredRewards.length === 0 ? (
         <div className="tactical-card p-10 text-center">
