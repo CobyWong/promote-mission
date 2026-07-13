@@ -51,9 +51,12 @@ function toggleChip(list: string[], value: string, maxSelection = 99) {
 export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const isRegister = mode === "register";
   const [loading, setLoading] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [forgotMessage, setForgotMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
   const niche = "";
@@ -108,6 +111,12 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       needInstagram: "Please provide your Instagram username.",
       needAudience: "Please select gender, age group, and follower band.",
       needTerms: "Please agree to the service terms.",
+      forgotPassword: "Forgot password?",
+      forgotEmailRequired: "Please enter your email first.",
+      forgotSent: "Password reset email sent. Please check your inbox.",
+      forgotFailed: "Unable to send reset email. Please try again.",
+      showPassword: "Show",
+      hidePassword: "Hide",
     }
     : {
       networkError: "無法連線到伺服器，請再試一次。",
@@ -145,6 +154,12 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       needInstagram: "請填寫 Instagram 用戶名稱。",
       needAudience: "請選擇性別、年齡組別及追蹤數區間。",
       needTerms: "請先同意服務條款及私隱政策。",
+      forgotPassword: "忘記密碼？",
+      forgotEmailRequired: "請先輸入電郵地址。",
+      forgotSent: "已發送重設密碼電郵，請檢查收件箱。",
+      forgotFailed: "無法發送重設密碼電郵，請稍後再試。",
+      showPassword: "顯示",
+      hidePassword: "隱藏",
     };
 
   const registerStepLabels = [t.stepBasic, t.stepInstagram, t.stepCoverage, t.stepAudience, t.stepFinal];
@@ -208,6 +223,40 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   function goBackRegisterStep() {
     setError(null);
     setRegisterStep((step) => Math.max(step - 1, 1));
+  }
+
+  async function handleForgotPassword() {
+    setError(null);
+    setForgotMessage(null);
+
+    if (!email.trim()) {
+      setError(t.forgotEmailRequired);
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) {
+      setError(locale === "en" ? "Supabase is not configured. Please set .env.local first." : "尚未完成 Supabase 環境設定，請先設定 .env.local。");
+      return;
+    }
+
+    setForgotLoading(true);
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+      });
+
+      if (resetError) {
+        setError(resetError.message || t.forgotFailed);
+        return;
+      }
+
+      setForgotMessage(t.forgotSent);
+    } catch {
+      setError(t.forgotFailed);
+    } finally {
+      setForgotLoading(false);
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -640,10 +689,33 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                 <label className="block text-sm text-slate-700">
                   Password
-                  <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={lightInputClassName} placeholder="********" minLength={8} />
+                  <div className="mt-2 flex items-center gap-2">
+                    <input required type={showLoginPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder="********" minLength={8} />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPassword((current) => !current)}
+                      className="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+                    >
+                      {showLoginPassword ? t.hidePassword : t.showPassword}
+                    </button>
+                  </div>
                 </label>
 
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={forgotLoading || loading}
+                    className="text-sm font-semibold text-blue-600 transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {forgotLoading
+                      ? (locale === "en" ? "Sending..." : "發送中...")
+                      : t.forgotPassword}
+                  </button>
+                </div>
+
                 {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+                {forgotMessage ? <p className="text-sm text-emerald-600">{forgotMessage}</p> : null}
 
                 <button disabled={loading} className="w-full rounded-full bg-blue-600 px-5 py-3 text-base font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60">
                   {loading ? (locale === "en" ? "Processing..." : "處理中...") : (locale === "en" ? "Sign in" : "登入平台")}
