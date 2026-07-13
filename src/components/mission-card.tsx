@@ -18,15 +18,6 @@ const zhProductMap: Record<string, string> = {
   "MiniBeam Projector": "MiniBeam 迷你投影機",
 };
 
-const zhCategoryMap: Record<string, string> = {
-  Lifestyle: "生活風格",
-  Beauty: "美妝",
-  Fitness: "健身",
-  Tech: "科技",
-  Entertainment: "娛樂",
-  Music: "音樂",
-};
-
 const zhDifficultyMap: Record<string, string> = {
   Easy: "簡單",
   Medium: "中等",
@@ -43,7 +34,6 @@ type MissionCardProps = {
 export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactMobile = false }: MissionCardProps) {
   const brandLabel = locale === "en" ? mission.brand : (zhBrandMap[mission.brand] ?? mission.brand);
   const productLabel = locale === "en" ? mission.product : (zhProductMap[mission.product] ?? mission.product);
-  const categoryLabel = locale === "en" ? mission.category : (zhCategoryMap[mission.category] ?? mission.category);
   const difficultyLabel = locale === "en" ? mission.difficulty : (zhDifficultyMap[mission.difficulty] ?? mission.difficulty);
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
   const isLocked = userLevel < requiredLevel;
@@ -71,12 +61,6 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
               ? (locale === "en" ? `Lv.${requiredLevel} required` : `需 Lv.${requiredLevel}`)
               : (locale === "en" ? "Unlocked" : "已解鎖")}
           </span>
-        </div>
-
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-          <span className="tactical-chip">{categoryLabel}</span>
-          <span className="rounded-full border border-slate-500/70 bg-slate-800/70 px-2.5 py-1 font-semibold text-slate-300">UGC</span>
-          <span className="rounded-full border border-slate-500/70 bg-slate-800/70 px-2.5 py-1 font-semibold text-slate-300">{difficultyLabel}</span>
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2.5">
@@ -158,10 +142,6 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
           <h3 className="mt-1.5 line-clamp-2 text-xl font-bold leading-tight text-slate-100 sm:mt-2 sm:text-2xl">{mission.title}</h3>
         </div>
 
-        <div className="flex flex-wrap gap-2">
-          <span className="tactical-chip">{categoryLabel}</span>
-          <span className="rounded-full border border-slate-500/70 bg-slate-800/70 px-3 py-1 text-xs font-semibold text-slate-300 sm:text-sm">UGC</span>
-        </div>
       </div>
 
       <div className="border-y border-slate-700/80 px-4 py-3 sm:px-5 sm:py-4">
