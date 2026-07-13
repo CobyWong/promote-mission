@@ -24,16 +24,20 @@ jobs:
           set -euo pipefail
 
           if [[ -z "${CLEANUP_ENDPOINT_URL}" ]]; then
-            echo "CLEANUP_ENDPOINT_URL secret is required"
-            exit 1
+            echo "::warning::Skipping idempotency cleanup: CLEANUP_ENDPOINT_URL secret is missing."
+            exit 0
           fi
 
           if [[ -z "${CLEANUP_CRON_TOKEN}" ]]; then
-            echo "CLEANUP_CRON_TOKEN secret is required"
-            exit 1
+            echo "::warning::Skipping idempotency cleanup: CLEANUP_CRON_TOKEN secret is missing."
+            exit 0
           fi
 
           curl --fail-with-body --show-error --silent \
+            --retry 2 \
+            --retry-all-errors \
+            --connect-timeout 8 \
+            --max-time 25 \
             -X POST "${CLEANUP_ENDPOINT_URL}?retentionDays=${RETENTION_DAYS}" \
             -H "x-cron-token: ${CLEANUP_CRON_TOKEN}" \
             -H "content-type: application/json"
