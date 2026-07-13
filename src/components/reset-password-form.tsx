@@ -17,6 +17,8 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
   const supabase = getSupabaseBrowserClient();
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -37,6 +39,8 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
         invalidLink: "Recovery link is invalid or expired. Please request a new password reset email.",
         noSupabase: "Supabase is not configured.",
         success: "Password updated successfully. You can now log in with the new password.",
+        showPassword: "Show",
+        hidePassword: "Hide",
       };
     }
 
@@ -53,6 +57,8 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
       invalidLink: "重設連結無效或已過期，請重新發送重設密碼電郵。",
       noSupabase: "Supabase 尚未設定。",
       success: "密碼已成功更新，請使用新密碼重新登入。",
+      showPassword: "顯示",
+      hidePassword: "隱藏",
     };
   }, [locale]);
 
@@ -168,28 +174,46 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
             <label className="block text-sm text-slate-200">
               {t.newPassword}
-              <input
-                type="password"
-                minLength={8}
-                required
-                value={newPassword}
-                onChange={(event) => setNewPassword(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/60"
-                placeholder="********"
-              />
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  minLength={8}
+                  required
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/60"
+                  placeholder="********"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword((current) => !current)}
+                  className="rounded-xl border border-slate-500/70 bg-slate-900/60 px-3 py-3 text-xs font-semibold text-slate-200 transition hover:border-cyan-300/60"
+                >
+                  {showNewPassword ? t.hidePassword : t.showPassword}
+                </button>
+              </div>
             </label>
 
             <label className="block text-sm text-slate-200">
               {t.confirmPassword}
-              <input
-                type="password"
-                minLength={8}
-                required
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                className="mt-2 w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/60"
-                placeholder="********"
-              />
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  minLength={8}
+                  required
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 text-slate-100 outline-none transition focus:border-cyan-300/60"
+                  placeholder="********"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((current) => !current)}
+                  className="rounded-xl border border-slate-500/70 bg-slate-900/60 px-3 py-3 text-xs font-semibold text-slate-200 transition hover:border-cyan-300/60"
+                >
+                  {showConfirmPassword ? t.hidePassword : t.showPassword}
+                </button>
+              </div>
             </label>
 
             <button
