@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { SignOutButton } from "@/components/sign-out-button";
 import { getDashboardData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getSupportEmail, getSupportWhatsappUrl } from "@/lib/supabase/env";
@@ -33,7 +35,13 @@ export default async function DashboardPage() {
       financeSection: "Earnings & Wallet",
       missionSection: "Missions",
       referralSection: "Referral",
+      settingsSection: "Settings",
       supportSection: "Support",
+      appLanguage: "App language",
+      appLanguageHint: "Switch language instantly across the app.",
+      privacy: "Privacy policy",
+      terms: "Terms of service",
+      signOut: "Sign out",
       profile: "Profile details",
       level: "Level progress",
       earnings: "Earnings summary",
@@ -59,7 +67,13 @@ export default async function DashboardPage() {
       financeSection: "收益與錢包",
       missionSection: "任務",
       referralSection: "推薦",
+      settingsSection: "設定",
       supportSection: "支援",
+      appLanguage: "語言設定",
+      appLanguageHint: "即時切換全站語言。",
+      privacy: "私隱政策",
+      terms: "服務條款",
+      signOut: "登出",
       profile: "個人資料",
       level: "等級進度",
       earnings: "收益總覽",
@@ -185,6 +199,31 @@ export default async function DashboardPage() {
         <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.referralSection}</p>
         <div className="mt-4 divide-y divide-white/10">
           <MenuRow href="/dashboard/referrals" label={t.referrals} value={dashboard.referralStats.referralCode} />
+        </div>
+      </div>
+
+      <div id="settings-center" className="tactical-card mt-8 p-5 sm:p-8">
+        <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.settingsSection}</p>
+
+        <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <p className="text-sm font-semibold text-slate-100">{t.appLanguage}</p>
+          <p className="mt-1 text-xs text-slate-400">{t.appLanguageHint}</p>
+          <div className="mt-3">
+            <LanguageSwitcher locale={locale} />
+          </div>
+        </div>
+
+        <div className="mt-4 divide-y divide-white/10">
+          <MenuRow href="/dashboard/support" label={t.support} />
+          <MenuRow href="/privacy" label={t.privacy} />
+          <MenuRow href="/terms" label={t.terms} />
+        </div>
+
+        <div className="mt-5">
+          <SignOutButton
+            label={t.signOut}
+            className="w-full rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-sm font-semibold text-slate-100 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-70"
+          />
         </div>
       </div>
 
