@@ -35,10 +35,7 @@ export default async function DashboardPage() {
       referralSection: "Referral",
       settingsSection: "Settings",
       supportSection: "Support",
-      openSettings: "Open settings",
-      settingsHint: "Language, sign-out, and app preferences",
-      privacy: "Privacy policy",
-      terms: "Terms of service",
+      setting: "Setting",
       profile: "Profile details",
       level: "Level progress",
       earnings: "Earnings summary",
@@ -66,10 +63,7 @@ export default async function DashboardPage() {
       referralSection: "推薦",
       settingsSection: "設定",
       supportSection: "支援",
-      openSettings: "前往設定",
-      settingsHint: "語言、登出與常用偏好設定",
-      privacy: "私隱政策",
-      terms: "服務條款",
+      setting: "設定",
       profile: "個人資料",
       level: "等級進度",
       earnings: "收益總覽",
@@ -201,10 +195,7 @@ export default async function DashboardPage() {
       <div id="settings-center" className="tactical-card mt-8 p-5 sm:p-8">
         <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.settingsSection}</p>
         <div className="mt-4 divide-y divide-white/10">
-          <MenuRow href="/dashboard/settings" label={t.openSettings} value={t.settingsHint} />
-          <MenuRow href="/dashboard/support" label={t.support} />
-          <MenuRow href="/privacy" label={t.privacy} />
-          <MenuRow href="/terms" label={t.terms} />
+          <MenuRow href="/dashboard/settings" label={t.setting} />
         </div>
       </div>
 
