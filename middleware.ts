@@ -10,9 +10,10 @@ export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const isAdminLogin = pathname === "/admin/login";
   const isAdminAuthApi = pathname === "/api/admin/login" || pathname === "/api/admin/logout";
+  const isCronProtectedCleanupApi = pathname === "/api/admin/idempotency/cleanup" || pathname === "/api/admin/mobile-uploads/cleanup";
   const isProtectedAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/brand") || pathname.startsWith("/api/admin") || pathname.startsWith("/api/brand");
 
-  if (!isProtectedAdminRoute || isAdminLogin || isAdminAuthApi) {
+  if (!isProtectedAdminRoute || isAdminLogin || isAdminAuthApi || isCronProtectedCleanupApi) {
     return NextResponse.next({ request });
   }
 
