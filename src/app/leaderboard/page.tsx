@@ -18,8 +18,6 @@ export default async function LeaderboardPage() {
   const glowTopClass = "bg-cyan-300/10";
   const glowBottomClass = "bg-amber-300/10";
 
-  const iconClass = "bg-gradient-to-br from-amber-300 via-amber-400 to-orange-400 text-slate-950";
-
   const titleTagClass = "text-amber-200/90";
   const headingClass = "text-white";
   const descClass = "text-slate-200/90";
@@ -53,11 +51,6 @@ export default async function LeaderboardPage() {
         <div className={`pointer-events-none absolute -bottom-10 left-1/3 h-36 w-36 rounded-full blur-2xl ${glowBottomClass}`} />
 
         <div className="relative flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
-          {/* Icon */}
-          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-md shadow-amber-500/30 sm:h-14 sm:w-14 ${iconClass}`}>
-            🏆
-          </div>
-
           {/* Text */}
           <div className="w-full min-w-0 sm:flex-1">
             <p className={`text-xs font-semibold uppercase tracking-widest ${titleTagClass}`}>
