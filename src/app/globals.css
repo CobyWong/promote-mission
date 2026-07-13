@@ -80,15 +80,15 @@ a {
 .tactical-card,
 .glass-panel {
   border: 1px solid var(--hud-border);
-  border-radius: 1rem;
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  border-radius: 0;
+  clip-path: none;
   background: linear-gradient(180deg, rgba(47, 66, 84, 0.82) 0%, rgba(36, 52, 68, 0.82) 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 12px 24px rgba(8, 13, 18, 0.2);
 }
 
 .tactical-subcard {
   border: 1px solid rgba(119, 143, 161, 0.62);
-  border-radius: 0.9rem;
+  border-radius: 0;
   background: rgba(35, 52, 68, 0.55);
 }
 
@@ -267,7 +267,7 @@ a {
 
   .tactical-card,
   .glass-panel {
-    border-radius: 1.1rem;
+    border-radius: 0;
     clip-path: none;
     border-color: rgba(148, 163, 184, 0.34);
     background: linear-gradient(180deg, rgba(38, 57, 78, 0.82) 0%, rgba(33, 51, 71, 0.8) 100%);
@@ -275,7 +275,7 @@ a {
   }
 
   .tactical-subcard {
-    border-radius: 1rem;
+    border-radius: 0;
     border-color: rgba(148, 163, 184, 0.32);
     background: rgba(28, 46, 66, 0.72);
   }
