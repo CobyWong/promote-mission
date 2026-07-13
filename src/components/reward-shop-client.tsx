@@ -193,7 +193,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {filteredRewards.map((reward) => {
           const rewardInitial = reward.name.trim().charAt(0).toUpperCase() || "R";
-          const etaLabel = reward.eta ?? t.etaFallback;
 
           return (
             <button
@@ -225,7 +224,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
                     <p className="mt-1 text-2xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
-                  <p className="mt-2 text-xs text-slate-400">{t.etaLabel}: {etaLabel}</p>
                 </div>
               </div>
             </button>
@@ -239,7 +237,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
         const hasEnoughCoins = balance >= selectedReward.cost;
         const hasRequiredLevel = userLevel >= minLevel;
         const canRedeem = hasEnoughCoins && hasStock && hasRequiredLevel;
-        const etaLabel = selectedReward.eta ?? t.etaFallback;
         const actionLabel = pendingSlug === selectedReward.slug
           ? t.redeeming
           : canRedeem
@@ -284,8 +281,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
                   <p className="mt-1 text-xl font-black text-cyan-100">Lv.{minLevel}</p>
                 </div>
               </div>
-
-              <p className="mt-3 text-xs text-slate-400">{t.etaLabel}: {etaLabel}</p>
 
               <button
                 type="button"
