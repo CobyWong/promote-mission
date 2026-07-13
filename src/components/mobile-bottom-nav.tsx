@@ -81,8 +81,8 @@ export function MobileBottomNav({ links }: MobileBottomNavProps) {
       style={{ bottom: "calc(env(safe-area-inset-bottom) + 0.5rem)" }}
       aria-label="Bottom tab navigation"
     >
-      <div className="relative overflow-hidden rounded-[1.8rem] border border-slate-300/70 bg-white/90 p-2 shadow-[0_16px_28px_rgba(76,91,120,0.26)] backdrop-blur-xl">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(246,249,255,0.82))]" />
+      <div className="relative overflow-hidden rounded-[1.8rem] border border-slate-300/20 bg-slate-950/70 p-2 shadow-[0_16px_28px_rgba(8,15,28,0.5)] backdrop-blur-xl">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(148,163,184,0.2),rgba(15,23,42,0.1))]" />
         <div className="relative grid grid-cols-4 gap-1.5">
           {mobileLinks.map((link) => {
             const isActive = isActivePath(pathname, link.href);
@@ -92,8 +92,8 @@ export function MobileBottomNav({ links }: MobileBottomNavProps) {
                 href={link.href}
                 prefetch
                 className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-1.5 py-2 text-[11px] font-semibold transition ${isActive
-                  ? "-translate-y-1 bg-gradient-to-b from-[#6D5DFD] to-[#4F46E5] text-white shadow-[0_10px_20px_rgba(79,70,229,0.35)]"
-                  : "text-slate-600 hover:bg-slate-100/70 hover:text-slate-800"
+                  ? "-translate-y-1 bg-slate-700/70 text-cyan-100 shadow-[0_10px_20px_rgba(5,10,20,0.35)]"
+                  : "text-slate-300 hover:bg-white/10 hover:text-slate-100"
                   }`}
                 aria-current={isActive ? "page" : undefined}
               >
