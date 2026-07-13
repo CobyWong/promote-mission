@@ -226,7 +226,7 @@ export default async function DashboardPage() {
                 : <span>{t.expToNext}: {levelProgress.expToNextLevel.toLocaleString()} / {levelProgress.expForNextLevel.toLocaleString()}</span>}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4 text-xs text-slate-300">
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 pb-2 text-xs text-slate-300">
               <span>
                 {t.nextLevelReward}: {levelProgress.isMaxLevel ? t.levelMaxed : `+${nextLevelCoins.toLocaleString()} Coins`}
               </span>
@@ -235,15 +235,15 @@ export default async function DashboardPage() {
 
           <div className="px-1 sm:px-2">
             <div className="grid gap-0 sm:grid-cols-2">
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3 sm:border-r sm:pr-3">
+              <div className="flex items-center justify-between gap-3 py-3 sm:pr-3">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.ageGroup}</p>
                 <p className="text-base font-semibold text-slate-100">{dashboard.profile.ageGroup}</p>
               </div>
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3 sm:pl-3">
+              <div className="flex items-center justify-between gap-3 py-3 sm:pl-3">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.followersRange}</p>
                 <p className="text-base font-semibold text-slate-100">{dashboard.profile.followersRange}</p>
               </div>
-              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3 sm:border-r sm:pr-3 sm:border-b-0">
+              <div className="flex items-center justify-between gap-3 py-3 sm:pr-3">
                 <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.joinedAt}</p>
                 <p className="break-words text-base font-semibold text-slate-100">{dashboard.profile.joinedAt}</p>
               </div>
