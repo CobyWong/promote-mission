@@ -18,47 +18,32 @@ export function ReferralRewardsCard({
   totalRewardCoins,
 }: ReferralRewardsCardProps) {
   const [copied, setCopied] = useState(false);
-
-  const rewardTiers = [
-    { invited: 3, coinsPerBatch: 300 },
-    { invited: 10, coinsPerBatch: 500 },
-    { invited: 20, coinsPerBatch: 800 },
-  ];
-
-  const activeTier =
-    rewardTiers.findLast((tier) => invitedCount >= tier.invited) ?? rewardTiers[0];
-  const nextTier = rewardTiers.find((tier) => tier.invited > invitedCount) ?? null;
-  const progressTarget = nextTier?.invited ?? rewardTiers[rewardTiers.length - 1].invited;
+  const rewardPerReferral = 200;
+  const progressTarget = Math.max(invitedCount, 1);
   const progressPercent = Math.min(100, Math.round((invitedCount / progressTarget) * 100));
 
   const t = locale === "en"
     ? {
       title: "Invite creators, earn rewards",
-      subtitle: "Invite more friends to unlock higher referral reward tiers. More invited creators means more Coins per reward batch.",
+      subtitle: "Each successfully qualified referral gives you 200 Coins.",
       yourCode: "Your referral code",
       invited: "Invited",
-      batches: "Paid batches",
+      batches: "Rewarded referrals",
       reward: "Rewards earned",
-      details: "Reward batches",
       progress: "Invite progress",
-      currentTier: "Current tier",
-      nextTier: "Next tier",
-      unlocked: "Unlocked max tier",
+      rule: "Reward rule",
       copy: "Copy",
       copied: "Copied",
     }
     : {
       title: "邀請創作者，賺取獎勵",
-      subtitle: "邀請越多朋友，可解鎖更高推薦獎勵等級。推薦人數越高，每個獎勵批次可獲得更多金幣。",
+      subtitle: "每位成功達資格的推薦用戶，你可獲得 200 金幣。",
       yourCode: "你的推薦碼",
       invited: "已推薦",
-      batches: "已領取批次",
+      batches: "已派獎推薦",
       reward: "已賺取獎勵",
-      details: "獎勵批次",
       progress: "邀請進度",
-      currentTier: "目前等級",
-      nextTier: "下一級",
-      unlocked: "已解鎖最高等級",
+      rule: "獎勵規則",
       copy: "複製",
       copied: "已複製",
     };
@@ -139,18 +124,9 @@ export function ReferralRewardsCard({
           <div className="h-full rounded-full bg-amber-300 transition-all" style={{ width: `${progressPercent}%` }} />
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
-          <p>{t.currentTier}: <span className="font-semibold text-amber-200">{activeTier.invited}+ · {activeTier.coinsPerBatch} {locale === "en" ? "Coins/batch" : "金幣/批次"}</span></p>
-          <p>
-            {nextTier
-              ? `${t.nextTier}: ${nextTier.invited}+ · ${nextTier.coinsPerBatch} ${locale === "en" ? "Coins/batch" : "金幣/批次"}`
-              : t.unlocked}
-          </p>
+          <p>{t.rule}: <span className="font-semibold text-amber-200">{locale === "en" ? `${rewardPerReferral} Coins per successful referral` : `每位成功推薦 +${rewardPerReferral} 金幣`}</span></p>
         </div>
       </div>
-
-      <button type="button" className="tactical-link mt-5 inline-flex text-base sm:mt-6 sm:text-lg">
-        {t.details} &rarr;
-      </button>
     </section>
   );
 }

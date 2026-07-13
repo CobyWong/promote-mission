@@ -65,15 +65,7 @@ export type ReferralHistoryItem = {
   rewardedAt: string | null;
 };
 
-const referralRewardTiers = [
-  { invited: 3, coinsPerBatch: 300 },
-  { invited: 10, coinsPerBatch: 500 },
-  { invited: 20, coinsPerBatch: 800 },
-];
-
-function getCoinsPerReferralBatch(invitedCount: number) {
-  return referralRewardTiers.findLast((tier) => invitedCount >= tier.invited)?.coinsPerBatch ?? referralRewardTiers[0].coinsPerBatch;
-}
+const REFERRAL_REWARD_COINS_PER_USER = 200;
 
 function getFallbackReferralCode(userId: string) {
   const normalized = userId.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
@@ -319,7 +311,7 @@ async function getReferralStatsForUser(
   const invitedCount = referralRows.length;
   const paidBatches = referralRows.filter((item) => item.status === "Rewarded").length;
   const referralRewardRows = (referralRewardTransactions ?? []) as Array<Pick<TransactionRow, "amount">>;
-  const fallbackCoinsPerBatch = getCoinsPerReferralBatch(invitedCount);
+  const fallbackCoinsPerBatch = REFERRAL_REWARD_COINS_PER_USER;
   const totalRewardCoins = referralRewardRows.length > 0
     ? referralRewardRows.reduce((sum, item) => sum + Math.max(item.amount, 0), 0)
     : paidBatches * fallbackCoinsPerBatch;
