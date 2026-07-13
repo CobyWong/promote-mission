@@ -84,7 +84,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const portfolioUrl = "";
   const [phoneRegion, setPhoneRegion] = useState("HK (+852)");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [bio, setBio] = useState("");
+  const bio = "";
   const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
@@ -112,7 +112,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       ofTotal: "of 5",
       name: "Creator name",
       phone: "Phone",
-      bio: "Bio",
       instagram: "Instagram username",
       instagramHint: "Paste @handle or profile URL. We will auto-extract your username.",
       niches: "Content niches",
@@ -155,7 +154,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       ofTotal: "步，共 5 步",
       name: "創作者名稱",
       phone: "電話號碼",
-      bio: "個人簡介",
       instagram: "Instagram 用戶名稱",
       instagramHint: "可貼上 @帳號或個人檔案 URL，系統將自動擷取帳號名稱。",
       niches: "內容範疇",
@@ -508,10 +506,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                         </div>
                       </div>
 
-                      <label className="block text-base font-medium text-slate-900">
-                        {t.bio}
-                        <textarea value={bio} onChange={(event) => setBio(event.target.value)} className="mt-2 min-h-36 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder={locale === "en" ? "Tell brands about your style and audience..." : "請介紹你的內容風格、受眾特徵及 Reels 特色。"} />
-                      </label>
                     </>
                   ) : null}
 
