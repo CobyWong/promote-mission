@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
+import { RecoveryHashRedirector } from "@/components/recovery-hash-redirector";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getCurrentTheme } from "@/lib/theme";
 
@@ -18,6 +19,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang={locale} data-theme={theme}>
       <body className="antialiased">
+        <RecoveryHashRedirector />
         <Header />
         <main>{children}</main>
         <Footer />
