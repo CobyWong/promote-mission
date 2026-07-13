@@ -16,9 +16,6 @@ type RewardShopClientProps = {
   locale?: Locale;
 };
 
-type RewardSortKey = "recommended" | "priceAsc" | "priceDesc" | "levelAsc";
-type RewardFilterKey = "all" | "affordable" | "unlockable";
-
 function createIdempotencyKey(namespace: string, rewardSlug: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${namespace}:${rewardSlug}:${crypto.randomUUID()}`;
@@ -48,9 +45,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
-  const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState<RewardSortKey>("recommended");
-  const [filterBy, setFilterBy] = useState<RewardFilterKey>("all");
 
   const t = locale === "en"
     ? {
@@ -60,15 +54,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       loginToRedeem: "Log in to redeem",
       recentOrders: "Recent Orders",
       noOrders: "No orders yet. Complete missions and redeem your first reward.",
-      searchPlaceholder: "Search rewards (e.g. gift card, USDT, AirPods)",
-      sortLabel: "Sort",
-      sortRecommended: "Recommended",
-      sortPriceAsc: "Price: low to high",
-      sortPriceDesc: "Price: high to low",
-      sortLevelAsc: "Unlock level",
-      filterAll: "All",
-      filterAffordable: "Can afford",
-      filterUnlockable: "Level unlocked",
       etaFallback: "1-3 business days",
       stock: "Stock",
       coins: "Coins",
@@ -81,12 +66,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       unavailable: "Unavailable",
       emptyTitle: "No matching rewards",
       emptyDesc: "Try another search keyword or filter.",
-      recommendationTitle: "Recommended for you",
-      tabAll: "All",
-      tabBuy: "Affordable rewards",
-      tabRedeem: "Level unlocked",
-      tabClaim: "Top picks",
-      quickSearch: "Daily points",
       close: "Close",
       detailTitle: "Reward details",
       priceLabel: "Price",
@@ -100,15 +79,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       loginToRedeem: "登入後兌換",
       recentOrders: "最近訂單",
       noOrders: "目前尚無兌換紀錄。完成任務後即可兌換第一件獎賞。",
-      searchPlaceholder: "搜尋獎賞（例如：電子禮品卡、USDT、AirPods）",
-      sortLabel: "排序",
-      sortRecommended: "推薦",
-      sortPriceAsc: "價格：低至高",
-      sortPriceDesc: "價格：高至低",
-      sortLevelAsc: "解鎖等級",
-      filterAll: "全部",
-      filterAffordable: "可負擔",
-      filterUnlockable: "等級已解鎖",
       etaFallback: "1-3 個工作天",
       stock: "庫存",
       coins: "金幣",
@@ -121,12 +91,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       unavailable: "暫時不可兌換",
       emptyTitle: "沒有符合條件的商品",
       emptyDesc: "請嘗試其他搜尋關鍵字或篩選條件。",
-      recommendationTitle: "為你推薦",
-      tabAll: "全部",
-      tabBuy: "可換獎賞",
-      tabRedeem: "等級解鎖",
-      tabClaim: "精選獎賞",
-      quickSearch: "每日拎積分",
       close: "關閉",
       detailTitle: "獎賞詳情",
       priceLabel: "售價",
@@ -153,33 +117,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
   };
 
   const filteredRewards = useMemo(() => {
-    let list = rewards.filter((reward) => {
-      const keyword = query.trim().toLowerCase();
-      const matchesQuery = keyword.length === 0
-        || reward.name.toLowerCase().includes(keyword)
-        || reward.description.toLowerCase().includes(keyword)
-        || reward.slug.toLowerCase().includes(keyword)
-        || (reward.badge ?? "").toLowerCase().includes(keyword);
-
-      if (!matchesQuery) {
-        return false;
-      }
-
-      const minLevel = reward.minLevel ?? 1;
-      if (filterBy === "affordable" && balance < reward.cost) {
-        return false;
-      }
-      if (filterBy === "unlockable" && userLevel < minLevel) {
-        return false;
-      }
-      return true;
-    });
-
-    list = [...list].sort((a, b) => {
-      if (sortBy === "priceAsc") return a.cost - b.cost;
-      if (sortBy === "priceDesc") return b.cost - a.cost;
-      if (sortBy === "levelAsc") return (a.minLevel ?? 1) - (b.minLevel ?? 1);
-
+    const list = [...rewards].sort((a, b) => {
       const aFeatured = a.badge ? 1 : 0;
       const bFeatured = b.badge ? 1 : 0;
       if (bFeatured !== aFeatured) {
@@ -189,7 +127,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
     });
 
     return list;
-  }, [balance, filterBy, query, rewards, sortBy, userLevel]);
+  }, [rewards]);
 
   async function handleRedeem(reward: Reward) {
     if (!isAuthenticated) {
@@ -256,49 +194,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
   return (
     <div className="space-y-7">
-      <div className="space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 flex-1 items-center rounded-full border border-white/15 bg-white/8 px-4 text-sm text-slate-300">
-            <span className="mr-2 text-lg leading-none">⌕</span>
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={`${t.quickSearch} 🔥`}
-              className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-400"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto rounded-full border border-white/10 bg-white/5 p-1">
-          {[
-            ["all", t.tabAll],
-            ["affordable", t.tabBuy],
-            ["unlockable", t.tabRedeem],
-            ["recommended", t.tabClaim],
-          ].map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => {
-                if (key === "recommended") {
-                  setSortBy("recommended");
-                  return;
-                }
-                setFilterBy(key as RewardFilterKey);
-              }}
-              className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${
-                (key === "recommended" && sortBy === "recommended") || filterBy === key
-                  ? "bg-cyan-400/20 text-cyan-100"
-                  : "text-slate-300"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
         <div className="tactical-card p-6">
           <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.walletTitle}</p>
@@ -349,49 +244,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
       {error ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 px-4 py-4 text-sm text-rose-100">{error}</div> : null}
       {success ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-4 text-sm text-emerald-100">{success}</div> : null}
-
-      <div className="tactical-card p-4 sm:p-5">
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <p className="text-sm text-slate-300">{t.searchPlaceholder}</p>
-          <label className="flex items-center gap-2 text-sm text-slate-300">
-            <span>{t.sortLabel}</span>
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value as RewardSortKey)}
-              className="h-10 rounded-full border border-slate-500/70 bg-slate-900/55 px-3 text-sm text-slate-100"
-            >
-              <option value="recommended">{t.sortRecommended}</option>
-              <option value="priceAsc">{t.sortPriceAsc}</option>
-              <option value="priceDesc">{t.sortPriceDesc}</option>
-              <option value="levelAsc">{t.sortLevelAsc}</option>
-            </select>
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-3xl font-semibold text-slate-100">{t.recommendationTitle}</h2>
-        <div className="mt-4 flex gap-2 overflow-x-auto">
-          {([
-            ["all", t.filterAll],
-            ["affordable", t.filterAffordable],
-            ["unlockable", t.filterUnlockable],
-          ] as Array<[RewardFilterKey, string]>).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setFilterBy(key)}
-              className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold ${
-                filterBy === key
-                  ? "border-cyan-300/55 bg-cyan-300/15 text-cyan-100"
-                  : "border-white/15 bg-white/5 text-slate-300"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {filteredRewards.map((reward) => {
