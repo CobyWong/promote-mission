@@ -11,9 +11,10 @@ export async function middleware(request: NextRequest) {
   const isAdminLogin = pathname === "/admin/login";
   const isAdminAuthApi = pathname === "/api/admin/login" || pathname === "/api/admin/logout";
   const isCronProtectedCleanupApi = pathname === "/api/admin/idempotency/cleanup" || pathname === "/api/admin/mobile-uploads/cleanup";
+  const isProtectedCreatorRoute = pathname === "/missions" || pathname.startsWith("/missions/");
   const isProtectedAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/brand") || pathname.startsWith("/api/admin") || pathname.startsWith("/api/brand");
 
-  if (!isProtectedAdminRoute || isAdminLogin || isAdminAuthApi || isCronProtectedCleanupApi) {
+  if ((!isProtectedAdminRoute && !isProtectedCreatorRoute) || isAdminLogin || isAdminAuthApi || isCronProtectedCleanupApi) {
     return NextResponse.next({ request });
   }
 
@@ -24,6 +25,8 @@ export async function middleware(request: NextRequest) {
   if (hasAdminSession) {
     return response;
   }
+
+  let user: { email?: string | null } | null = null;
 
   if (hasSupabaseConfig()) {
     const supabase = createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
@@ -41,10 +44,16 @@ export async function middleware(request: NextRequest) {
     });
 
     const {
-      data: { user },
+      data: { user: currentUser },
     } = await supabase.auth.getUser();
 
-    if (user) {
+    user = currentUser;
+
+    if (isProtectedCreatorRoute && user) {
+      return response;
+    }
+
+    if (isProtectedAdminRoute && user) {
       const allowBrandRoute = (pathname.startsWith("/brand") || pathname.startsWith("/api/brand")) && isBrandOrAdminEmail(user.email);
       const allowAdminRoute = (pathname.startsWith("/admin") || pathname.startsWith("/api/admin")) && isAdminEmail(user.email);
 
@@ -52,6 +61,16 @@ export async function middleware(request: NextRequest) {
         return response;
       }
     }
+  }
+
+  if (isProtectedCreatorRoute) {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Authentication required." }, { status: 401 });
+    }
+
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", `${pathname}${search}`);
+    return NextResponse.redirect(loginUrl);
   }
 
   if (pathname.startsWith("/api/")) {
