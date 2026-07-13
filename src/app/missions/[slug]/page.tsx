@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 
 import { MissionAcceptCard } from "@/components/mission-accept-card";
 import { getMissionBySlug, getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
-import { getMissionImage } from "@/lib/mission-media";
 import { getMissionRequiredLevel, getRankingRewardsByDifficulty } from "@/lib/mission-rules";
 
 export default async function MissionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -17,7 +15,6 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const missionImage = mission.imageUrl ?? getMissionImage(mission.slug);
   const requiredLevel = getMissionRequiredLevel(mission.difficulty);
   const rewards = getRankingRewardsByDifficulty(mission.difficulty);
   const missionCenterData = await getMissionCenterData();
@@ -32,18 +29,6 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="glass-panel p-5 sm:p-8">
-          <div className="relative -mx-3 -mt-3 mb-6 h-52 overflow-hidden rounded-3xl border border-white/10 sm:-mx-2 sm:-mt-2 sm:mb-7 sm:h-64">
-            <Image
-              src={missionImage}
-              alt={mission.title}
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 60vw"
-              priority
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-900/20 to-transparent" />
-          </div>
-
           <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{mission.brand}</p>
           <h1 className="mt-3 break-words text-3xl font-semibold text-white sm:text-4xl">{mission.title}</h1>
           <p className="mt-5 text-base leading-7 text-slate-300 sm:mt-6 sm:text-lg sm:leading-8">{mission.description}</p>
