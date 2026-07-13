@@ -57,6 +57,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
   const niche = "";
@@ -453,7 +454,24 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                       <label className="block text-base font-medium text-slate-900">
                         Password <span className="text-rose-500">*</span>
-                        <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={lightInputClassName} placeholder="********" minLength={8} />
+                        <div className="mt-2 flex items-center gap-2">
+                          <input
+                            required
+                            type={showRegisterPassword ? "text" : "password"}
+                            value={password}
+                            onChange={(event) => setPassword(event.target.value)}
+                            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400"
+                            placeholder="********"
+                            minLength={8}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowRegisterPassword((current) => !current)}
+                            className="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+                          >
+                            {showRegisterPassword ? t.hidePassword : t.showPassword}
+                          </button>
+                        </div>
                       </label>
 
                       <div>
