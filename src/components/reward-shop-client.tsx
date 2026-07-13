@@ -53,7 +53,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
       currentLevel: "Current level",
       loginToRedeem: "Log in to redeem",
       etaFallback: "1-3 business days",
-      stock: "Stock",
       coins: "Coins",
       unlockLevel: "Unlock level",
       soldOut: "Sold out",
@@ -68,7 +67,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
       detailTitle: "Reward details",
       priceLabel: "Price",
       etaLabel: "Delivery ETA",
-      stockLabel: "Stock",
     }
     : {
       walletTitle: "我的錢包",
@@ -76,7 +74,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
       currentLevel: "目前等級",
       loginToRedeem: "登入後兌換",
       etaFallback: "1-3 個工作天",
-      stock: "庫存",
       coins: "金幣",
       unlockLevel: "解鎖等級",
       soldOut: "已售罄",
@@ -91,7 +88,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
       detailTitle: "獎賞詳情",
       priceLabel: "售價",
       etaLabel: "預計到帳",
-      stockLabel: "庫存",
     };
 
   const filteredRewards = useMemo(() => {
@@ -198,7 +194,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
         {filteredRewards.map((reward) => {
           const rewardInitial = reward.name.trim().charAt(0).toUpperCase() || "R";
           const etaLabel = reward.eta ?? t.etaFallback;
-          const stockLabel = reward.stock ?? "∞";
 
           return (
             <button
@@ -224,17 +219,13 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
               </div>
 
               <div className="border-t border-slate-600/60 bg-slate-900/35 px-3 py-3 sm:px-5 sm:py-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-400">{t.priceLabel}</p>
                     <p className="mt-1 text-2xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs uppercase tracking-wide text-slate-400">{t.stockLabel}</p>
-                    <p className="mt-1 text-2xl font-black leading-none text-slate-100 sm:text-4xl">{stockLabel}</p>
-                    <p className="mt-1 text-xs text-slate-400">{etaLabel}</p>
-                  </div>
+                  <p className="mt-2 text-xs text-slate-400">{t.etaLabel}: {etaLabel}</p>
                 </div>
               </div>
             </button>
@@ -249,7 +240,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
         const hasRequiredLevel = userLevel >= minLevel;
         const canRedeem = hasEnoughCoins && hasStock && hasRequiredLevel;
         const etaLabel = selectedReward.eta ?? t.etaFallback;
-        const stockLabel = selectedReward.stock ?? "∞";
         const actionLabel = pendingSlug === selectedReward.slug
           ? t.redeeming
           : canRedeem
@@ -283,15 +273,11 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
 
               <p className="mt-3 text-sm text-slate-300">{selectedReward.description}</p>
 
-              <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+              <div className="mt-4 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                   <p className="text-xs text-slate-400">{t.priceLabel}</p>
                   <p className="mt-1 text-xl font-black text-amber-200">{selectedReward.cost.toLocaleString()}</p>
                   <p className="text-xs text-slate-400">{t.coins}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">{t.stockLabel}</p>
-                  <p className="mt-1 text-xl font-black text-slate-100">{stockLabel}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                   <p className="text-xs text-slate-400">{t.unlockLevel}</p>
