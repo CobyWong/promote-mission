@@ -56,7 +56,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       walletTitle: "Wallet",
       availableCoins: "Available Coins",
       currentLevel: "Current level",
-      shopHint: "Browse rewards like an online store and redeem instantly.",
       loginToRedeem: "Log in to redeem",
       recentOrders: "Recent Orders",
       noOrders: "No orders yet. Complete missions and redeem your first reward.",
@@ -86,7 +85,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       walletTitle: "我的錢包",
       availableCoins: "可用金幣",
       currentLevel: "目前等級",
-      shopHint: "以網店方式瀏覽獎賞，選好即時兌換。",
       loginToRedeem: "登入後兌換",
       recentOrders: "最近訂單",
       noOrders: "目前尚無兌換紀錄。完成任務後即可兌換第一件獎賞。",
@@ -242,11 +240,11 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
           <p className="mt-2 text-sm font-semibold text-cyan-200">
             {t.currentLevel}: Lv.{userLevel}
           </p>
-          <p className="mt-3 text-sm text-slate-300">
-            {isAuthenticated
-              ? t.shopHint
-              : locale === "en" ? "Log in to use live redemption." : "登入後方可使用正式兌換流程。"}
-          </p>
+          {!isAuthenticated ? (
+            <p className="mt-3 text-sm text-slate-300">
+              {locale === "en" ? "Log in to use live redemption." : "登入後方可使用正式兌換流程。"}
+            </p>
+          ) : null}
           {!isAuthenticated ? (
             <Link href="/login?next=/rewards" className="tactical-btn-primary mt-5 px-5 py-3">
               {t.loginToRedeem}
