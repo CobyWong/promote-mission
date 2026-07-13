@@ -36,6 +36,26 @@ const registerFollowerBands = ["0-1000", "1K-5K", "5K-10K", "10K-20K", "20K-50K"
 const lightInputClassName =
   "mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400";
 
+function EyeOpenIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeClosedIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 3l18 18" />
+      <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+      <path d="M9.9 5.1A11.1 11.1 0 0 1 12 5c6.4 0 10 7 10 7a18.7 18.7 0 0 1-4 4.9" />
+      <path d="M6.6 6.7C3.9 8.3 2 12 2 12s3.6 6 10 6a10.8 10.8 0 0 0 4.2-.8" />
+    </svg>
+  );
+}
+
 function toggleChip(list: string[], value: string, maxSelection = 99) {
   if (list.includes(value)) {
     return list.filter((item) => item !== value);
@@ -454,22 +474,23 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                       <label className="block text-base font-medium text-slate-900">
                         Password <span className="text-rose-500">*</span>
-                        <div className="mt-2 flex items-center gap-2">
+                        <div className="relative mt-2">
                           <input
                             required
                             type={showRegisterPassword ? "text" : "password"}
                             value={password}
                             onChange={(event) => setPassword(event.target.value)}
-                            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400"
+                            className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400"
                             placeholder="********"
                             minLength={8}
                           />
                           <button
                             type="button"
                             onClick={() => setShowRegisterPassword((current) => !current)}
-                            className="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+                            aria-label={showRegisterPassword ? t.hidePassword : t.showPassword}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 transition hover:text-slate-900"
                           >
-                            {showRegisterPassword ? t.hidePassword : t.showPassword}
+                            {showRegisterPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                           </button>
                         </div>
                       </label>
@@ -707,14 +728,15 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
                 <label className="block text-sm text-slate-700">
                   Password
-                  <div className="mt-2 flex items-center gap-2">
-                    <input required type={showLoginPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder="********" minLength={8} />
+                  <div className="relative mt-2">
+                    <input required type={showLoginPassword ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-400" placeholder="********" minLength={8} />
                     <button
                       type="button"
                       onClick={() => setShowLoginPassword((current) => !current)}
-                      className="rounded-2xl border border-slate-300 bg-white px-3 py-3 text-xs font-semibold text-slate-700 transition hover:border-slate-400"
+                      aria-label={showLoginPassword ? t.hidePassword : t.showPassword}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 transition hover:text-slate-900"
                     >
-                      {showLoginPassword ? t.hidePassword : t.showPassword}
+                      {showLoginPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                     </button>
                   </div>
                 </label>
