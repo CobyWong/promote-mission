@@ -50,17 +50,6 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
             <h3 className="line-clamp-2 text-xl font-extrabold leading-tight text-slate-100">{mission.title}</h3>
             <p className="mt-1 truncate text-sm font-semibold text-slate-300">{brandLabel}</p>
           </div>
-          <span
-            className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
-              isLocked
-                ? "border-amber-300/50 bg-amber-300/12 text-amber-200"
-                : "border-emerald-300/40 bg-emerald-300/10 text-emerald-200"
-            }`}
-          >
-            {isLocked
-              ? (locale === "en" ? `Lv.${requiredLevel} required` : `需 Lv.${requiredLevel}`)
-              : (locale === "en" ? "Unlocked" : "已解鎖")}
-          </span>
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2.5">
