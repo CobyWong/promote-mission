@@ -21,7 +21,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="antialiased">
         <RecoveryHashRedirector />
         <Header />
-        <main className="pb-28 md:pb-0">{children}</main>
+        <main className="pb-[calc(env(safe-area-inset-bottom)+7.5rem)] md:pb-0">{children}</main>
         <Footer />
       </body>
     </html>

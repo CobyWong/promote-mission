@@ -85,15 +85,15 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-500/45 bg-slate-900/45 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center px-4 py-3 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-50 border-b border-slate-400/35 bg-slate-900/40 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-7xl items-center px-4 py-2 sm:px-6 sm:py-3 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
           <Image
             src="/logo.png"
             alt="Mission One"
             width={40}
             height={40}
-            className="h-10 w-10 object-contain"
+            className="h-8 w-8 object-contain sm:h-10 sm:w-10"
             priority
           />
           <span className="sr-only">Mission One</span>

@@ -77,13 +77,13 @@ export function MobileBottomNav({ links }: MobileBottomNavProps) {
 
   return createPortal(
     <nav
-      className="fixed inset-x-3 z-[90] md:hidden"
-      style={{ bottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
+      className="fixed inset-x-4 z-[90] md:hidden"
+      style={{ bottom: "calc(env(safe-area-inset-bottom) + 0.62rem)" }}
       aria-label="Bottom tab navigation"
     >
-      <div className="relative overflow-hidden rounded-[1.6rem] border border-cyan-200/20 bg-slate-900/62 p-1.5 shadow-[0_18px_45px_rgba(2,6,23,0.58)] backdrop-blur-2xl">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(148,163,184,0.22),rgba(15,23,42,0.08))]" />
-        <div className="relative grid grid-cols-4 gap-1">
+      <div className="relative overflow-hidden rounded-[1.45rem] border border-slate-200/15 bg-slate-950/64 p-1.5 shadow-[0_20px_36px_rgba(2,6,23,0.48)] backdrop-blur-2xl">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(148,163,184,0.18),rgba(15,23,42,0.06))]" />
+        <div className="relative grid grid-cols-4 gap-1.5">
           {mobileLinks.map((link) => {
             const isActive = isActivePath(pathname, link.href);
             return (
@@ -91,13 +91,13 @@ export function MobileBottomNav({ links }: MobileBottomNavProps) {
                 key={`mobile-${link.href}`}
                 href={link.href}
                 prefetch
-                className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-[10px] font-semibold transition ${isActive
-                  ? "bg-slate-700/65 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.26),0_8px_20px_rgba(2,6,23,0.35)]"
-                  : "text-slate-300 hover:bg-white/10 hover:text-slate-100"
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl px-1.5 py-2 text-[10px] font-semibold transition ${isActive
+                  ? "bg-slate-700/60 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_6px_14px_rgba(2,6,23,0.32)]"
+                  : "text-slate-300/95 hover:bg-white/10 hover:text-slate-100"
                   }`}
                 aria-current={isActive ? "page" : undefined}
               >
-                <span className="text-sm">
+                <span className="text-[0.9rem]">
                   <NavIcon href={link.href} />
                 </span>
                 <span className="line-clamp-1 leading-none">{link.label}</span>
