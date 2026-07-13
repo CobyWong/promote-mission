@@ -59,7 +59,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       loginToRedeem: "Log in to redeem",
       recentOrders: "Recent Orders",
       noOrders: "No orders yet. Complete missions and redeem your first reward.",
-      searchPlaceholder: "Search rewards (e.g. voucher, USDT, AirPods)",
+      searchPlaceholder: "Search rewards (e.g. gift card, USDT, AirPods)",
       sortLabel: "Sort",
       sortRecommended: "Recommended",
       sortPriceAsc: "Price: low to high",
@@ -82,9 +82,9 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       emptyDesc: "Try another search keyword or filter.",
       recommendationTitle: "Recommended for you",
       tabAll: "All",
-      tabBuy: "Buy vouchers",
-      tabRedeem: "Redeem vouchers",
-      tabClaim: "Claim vouchers",
+      tabBuy: "Affordable rewards",
+      tabRedeem: "Level unlocked",
+      tabClaim: "Top picks",
       quickSearch: "Daily points",
     }
     : {
@@ -94,7 +94,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       loginToRedeem: "登入後兌換",
       recentOrders: "最近訂單",
       noOrders: "目前尚無兌換紀錄。完成任務後即可兌換第一件獎賞。",
-      searchPlaceholder: "搜尋獎賞（例如：禮券、USDT、AirPods）",
+      searchPlaceholder: "搜尋獎賞（例如：電子禮品卡、USDT、AirPods）",
       sortLabel: "排序",
       sortRecommended: "推薦",
       sortPriceAsc: "價格：低至高",
@@ -117,9 +117,9 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       emptyDesc: "請嘗試其他搜尋關鍵字或篩選條件。",
       recommendationTitle: "為你推薦",
       tabAll: "全部",
-      tabBuy: "購買禮券",
-      tabRedeem: "兌換禮券",
-      tabClaim: "領取禮券",
+      tabBuy: "可換獎賞",
+      tabRedeem: "等級解鎖",
+      tabClaim: "精選獎賞",
       quickSearch: "每日拎積分",
     };
 
