@@ -252,7 +252,7 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
               : t.loginToRedeem;
 
         return (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/70 p-4 sm:items-center" role="dialog" aria-modal="true">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/70 p-4" role="dialog" aria-modal="true">
             <div className="w-full max-w-lg rounded-3xl border border-slate-500/70 bg-slate-900/95 p-5 shadow-2xl">
               <div className="flex items-start justify-between gap-3">
                 <div>
