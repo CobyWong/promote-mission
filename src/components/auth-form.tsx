@@ -12,23 +12,6 @@ type AuthFormProps = {
   locale?: Locale;
 };
 
-const registerNiches = [
-  { value: "Beauty", labelZh: "美容與化妝品", labelEn: "Beauty" },
-  { value: "Food", labelZh: "美食與餐飲", labelEn: "Food" },
-  { value: "Tech", labelZh: "科技與產品", labelEn: "Tech" },
-  { value: "Lifestyle", labelZh: "生活風格", labelEn: "Lifestyle" },
-  { value: "Fashion", labelZh: "時尚與穿搭", labelEn: "Fashion" },
-  { value: "Fitness", labelZh: "健身與健康", labelEn: "Fitness" },
-  { value: "Travel", labelZh: "旅遊", labelEn: "Travel" },
-  { value: "Gaming", labelZh: "遊戲", labelEn: "Gaming" },
-  { value: "Finance", labelZh: "金融與金融科技", labelEn: "Finance" },
-  { value: "Education", labelZh: "教育", labelEn: "Education" },
-];
-
-const registerLanguages = ["Cantonese", "English", "Mandarin", "Japanese", "Korean"];
-
-const registerRegions = ["Hong Kong", "Macau", "Taiwan", "Singapore", "Malaysia", "Japan", "Korea", "USA", "UK", "Australia", "Other"];
-
 const registerGenders = ["男", "女", "其他", "不願透露"];
 const registerAgeGroups = ["<12", "12-18", "18-24", "25-34", "35-44", "45+"];
 const registerFollowerBands = ["0-1000", "1K-5K", "5K-10K", "10K-20K", "20K-50K", "50K-100K", "100K+"];
@@ -56,18 +39,6 @@ function EyeClosedIcon() {
   );
 }
 
-function toggleChip(list: string[], value: string, maxSelection = 99) {
-  if (list.includes(value)) {
-    return list.filter((item) => item !== value);
-  }
-
-  if (list.length >= maxSelection) {
-    return list;
-  }
-
-  return [...list, value];
-}
-
 export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const isRegister = mode === "register";
   const [loading, setLoading] = useState(false);
@@ -80,14 +51,10 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [fullName, setFullName] = useState("");
   const [instagramHandle, setInstagramHandle] = useState("");
-  const niche = "";
   const portfolioUrl = "";
   const [phoneRegion, setPhoneRegion] = useState("HK (+852)");
   const [phoneNumber, setPhoneNumber] = useState("");
   const bio = "";
-  const [selectedNiches, setSelectedNiches] = useState<string[]>([]);
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [gender, setGender] = useState("");
   const [ageGroup, setAgeGroup] = useState("");
   const [followersRange, setFollowersRange] = useState("");
@@ -104,19 +71,14 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       back: "Back",
       create: "Create account",
       stepBasic: "Basic info",
-      stepCoverage: "Content coverage",
       stepAudience: "Audience profile",
       stepFinal: "Finish",
       stepOf: "Step",
-      ofTotal: "of 4",
+      ofTotal: "of 3",
       name: "Creator name",
       phone: "Phone",
       instagram: "Instagram username",
       instagramHint: "Paste @handle or profile URL. We will auto-extract your username.",
-      niches: "Content niches",
-      nicheHint: "Choose 2-5 categories that fit your content.",
-      languages: "Languages",
-      regions: "Coverage regions",
       gender: "Gender",
       age: "Age group",
       followersBand: "Follower band",
@@ -125,7 +87,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       termsLink: "Terms of Service",
       and: "and",
       privacyLink: "Privacy Policy",
-      needTwoNiches: "Please select at least 2 content niches.",
       needBasic: "Please complete name, email, and password.",
       needInstagram: "Please provide your Instagram username.",
       needAudience: "Please select gender, age group, and follower band.",
@@ -145,19 +106,14 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       back: "返回",
       create: "建立帳號",
       stepBasic: "基本資料",
-      stepCoverage: "內容覆蓋範圍",
       stepAudience: "受眾資料",
       stepFinal: "完成設定",
       stepOf: "第",
-      ofTotal: "步，共 4 步",
+      ofTotal: "步，共 3 步",
       name: "創作者名稱",
       phone: "電話號碼",
       instagram: "Instagram 用戶名稱",
       instagramHint: "可貼上 @帳號或個人檔案 URL，系統將自動擷取帳號名稱。",
-      niches: "內容範疇",
-      nicheHint: "請選擇 2-5 個最符合內容定位的範疇。",
-      languages: "語言",
-      regions: "覆蓋地區",
       gender: "性別",
       age: "年齡組別",
       followersBand: "追蹤數區間",
@@ -166,7 +122,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       termsLink: "服務條款",
       and: "及",
       privacyLink: "私隱政策",
-      needTwoNiches: "請至少選擇 2 個內容範疇。",
       needBasic: "請先填妥名稱、電郵及密碼。",
       needInstagram: "請填寫 Instagram 用戶名稱。",
       needAudience: "請選擇性別、年齡組別及追蹤數區間。",
@@ -179,7 +134,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       hidePassword: "隱藏",
     };
 
-  const registerStepLabels = [t.stepBasic, t.stepCoverage, t.stepAudience, t.stepFinal];
+  const registerStepLabels = [t.stepBasic, t.stepAudience, t.stepFinal];
 
   function getHandleFromInput(value: string) {
     const trimmed = value.trim();
@@ -204,20 +159,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
     }
 
     if (registerStep === 2) {
-      if (selectedNiches.length < 2) {
-        setError(t.needTwoNiches);
-        return false;
-      }
-    }
-
-    if (registerStep === 3) {
       if (!gender || !ageGroup || !followersRange) {
         setError(t.needAudience);
         return false;
       }
     }
 
-    if (registerStep === 4 && !agreedTerms) {
+    if (registerStep === 3 && !agreedTerms) {
       setError(t.needTerms);
       return false;
     }
@@ -231,7 +179,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       return;
     }
 
-    setRegisterStep((step) => Math.min(step + 1, 4));
+    setRegisterStep((step) => Math.min(step + 1, 3));
   }
 
   function goBackRegisterStep() {
@@ -288,7 +236,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
     try {
       if (isRegister) {
-        if (registerStep < 4) {
+        if (registerStep < 3) {
           goNextRegisterStep();
           return;
         }
@@ -298,7 +246,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         }
 
         const normalizedHandle = getHandleFromInput(instagramHandle);
-        const derivedNiche = selectedNiches.join(" / ") || niche;
         const derivedFollowers = followersRange || "-";
 
         const { data, error: signUpError } = await supabase.auth.signUp({
@@ -309,14 +256,14 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
             data: {
               full_name: fullName,
               instagram_handle: normalizedHandle ? `@${normalizedHandle}` : null,
-              niche: derivedNiche,
+              niche: null,
               followers_range: derivedFollowers,
               portfolio_url: portfolioUrl || null,
               phone_region: phoneRegion,
               phone_number: phoneNumber,
               bio,
-              languages: selectedLanguages,
-              regions: selectedRegions,
+              languages: [],
+              regions: [],
               gender,
               age_group: ageGroup,
               account_type: "creator",
@@ -442,7 +389,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                 <p className="text-xl text-slate-500">{t.stepOf} {registerStep} {t.ofTotal}</p>
               </div>
               <div className="h-2 rounded-full bg-slate-200">
-                <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(registerStep / 4) * 100}%` }} />
+                <div className="h-2 rounded-full bg-blue-600 transition-all" style={{ width: `${(registerStep / 3) * 100}%` }} />
               </div>
 
               <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white">
@@ -513,69 +460,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                   {registerStep === 2 ? (
                     <>
                       <div>
-                        <h3 className="text-xl font-semibold text-slate-900">{t.niches}</h3>
-                        <p className="mt-2 text-sm text-slate-500">{t.nicheHint}</p>
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {registerNiches.map((item) => {
-                            const label = locale === "en" ? item.labelEn : item.labelZh;
-                            const selected = selectedNiches.includes(item.value);
-                            return (
-                              <button
-                                key={item.value}
-                                type="button"
-                                onClick={() => setSelectedNiches((prev) => toggleChip(prev, item.value, 5))}
-                                className={`rounded-full border px-4 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
-                              >
-                                {label}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-xl font-semibold text-slate-900">{t.languages}</h3>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {registerLanguages.map((language) => {
-                            const selected = selectedLanguages.includes(language);
-                            return (
-                              <button
-                                key={language}
-                                type="button"
-                                onClick={() => setSelectedLanguages((prev) => toggleChip(prev, language))}
-                                className={`rounded-full border px-4 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
-                              >
-                                {language}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h3 className="text-xl font-semibold text-slate-900">{t.regions}</h3>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {registerRegions.map((region) => {
-                            const selected = selectedRegions.includes(region);
-                            return (
-                              <button
-                                key={region}
-                                type="button"
-                                onClick={() => setSelectedRegions((prev) => toggleChip(prev, region))}
-                                className={`rounded-full border px-4 py-2 text-sm transition ${selected ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-300 bg-white text-slate-600 hover:border-slate-400"}`}
-                              >
-                                {region}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </>
-                  ) : null}
-
-                  {registerStep === 3 ? (
-                    <>
-                      <div>
                         <h3 className="text-xl font-semibold text-slate-900">{t.gender} <span className="text-rose-500">*</span></h3>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {registerGenders.map((item) => {
@@ -634,7 +518,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     </>
                   ) : null}
 
-                  {registerStep === 4 ? (
+                  {registerStep === 3 ? (
                     <>
                       <label className="block text-base font-medium text-slate-900">
                         {t.referral}
@@ -670,7 +554,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                     {t.back}
                   </button>
 
-                  {registerStep < 4 ? (
+                  {registerStep < 3 ? (
                     <button
                       type="button"
                       onClick={goNextRegisterStep}
