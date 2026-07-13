@@ -31,8 +31,8 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
       </Link>
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="glass-panel p-8">
-          <div className="relative -mx-4 -mt-4 mb-7 h-64 overflow-hidden rounded-3xl border border-white/10 sm:-mx-2">
+        <div className="glass-panel p-5 sm:p-8">
+          <div className="relative -mx-3 -mt-3 mb-6 h-52 overflow-hidden rounded-3xl border border-white/10 sm:-mx-2 sm:-mt-2 sm:mb-7 sm:h-64">
             <Image
               src={missionImage}
               alt={mission.title}
@@ -45,8 +45,8 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           </div>
 
           <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{mission.brand}</p>
-          <h1 className="mt-3 text-4xl font-semibold text-white">{mission.title}</h1>
-          <p className="mt-6 text-lg leading-8 text-slate-300">{mission.description}</p>
+          <h1 className="mt-3 break-words text-3xl font-semibold text-white sm:text-4xl">{mission.title}</h1>
+          <p className="mt-5 text-base leading-7 text-slate-300 sm:mt-6 sm:text-lg sm:leading-8">{mission.description}</p>
 
           <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-200">
             {mission.tags.map((tag) => (
@@ -59,7 +59,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <div className="mt-10 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl bg-white/5 p-5">
               <p className="text-sm text-slate-400">{locale === "en" ? "Reward" : "獎勵"}</p>
-              <p className="mt-2 text-2xl font-semibold text-cyan-300">
+              <p className="mt-2 break-words text-lg font-semibold leading-relaxed text-cyan-300 sm:text-2xl">
                 {`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
               </p>
               <p className="mt-2 text-xs text-slate-400">
@@ -83,7 +83,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
         <div className="space-y-6">
           {isLevelLocked ? (
-            <div className="glass-panel p-8">
+            <div className="glass-panel p-5 sm:p-8">
               <h2 className="text-2xl font-semibold text-amber-100">{locale === "en" ? "Mission Locked" : "任務未解鎖"}</h2>
               <p className="mt-4 text-slate-200">
                 {locale === "en"
@@ -96,7 +96,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             </div>
           ) : null}
 
-          <div className="glass-panel p-8">
+          <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
             <ul className="mt-5 space-y-3 text-slate-300">
               {[(locale === "en" ? "Video length must be longer than 60 seconds" : "影片長度需超過 60 秒")].map((item) => (
@@ -105,7 +105,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             </ul>
           </div>
 
-          <div className="glass-panel p-8">
+          <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-white">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {(locale === "en"

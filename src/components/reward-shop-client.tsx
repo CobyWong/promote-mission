@@ -238,7 +238,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
         <div className="tactical-card p-6">
           <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.walletTitle}</p>
           <p className="mt-2 text-sm text-slate-400">{t.availableCoins}</p>
-          <p className="mt-2 text-4xl font-semibold text-amber-200">{balance.toLocaleString()}</p>
+          <p className="mt-2 text-3xl font-semibold text-amber-200 sm:text-4xl">{balance.toLocaleString()}</p>
           <p className="mt-2 text-sm font-semibold text-cyan-200">
             {t.currentLevel}: Lv.{userLevel}
           </p>
@@ -294,7 +294,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
             placeholder={t.searchPlaceholder}
             className="h-11 rounded-xl border border-slate-500/70 bg-slate-900/55 px-4 text-sm text-slate-100 outline-none transition focus:border-cyan-300/60"
           />
-          <label className="flex items-center gap-2 text-sm text-slate-300">
+          <label className="flex flex-wrap items-center gap-2 text-sm text-slate-300 sm:flex-nowrap">
             <span>{t.sortLabel}</span>
             <select
               value={sortBy}
@@ -307,7 +307,7 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
               <option value="levelAsc">{t.sortLevelAsc}</option>
             </select>
           </label>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {([
               ["all", t.filterAll],
               ["affordable", t.filterAffordable],
@@ -353,17 +353,17 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
             <article key={reward.slug} className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45">
               <div className="relative overflow-hidden px-5 pb-4 pt-5">
                 <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/16 via-transparent to-slate-900/10" />
-                <div className="relative flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
+                <div className="relative flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="flex min-w-0 items-start gap-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-lg font-bold text-cyan-100">
                       {rewardInitial}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-[1.65rem] font-bold leading-tight text-slate-100">{reward.name}</h3>
+                      <h3 className="break-words text-2xl font-bold leading-tight text-slate-100 sm:text-[1.65rem]">{reward.name}</h3>
                       <p className="mt-1 text-sm text-slate-300">{reward.description}</p>
                     </div>
                   </div>
-                  <span className="inline-flex shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2.5 py-1 text-xs font-semibold text-slate-200">
+                  <span className="inline-flex w-fit shrink-0 rounded-full border border-slate-400/65 bg-slate-900/60 px-2.5 py-1 text-xs font-semibold text-slate-200">
                     {stateTag}
                   </span>
                 </div>
@@ -384,12 +384,12 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-400">{locale === "en" ? "Price" : "售價"}</p>
-                    <p className="mt-1 text-4xl font-black leading-none text-amber-200">{reward.cost.toLocaleString()}</p>
+                    <p className="mt-1 text-3xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs uppercase tracking-wide text-slate-400">{t.stock}</p>
-                    <p className="mt-1 text-4xl font-black leading-none text-slate-100">{stockLabel}</p>
+                    <p className="mt-1 text-3xl font-black leading-none text-slate-100 sm:text-4xl">{stockLabel}</p>
                     <p className="mt-1 text-xs text-slate-400">{etaLabel}</p>
                   </div>
                 </div>

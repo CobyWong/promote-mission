@@ -196,9 +196,9 @@ export default async function DashboardPage() {
               {avatarInitial}
             </span>
             <div>
-              <p className="text-2xl font-semibold text-slate-100">{dashboard.profile.name}</p>
-              <p className="mt-1 text-slate-300">{dashboard.profile.handle}</p>
-              <p className="mt-1 text-sm text-slate-400">{dashboard.userEmail ?? "-"}</p>
+              <p className="break-words text-2xl font-semibold text-slate-100">{dashboard.profile.name}</p>
+              <p className="mt-1 break-all text-slate-300">{dashboard.profile.handle}</p>
+              <p className="mt-1 break-all text-sm text-slate-400">{dashboard.userEmail ?? "-"}</p>
               <p className="mt-1 text-xs font-semibold tracking-[0.08em] text-cyan-200">{t.userId}: {dashboard.profile.userId}</p>
             </div>
           </div>
@@ -243,7 +243,7 @@ export default async function DashboardPage() {
           </div>
           <div className="tactical-subcard p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.joinedAt}</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.profile.joinedAt}</p>
+            <p className="mt-2 break-words text-xl font-semibold text-slate-100">{dashboard.profile.joinedAt}</p>
           </div>
           <div className="tactical-subcard p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.pendingReviews}</p>
@@ -266,15 +266,15 @@ export default async function DashboardPage() {
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div className="tactical-subcard p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.totalEarned}</p>
-            <p className="mt-2 text-3xl font-semibold text-amber-200">HK${dashboard.totalEarned.toLocaleString()}</p>
+            <p className="mt-2 text-2xl font-semibold text-amber-200 sm:text-3xl">HK${dashboard.totalEarned.toLocaleString()}</p>
           </div>
           <div className="tactical-subcard p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.availableToWithdraw}</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-100">HK${dashboard.availableToWithdraw.toLocaleString()}</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">HK${dashboard.availableToWithdraw.toLocaleString()}</p>
           </div>
           <div className="tactical-subcard p-4">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.withdrawnSoFar}</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-100">HK${dashboard.withdrawnSoFar.toLocaleString()}</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">HK${dashboard.withdrawnSoFar.toLocaleString()}</p>
           </div>
         </div>
 
@@ -290,7 +290,7 @@ export default async function DashboardPage() {
             <p className="text-sm text-slate-500">{dashboard.profile.platform} · {dashboard.profile.niche}</p>
             <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.profile.name} · {dashboard.profile.handle}</p>
           </div>
-          <div className="tactical-subcard px-4 py-3 text-sm text-slate-300">
+          <div className="tactical-subcard px-4 py-3 text-xs text-slate-300 sm:text-sm">
             {locale === "en" ? "Age" : "年齡"} {dashboard.profile.ageGroup} · {locale === "en" ? "Followers" : "追蹤數"} {dashboard.profile.followersRange} · {locale === "en" ? "Joined" : "加入時間"} {dashboard.profile.joinedAt}
           </div>
         </div>
@@ -342,7 +342,7 @@ export default async function DashboardPage() {
                         ) : null}
                       </div>
                       <h3 className="mt-2 text-lg font-semibold text-slate-100 sm:text-xl">{mission.title}</h3>
-                      <p className="mt-2 text-sm text-slate-400">{t.due}：{mission.eta} · {t.reward}：HK${totalPrize.toLocaleString()}（60% / 30% / 10%）</p>
+                      <p className="mt-2 break-words text-sm leading-relaxed text-slate-400">{t.due}：{mission.eta} · {t.reward}：HK${totalPrize.toLocaleString()}（60% / 30% / 10%）</p>
                     </div>
                     <div className="flex flex-wrap gap-2 text-sm font-semibold">
                       <Link href={`/missions/${mission.slug}`} className="tactical-link inline-flex min-h-11 items-center">

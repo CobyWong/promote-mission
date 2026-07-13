@@ -78,7 +78,7 @@ export default async function MissionsPage() {
       <div className="mx-auto mt-10 max-w-3xl space-y-6">
         {levelSections.map((section) => {
           const locked = userLevel < section.requiredLevel;
-          const sharedClass = `group relative block overflow-hidden rounded-3xl border px-7 py-9 text-center transition duration-300 ${
+          const sharedClass = `group relative block overflow-hidden rounded-3xl border px-5 py-7 text-center transition duration-300 sm:px-7 sm:py-9 ${
             locked
               ? "border-slate-500/50 bg-slate-900/30"
               : "border-cyan-300/35 bg-slate-900/35 hover:-translate-y-0.5 hover:border-cyan-200/65"
@@ -87,8 +87,8 @@ export default async function MissionsPage() {
             <Link key={section.key} href={`/missions/level/${section.key.toLowerCase()}`} className={sharedClass}>
               <div className={`pointer-events-none absolute inset-0 bg-gradient-to-r ${sectionAccent(section.key)} ${locked ? "opacity-45" : "opacity-80"}`} />
               <div className="absolute right-6 top-6 text-2xl text-cyan-200/80 transition group-hover:scale-110">{sectionIcon(section.key)}</div>
-              <div className="relative mx-auto flex min-h-[150px] max-w-2xl flex-col items-center justify-center">
-                <p className="text-4xl font-semibold text-slate-100 sm:text-5xl">{sectionLabel(section.key)}</p>
+              <div className="relative mx-auto flex min-h-[130px] max-w-2xl flex-col items-center justify-center sm:min-h-[150px]">
+                <p className="text-3xl font-semibold text-slate-100 sm:text-5xl">{sectionLabel(section.key)}</p>
                 <p className="mt-2 text-sm text-slate-300">{sectionSubLabel(section.key)}</p>
                 {locked ? (
                   <p className="mt-4 text-sm font-semibold text-amber-200">

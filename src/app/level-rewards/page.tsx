@@ -47,7 +47,7 @@ export default async function LevelRewardsPage() {
         </div>
 
         <div className="overflow-x-auto px-4 py-8 sm:px-6">
-          <div className="relative min-w-[4200px]">
+          <div className="relative min-w-[2200px] sm:min-w-[4200px]">
             <div className="pointer-events-none absolute left-0 right-0 top-[7.1rem] h-1 rounded-full bg-slate-700/70" />
 
             <div className="relative flex gap-3">

@@ -104,11 +104,11 @@ export default async function Home() {
             {t.badge}
           </span>
 
-          <h1 className="mt-6 text-4xl font-semibold leading-tight text-white sm:text-6xl">
+          <h1 className="mt-6 text-3xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
             {t.title}
           </h1>
 
-          <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-slate-300">
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
             {t.desc}
           </p>
 
@@ -124,7 +124,7 @@ export default async function Home() {
       </section>
 
       <section className="section-shell">
-        <div className="glass-panel p-8">
+        <div className="glass-panel p-5 sm:p-8">
           <h2 className="text-2xl font-semibold text-white">{t.overviewTitle}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {t.overviewItems.map((item) => (
@@ -139,7 +139,7 @@ export default async function Home() {
 
       <section className="section-shell mt-10">
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="glass-panel p-8">
+          <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-white">{t.flowTitle}</h2>
             <div className="mt-6 space-y-3">
               {t.flowSteps.map((step, index) => (
@@ -153,7 +153,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="glass-panel p-8">
+          <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-white">{t.benefitsTitle}</h2>
             <div className="mt-6 space-y-4">
               <div className="rounded-2xl border border-white/10 bg-white/5 p-4">

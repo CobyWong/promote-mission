@@ -54,8 +54,8 @@ export default function ReferralLeaderboardPage() {
     <section className="section-shell py-12 sm:py-16">
       <div className="max-w-3xl">
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Referrals</p>
-        <h1 className="mt-3 text-4xl font-semibold text-white">Season Leaderboard</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">
+        <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Season Leaderboard</h1>
+        <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
           Top creators by rewarded referrals this season.
         </p>
       </div>
@@ -70,8 +70,8 @@ export default function ReferralLeaderboardPage() {
             <div className="mt-4 space-y-3">
               {(data?.leaderboard ?? []).map((item) => (
                 <div key={`${item.rank}-${item.name}`} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-slate-200">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-semibold">#{item.rank} {item.name}</p>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <p className="break-words font-semibold">#{item.rank} {item.name}</p>
                     <p className="text-cyan-200">{item.rewardedInvites} rewarded</p>
                   </div>
                 </div>
