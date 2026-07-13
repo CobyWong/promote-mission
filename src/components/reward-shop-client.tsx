@@ -270,8 +270,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
               className="w-full bg-transparent text-sm text-slate-100 outline-none placeholder:text-slate-400"
             />
           </div>
-          <button type="button" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/8 text-xl text-slate-300">◌</button>
-          <button type="button" className="flex h-12 w-12 items-center justify-center rounded-full border border-white/15 bg-white/8 text-xl text-slate-300">⌁</button>
         </div>
 
         <div className="flex gap-2 overflow-x-auto rounded-full border border-white/10 bg-white/5 p-1">
