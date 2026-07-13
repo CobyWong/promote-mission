@@ -39,7 +39,7 @@ function waitFor(ms: number) {
   });
 }
 
-export function RewardShopClient({ rewards, balance, redemptions, isAuthenticated, userLevel, locale = "zh-HK" }: RewardShopClientProps) {
+export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel, locale = "zh-HK" }: RewardShopClientProps) {
   const router = useRouter();
   const [pendingSlug, setPendingSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +52,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       availableCoins: "Available Coins",
       currentLevel: "Current level",
       loginToRedeem: "Log in to redeem",
-      recentOrders: "Recent Orders",
-      noOrders: "No orders yet. Complete missions and redeem your first reward.",
       etaFallback: "1-3 business days",
       stock: "Stock",
       coins: "Coins",
@@ -77,8 +75,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       availableCoins: "可用金幣",
       currentLevel: "目前等級",
       loginToRedeem: "登入後兌換",
-      recentOrders: "最近訂單",
-      noOrders: "目前尚無兌換紀錄。完成任務後即可兌換第一件獎賞。",
       etaFallback: "1-3 個工作天",
       stock: "庫存",
       coins: "金幣",
@@ -97,24 +93,6 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
       etaLabel: "預計到帳",
       stockLabel: "庫存",
     };
-
-  const statusLabel = (status: string) => {
-    if (locale === "en") return status;
-    if (status === "Pending") return "待處理";
-    if (status === "Fulfilled") return "已完成";
-    if (status === "Rejected") return "已拒絕";
-    return status;
-  };
-
-  const statusPillClass = (status: string) => {
-    if (status === "Fulfilled") {
-      return "border-emerald-300/40 bg-emerald-300/12 text-emerald-200";
-    }
-    if (status === "Rejected") {
-      return "border-rose-300/40 bg-rose-300/12 text-rose-200";
-    }
-    return "border-amber-300/40 bg-amber-300/12 text-amber-200";
-  };
 
   const filteredRewards = useMemo(() => {
     const list = [...rewards].sort((a, b) => {
@@ -194,52 +172,23 @@ export function RewardShopClient({ rewards, balance, redemptions, isAuthenticate
 
   return (
     <div className="space-y-7">
-      <div className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
-        <div className="tactical-card p-6">
-          <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.walletTitle}</p>
-          <p className="mt-2 text-sm text-slate-400">{t.availableCoins}</p>
-          <p className="mt-2 text-3xl font-semibold text-amber-200 sm:text-4xl">{balance.toLocaleString()}</p>
-          <p className="mt-2 text-sm font-semibold text-cyan-200">
-            {t.currentLevel}: Lv.{userLevel}
+      <div className="tactical-card p-6">
+        <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.walletTitle}</p>
+        <p className="mt-2 text-sm text-slate-400">{t.availableCoins}</p>
+        <p className="mt-2 text-3xl font-semibold text-amber-200 sm:text-4xl">{balance.toLocaleString()}</p>
+        <p className="mt-2 text-sm font-semibold text-cyan-200">
+          {t.currentLevel}: Lv.{userLevel}
+        </p>
+        {!isAuthenticated ? (
+          <p className="mt-3 text-sm text-slate-300">
+            {locale === "en" ? "Log in to use live redemption." : "登入後方可使用正式兌換流程。"}
           </p>
-          {!isAuthenticated ? (
-            <p className="mt-3 text-sm text-slate-300">
-              {locale === "en" ? "Log in to use live redemption." : "登入後方可使用正式兌換流程。"}
-            </p>
-          ) : null}
-          {!isAuthenticated ? (
-            <Link href="/login?next=/rewards" className="tactical-btn-primary mt-5 px-5 py-3">
-              {t.loginToRedeem}
-            </Link>
-          ) : null}
-        </div>
-
-        <div className="tactical-card p-6">
-          <h2 className="text-xl font-semibold text-slate-100">{t.recentOrders}</h2>
-          <div className="mt-4 max-h-80 space-y-2.5 overflow-y-auto pr-1">
-            {redemptions.length > 0 ? (
-              redemptions.map((redemption) => (
-                <div key={redemption.id} className="tactical-subcard px-4 py-3 text-sm text-slate-300">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-slate-100">{redemption.rewardName}</p>
-                      <p className="mt-1 text-xs text-slate-400">{redemption.createdAt}</p>
-                    </div>
-                    <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusPillClass(redemption.status)}`}>
-                      {statusLabel(redemption.status)}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-sm font-semibold text-amber-200">{redemption.costCoins.toLocaleString()} {t.coins}</p>
-                  {redemption.notes ? <p className="mt-1 text-slate-400">{redemption.notes}</p> : null}
-                </div>
-              ))
-            ) : (
-              <div className="tactical-subcard px-4 py-4 text-sm text-slate-300">
-                {t.noOrders}
-              </div>
-            )}
-          </div>
-        </div>
+        ) : null}
+        {!isAuthenticated ? (
+          <Link href="/login?next=/rewards" className="tactical-btn-primary mt-5 px-5 py-3">
+            {t.loginToRedeem}
+          </Link>
+        ) : null}
       </div>
 
       {error ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 px-4 py-4 text-sm text-rose-100">{error}</div> : null}

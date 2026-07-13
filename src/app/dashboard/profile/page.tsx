@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { getDashboardData } from "@/lib/backend";
+import { getDashboardData, getRewardsPageData } from "@/lib/backend";
 import { getGamePassLevelRewardCoins } from "@/lib/game-pass";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getLevelProgressFromTotalExp, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 
 export default async function DashboardProfilePage() {
   const locale = await getCurrentLocale();
-  const dashboard = await getDashboardData();
+  const [dashboard, rewardsPageData] = await Promise.all([getDashboardData(), getRewardsPageData()]);
 
   if (dashboard.mode === "unauthenticated") {
     redirect("/login?next=/dashboard/profile");
@@ -32,6 +32,9 @@ export default async function DashboardProfilePage() {
       followersRange: "Follower band",
       joinedAt: "Joined",
       pendingReviews: "Pending reviews",
+      recentOrders: "Recent Orders",
+      noOrders: "No orders yet. Complete missions and redeem your first reward.",
+      coins: "Coins",
     }
     : {
       title: "個人資料",
@@ -46,7 +49,28 @@ export default async function DashboardProfilePage() {
       followersRange: "追蹤數區間",
       joinedAt: "加入時間",
       pendingReviews: "待審核提交",
+      recentOrders: "最近訂單",
+      noOrders: "目前尚無兌換紀錄。完成任務後即可兌換第一件獎賞。",
+      coins: "金幣",
     };
+
+  const statusLabel = (status: string) => {
+    if (locale === "en") return status;
+    if (status === "Pending") return "待處理";
+    if (status === "Fulfilled") return "已完成";
+    if (status === "Rejected") return "已拒絕";
+    return status;
+  };
+
+  const statusPillClass = (status: string) => {
+    if (status === "Fulfilled") {
+      return "border-emerald-300/40 bg-emerald-300/12 text-emerald-200";
+    }
+    if (status === "Rejected") {
+      return "border-rose-300/40 bg-rose-300/12 text-rose-200";
+    }
+    return "border-amber-300/40 bg-amber-300/12 text-amber-200";
+  };
 
   const approvedExp = dashboard.submissions
     .filter((item) => item.status === "Approved")
@@ -112,6 +136,33 @@ export default async function DashboardProfilePage() {
               <p className="font-semibold text-slate-100">{dashboard.pendingCount}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="tactical-card mt-6 p-6 sm:p-8">
+        <h2 className="text-xl font-semibold text-slate-100">{t.recentOrders}</h2>
+        <div className="mt-4 max-h-80 space-y-2.5 overflow-y-auto pr-1">
+          {rewardsPageData.redemptions.length > 0 ? (
+            rewardsPageData.redemptions.map((redemption) => (
+              <div key={redemption.id} className="tactical-subcard px-4 py-3 text-sm text-slate-300">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-100">{redemption.rewardName}</p>
+                    <p className="mt-1 text-xs text-slate-400">{redemption.createdAt}</p>
+                  </div>
+                  <span className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${statusPillClass(redemption.status)}`}>
+                    {statusLabel(redemption.status)}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm font-semibold text-amber-200">{redemption.costCoins.toLocaleString()} {t.coins}</p>
+                {redemption.notes ? <p className="mt-1 text-slate-400">{redemption.notes}</p> : null}
+              </div>
+            ))
+          ) : (
+            <div className="tactical-subcard px-4 py-4 text-sm text-slate-300">
+              {t.noOrders}
+            </div>
+          )}
         </div>
       </div>
     </section>
