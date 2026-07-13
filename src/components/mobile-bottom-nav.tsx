@@ -81,7 +81,7 @@ export function MobileBottomNav({ links }: MobileBottomNavProps) {
       style={{ bottom: "calc(env(safe-area-inset-bottom) + 0.75rem)" }}
       aria-label="Bottom tab navigation"
     >
-      <div className="relative overflow-hidden rounded-[1.85rem] border border-cyan-200/20 bg-slate-900/62 p-2 shadow-[0_18px_45px_rgba(2,6,23,0.58)] backdrop-blur-2xl">
+      <div className="relative overflow-hidden rounded-[1.6rem] border border-cyan-200/20 bg-slate-900/62 p-1.5 shadow-[0_18px_45px_rgba(2,6,23,0.58)] backdrop-blur-2xl">
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(148,163,184,0.22),rgba(15,23,42,0.08))]" />
         <div className="relative grid grid-cols-4 gap-1">
           {mobileLinks.map((link) => {
@@ -91,13 +91,13 @@ export function MobileBottomNav({ links }: MobileBottomNavProps) {
                 key={`mobile-${link.href}`}
                 href={link.href}
                 prefetch
-                className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-2 text-[11px] font-semibold transition ${isActive
+                className={`flex flex-col items-center justify-center gap-1 rounded-2xl px-2 py-1.5 text-[10px] font-semibold transition ${isActive
                   ? "bg-slate-700/65 text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.26),0_8px_20px_rgba(2,6,23,0.35)]"
                   : "text-slate-300 hover:bg-white/10 hover:text-slate-100"
                   }`}
                 aria-current={isActive ? "page" : undefined}
               >
-                <span className="text-base">
+                <span className="text-sm">
                   <NavIcon href={link.href} />
                 </span>
                 <span className="line-clamp-1 leading-none">{link.label}</span>

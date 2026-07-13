@@ -10,7 +10,7 @@
   --hud-subtext: #a4b3c0;
   --hud-accent: #8ea56a;
   --hud-accent-soft: #b7c79b;
-  --font-body-mobile: 15px;
+  --font-body-mobile: 14px;
   --font-body-desktop: 16px;
 }
 
@@ -262,6 +262,74 @@ a {
   .glass-panel {
     border-radius: 0.82rem;
     clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  .section-shell {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .tactical-section-title {
+    font-size: clamp(1.45rem, 6.5vw, 2rem);
+    line-height: 1.14;
+  }
+
+  .tactical-section-lead {
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .text-6xl {
+    font-size: 2.1rem !important;
+    line-height: 1.12 !important;
+  }
+
+  .text-5xl {
+    font-size: 1.9rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .text-4xl {
+    font-size: 1.65rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .text-3xl {
+    font-size: 1.4rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .text-2xl {
+    font-size: 1.2rem !important;
+    line-height: 1.3 !important;
+  }
+
+  .text-xl {
+    font-size: 1.08rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .text-lg {
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .p-8 {
+    padding: 1.1rem !important;
+  }
+
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .py-16 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .py-12 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
   }
 
   button,
