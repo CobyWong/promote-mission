@@ -203,8 +203,8 @@ export default async function DashboardPage() {
             </div>
           </div>
         </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div className="tactical-subcard p-4 md:col-span-2 xl:col-span-4">
+        <div className="mt-6 space-y-4">
+          <div className="rounded-xl border border-white/10 px-3 py-4 sm:px-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.levelProgress}</p>
               <p className="text-sm font-semibold text-cyan-200">
@@ -233,21 +233,25 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.ageGroup}</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.profile.ageGroup}</p>
-          </div>
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.followersRange}</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.profile.followersRange}</p>
-          </div>
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.joinedAt}</p>
-            <p className="mt-2 break-words text-xl font-semibold text-slate-100">{dashboard.profile.joinedAt}</p>
-          </div>
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.pendingReviews}</p>
-            <p className="mt-2 text-xl font-semibold text-slate-100">{dashboard.pendingCount}</p>
+          <div className="rounded-xl border border-white/10 px-3 py-2 sm:px-4">
+            <div className="grid gap-2 sm:grid-cols-2">
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 sm:border-b-0 sm:border-r sm:pr-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.ageGroup}</p>
+                <p className="text-base font-semibold text-slate-100">{dashboard.profile.ageGroup}</p>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 sm:border-b-0 sm:pl-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.followersRange}</p>
+                <p className="text-base font-semibold text-slate-100">{dashboard.profile.followersRange}</p>
+              </div>
+              <div className="flex items-center justify-between gap-3 border-b border-white/10 py-2 sm:border-b-0 sm:border-r sm:pr-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.joinedAt}</p>
+                <p className="break-words text-base font-semibold text-slate-100">{dashboard.profile.joinedAt}</p>
+              </div>
+              <div className="flex items-center justify-between gap-3 py-2 sm:pl-3">
+                <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.pendingReviews}</p>
+                <p className="text-base font-semibold text-slate-100">{dashboard.pendingCount}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -263,22 +267,24 @@ export default async function DashboardPage() {
           </Link>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.totalEarned}</p>
-            <p className="mt-2 text-2xl font-semibold text-amber-200 sm:text-3xl">HK${dashboard.totalEarned.toLocaleString()}</p>
-          </div>
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.availableToWithdraw}</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">HK${dashboard.availableToWithdraw.toLocaleString()}</p>
-          </div>
-          <div className="tactical-subcard p-4">
-            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.withdrawnSoFar}</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">HK${dashboard.withdrawnSoFar.toLocaleString()}</p>
+        <div className="mt-6 rounded-xl border border-white/10 px-3 py-2 sm:px-4">
+          <div className="space-y-1">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3">
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.totalEarned}</p>
+              <p className="text-xl font-semibold text-amber-200">HK${dashboard.totalEarned.toLocaleString()}</p>
+            </div>
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 py-3">
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.availableToWithdraw}</p>
+              <p className="text-xl font-semibold text-slate-100">HK${dashboard.availableToWithdraw.toLocaleString()}</p>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-3">
+              <p className="text-xs uppercase tracking-[0.12em] text-slate-500">{t.withdrawnSoFar}</p>
+              <p className="text-xl font-semibold text-slate-100">HK${dashboard.withdrawnSoFar.toLocaleString()}</p>
+            </div>
           </div>
         </div>
 
-        <div className="tactical-subcard mt-4 px-4 py-3 text-sm text-slate-300">
+        <div className="mt-4 border-t border-white/10 pt-3 text-sm text-slate-300">
           <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{t.recentWithdrawal}</p>
           <p className="mt-2">{t.noWithdrawal}</p>
         </div>
