@@ -11,11 +11,6 @@ export default async function RewardsPage() {
       <div className="max-w-3xl">
         <p className="tactical-section-kicker">{locale === "en" ? "Rewards Store" : "獎賞網店"}</p>
         <h1 className="tactical-section-title">{locale === "en" ? "Creator Rewards Store" : "創作者獎賞店"}</h1>
-        <p className="tactical-section-lead">
-          {locale === "en"
-            ? "Shop vouchers, USDT, and gear with your Coins. Compare options and redeem in one click."
-            : "用 Coins 換購禮券、USDT 與裝備；可先比較商品，再一鍵兌換。"}
-        </p>
       </div>
 
       {rewardsPageData.mode === "unavailable" ? (

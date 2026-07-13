@@ -3,8 +3,6 @@ import { getCurrentLocale } from "@/lib/i18n";
 import { DIFFICULTY_REQUIRED_LEVEL, getMissionRequiredLevel } from "@/lib/mission-rules";
 import Link from "next/link";
 
-const zhMissionIntro = "請選擇最符合受眾定位與內容風格的任務。";
-
 export default async function MissionsPage() {
   const locale = await getCurrentLocale();
   const missionCatalog = await getMissionCenterData();
@@ -68,11 +66,6 @@ export default async function MissionsPage() {
       <div className="max-w-4xl">
         <p className="tactical-section-kicker">{locale === "en" ? "Campaign Marketplace" : "任務市集"}</p>
         <h1 className="tactical-section-title">{locale === "en" ? "Mission Center" : "任務中心"}</h1>
-        <p className="tactical-section-lead">
-          {locale === "en"
-            ? "Pick campaigns that fit your audience and content style."
-            : zhMissionIntro}
-        </p>
       </div>
 
       <div className="mx-auto mt-10 max-w-3xl space-y-6">
