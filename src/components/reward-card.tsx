@@ -7,7 +7,6 @@ export function RewardCard({ reward, locale = "zh-HK" }: { reward: Reward; local
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="text-lg font-semibold text-slate-100">{reward.name}</h3>
-          <p className="mt-3 text-sm leading-6 text-slate-300">{reward.description}</p>
         </div>
         {reward.badge ? (
           <span className="tactical-chip">

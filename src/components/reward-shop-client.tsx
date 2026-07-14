@@ -210,7 +210,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
                     </div>
                     <div className="min-w-0">
                       <h3 className="line-clamp-2 break-words text-lg font-bold leading-tight text-slate-100 sm:text-xl">{reward.name}</h3>
-                      <p className="mt-1 line-clamp-2 text-xs text-slate-300 sm:text-sm">{reward.description}</p>
                     </div>
                   </div>
                 </div>
@@ -267,9 +266,6 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
                   {t.close}
                 </button>
               </div>
-
-              <p className="mt-3 text-sm text-slate-300">{selectedReward.description}</p>
-
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
                   <p className="text-xs text-slate-400">{t.priceLabel}</p>

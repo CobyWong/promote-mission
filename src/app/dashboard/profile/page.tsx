@@ -140,7 +140,7 @@ export default async function DashboardProfilePage({ searchParams }: { searchPar
         </div>
       </div>
 
-      <div className="tactical-card mt-6 p-6 sm:p-8">
+      <div id="recent-orders" className="tactical-card mt-6 p-6 sm:p-8">
         <h2 className="text-xl font-semibold text-slate-100">{t.recentOrders}</h2>
         <div className="mt-4 max-h-80 space-y-2.5 overflow-y-auto pr-1">
           {rewardsPageData.redemptions.length > 0 ? (
