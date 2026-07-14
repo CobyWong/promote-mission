@@ -135,9 +135,6 @@ export default async function DashboardPage() {
             {t.subtitle}
           </p>
         </div>
-        <Link href="/missions" className="tactical-btn-primary px-6 py-3 text-center">
-          {t.getMore}
-        </Link>
       </div>
 
       <Link href="/dashboard/profile?edit=1" className="tactical-card mt-10 block p-6 transition hover:bg-white/5 sm:p-8">
