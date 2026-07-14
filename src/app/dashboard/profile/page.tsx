@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { UserProfileCard } from "@/components/user-profile-card";
 import { getDashboardData, getRewardsPageData } from "@/lib/backend";
 import { getGamePassLevelRewardCoins } from "@/lib/game-pass";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getLevelProgressFromTotalExp, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 
-export default async function DashboardProfilePage() {
+export default async function DashboardProfilePage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const startEditing = ["1", "true", "yes"].includes((resolvedSearchParams.edit ?? "").toLowerCase());
   const locale = await getCurrentLocale();
   const [dashboard, rewardsPageData] = await Promise.all([getDashboardData(), getRewardsPageData()]);
 
@@ -77,25 +80,24 @@ export default async function DashboardProfilePage() {
     .reduce((sum, item) => sum + Math.max(item.coins ?? 0, 0), 0);
   const levelProgress = getLevelProgressFromTotalExp(approvedExp);
   const nextLevelCoins = levelProgress.isMaxLevel ? 0 : getGamePassLevelRewardCoins(levelProgress.level + 1);
-  const avatarInitial = dashboard.profile.name?.trim().slice(0, 1).toUpperCase() ?? "C";
-
   return (
     <section className="section-shell py-12 sm:py-16">
       <Link href="/dashboard" className="text-sm font-semibold text-cyan-300">← {t.back}</Link>
 
-      <div className="tactical-card mt-6 p-6 sm:p-8">
-        <div className="flex items-center gap-4">
-          <span className="flex h-16 w-16 items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 text-3xl font-semibold text-amber-200">
-            {avatarInitial}
-          </span>
-          <div>
-            <h1 className="text-2xl font-semibold text-slate-100">{dashboard.profile.name}</h1>
-            <p className="mt-1 text-slate-300">{dashboard.profile.handle}</p>
-            <p className="mt-1 text-xs font-semibold tracking-[0.08em] text-cyan-200">{t.userId}: {dashboard.profile.userId}</p>
-          </div>
-        </div>
+      <div className="mt-6">
+        <UserProfileCard
+          locale={locale}
+          initialName={dashboard.profile.name}
+          initialHandle={dashboard.profile.handle}
+          initialNiche={dashboard.profile.niche}
+          initialFollowersRange={dashboard.profile.followersRange}
+          email={dashboard.userEmail}
+          startEditing={startEditing}
+        />
+      </div>
 
-        <div id="level-progress" className="mt-8 border-t border-white/10 pt-5">
+      <div className="tactical-card mt-6 p-6 sm:p-8">
+        <div id="level-progress" className="border-t border-white/10 pt-1">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-slate-400">{t.level}</p>
             <p className="text-lg font-semibold text-cyan-200">Lv.{levelProgress.level}/{MAX_CREATOR_LEVEL}</p>
