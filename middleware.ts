@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-import { ADMIN_SESSION_COOKIE, hasAdminSessionCookieValue } from "@/lib/admin-auth";
 import { updateSession } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 import { getSupabaseAnonKey, getSupabaseUrl, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
@@ -19,12 +18,6 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = await updateSession(request);
-
-  const hasAdminSession = hasAdminSessionCookieValue(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
-
-  if (hasAdminSession) {
-    return response;
-  }
 
   let user: { email?: string | null } | null = null;
 

@@ -3,15 +3,7 @@ import { isAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 function getPublicOrigin(request: Request) {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-  const host = forwardedHost ?? request.headers.get("host");
-
-  if (host) {
-    const protocol = forwardedProto ?? "https";
-    return `${protocol}://${host}`;
-  }
-
+  // Use runtime-resolved request origin and ignore untrusted forwarded headers.
   return new URL(request.url).origin;
 }
 

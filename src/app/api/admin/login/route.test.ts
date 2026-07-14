@@ -67,6 +67,18 @@ describe("POST /api/admin/login", () => {
     expect(response.headers.get("retry-after")).toBe("42");
   });
 
+  it("returns 403 when origin does not match", async () => {
+    const response = await POST(new Request("http://localhost/api/admin/login", {
+      method: "POST",
+      headers: {
+        origin: "http://evil.localhost",
+      },
+      body: JSON.stringify({ email: "admin@example.com", password: "secret" }),
+    }));
+
+    expect(response.status).toBe(403);
+  });
+
   it("returns 401 for invalid credentials", async () => {
     mockIsAdminCredential.mockReturnValue(false);
 

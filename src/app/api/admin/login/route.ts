@@ -7,6 +7,7 @@ import {
   isAdminCredential,
 } from "@/lib/admin-auth";
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { getClientFingerprint, evaluateRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { logApiEvent, reportApiError } from "@/lib/observability";
 
@@ -15,6 +16,10 @@ export async function POST(request: Request) {
   const isZh = isZhRequest(request);
 
   try {
+    if (!isSameOriginMutationRequest(request)) {
+      return NextResponse.json({ error: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed." }, { status: 403 });
+    }
+
     if (!hasAdminCredentialConfig()) {
       await logApiEvent({
         level: "error",

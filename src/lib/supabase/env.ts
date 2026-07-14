@@ -36,10 +36,7 @@ export function getAdminEmails() {
     .map((email) => email.trim().toLowerCase())
     .filter(Boolean);
 
-  // Keep backward compatibility with older seeded demo credentials.
-  const legacy = ["admin@luck323.com"];
-
-  return Array.from(new Set([...configured, ...legacy]));
+  return Array.from(new Set(configured));
 }
 
 export function getBrandEmails() {

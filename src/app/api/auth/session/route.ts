@@ -6,12 +6,17 @@ import { getSupabaseAnonKey, getSupabaseUrl, hasSupabaseConfig } from "@/lib/sup
 import { getClientFingerprint, evaluateRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { logApiEvent, reportApiError } from "@/lib/observability";
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
   const isZh = isZhRequest(request);
 
   try {
+    if (!isSameOriginMutationRequest(request)) {
+      return NextResponse.json({ error: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed." }, { status: 403 });
+    }
+
     const limiter = await evaluateRateLimit({
       namespace: "auth-session",
       key: getClientFingerprint(request),

@@ -8,10 +8,12 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
 
 export async function POST(request: Request) {
   const isZh = isZhRequest(request);
   const t = {
+    csrfFailed: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed.",
     rateLimited: isZh ? "兌換嘗試過於頻繁，請稍後再試。" : "Too many redemption attempts. Please try again shortly.",
     serviceUnavailable: isZh ? "兌換服務暫時不可用，請稍後再試。" : "Supabase is not configured.",
     authRequired: isZh ? "請先登入後再兌換獎賞。" : "Please log in before redeeming rewards.",
@@ -23,6 +25,10 @@ export async function POST(request: Request) {
       ? "相同兌換請求仍在處理中，請稍候再試。"
       : "A redemption with the same idempotency key is already in progress.",
   };
+
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: t.csrfFailed }, { status: 403 });
+  }
 
   const limiter = await evaluateRateLimit({
     namespace: "web-redemption-create",

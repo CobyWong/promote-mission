@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
@@ -31,6 +32,10 @@ async function assertBrandAccess(request: Request) {
 
 export async function PATCH(request: Request, context: { params: Promise<{ slug: string }> }) {
   const isZh = isZhRequest(request);
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed." }, { status: 403 });
+  }
+
   const access = await assertBrandAccess(request);
 
   if ("error" in access) {
@@ -62,6 +67,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
 
 export async function DELETE(request: Request, context: { params: Promise<{ slug: string }> }) {
   const isZh = isZhRequest(request);
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed." }, { status: 403 });
+  }
+
   const access = await assertBrandAccess(request);
 
   if ("error" in access) {

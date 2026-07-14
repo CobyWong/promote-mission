@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getAdminEmails, getBrandEmails, isAdminEmail } from "@/lib/supabase/env";
@@ -44,6 +45,7 @@ async function assertAdminAccess() {
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const isZh = isZhRequest(request);
   const t = {
+    csrfFailed: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed.",
     serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
     forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
     profileUpdateFailed: isZh ? "更新用戶資料失敗，請稍後再試。" : "Failed to update user profile.",
@@ -51,6 +53,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     deleteSelfForbidden: isZh ? "不可刪除目前登入的管理員帳號。" : "You cannot delete your own admin account.",
     deleteFailed: isZh ? "刪除用戶失敗，請稍後再試。" : "Failed to delete user.",
   };
+
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: t.csrfFailed }, { status: 403 });
+  }
 
   const [{ id }, access] = await Promise.all([
     context.params,
@@ -132,11 +138,16 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   const isZh = isZhRequest(request);
   const t = {
+    csrfFailed: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed.",
     serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
     forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
     deleteSelfForbidden: isZh ? "不可刪除目前登入的管理員帳號。" : "You cannot delete your own admin account.",
     deleteFailed: isZh ? "刪除用戶失敗，請稍後再試。" : "Failed to delete user.",
   };
+
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: t.csrfFailed }, { status: 403 });
+  }
 
   const [{ id }, access] = await Promise.all([
     context.params,

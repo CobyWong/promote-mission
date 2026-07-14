@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 import { createAppLog } from "@/lib/observability";
+import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig, hasSupabaseConfig } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -11,16 +14,84 @@ export async function POST(
   context: { params: Promise<{ slug: string }> },
 ) {
   const isZh = isZhRequest(request);
-  if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed." }, { status: 403 });
+  }
+
+  const { slug } = await context.params;
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
     return NextResponse.json({ error: isZh ? "任務參與服務暫時不可用，請稍後再試。" : "Mission interest service unavailable." }, { status: 503 });
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: isZh ? "請先登入後再接受任務。" : "Please log in before accepting missions." }, { status: 401 });
+  }
+
+  const limiter = await evaluateRateLimit({
+    namespace: "mission-interest",
+    key: `${getClientFingerprint(request)}:${user.id}:${slug}`,
+    max: 6,
+    windowMs: 60_000,
+  });
+
+  if (!limiter.allowed) {
+    const retryAfter = getRetryAfterSeconds(limiter.resetAt);
+    return NextResponse.json(
+      { error: isZh ? "請求過於頻繁，請稍後再試。" : "Too many requests. Please try again shortly." },
+      {
+        status: 429,
+        headers: { "retry-after": String(retryAfter) },
+      },
+    );
+  }
+
+  const operation = await beginIdempotentOperation({
+    namespace: "mission-interest",
+    actorId: user.id,
+    request,
+    fallbackSeed: `${user.id}:${slug}`,
+    ttlMs: 2 * 60 * 1000,
+  });
+
+  if (operation.mode === "replay") {
+    return NextResponse.json(operation.body as Record<string, unknown>, { status: operation.status });
+  }
+
+  if (operation.mode === "inflight") {
+    return NextResponse.json(
+      { error: isZh ? "相同請求仍在處理中，請稍候再試。" : "A similar request is still being processed." },
+      { status: 409 },
+    );
+  }
+
+  if (!hasSupabaseConfig() || !hasSupabaseAdminConfig()) {
+    const errorBody = { error: isZh ? "任務參與服務暫時不可用，請稍後再試。" : "Mission interest service unavailable." };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 503,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 503 });
   }
 
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return NextResponse.json({ error: isZh ? "任務參與服務暫時不可用，請稍後再試。" : "Mission interest service unavailable." }, { status: 503 });
+    const errorBody = { error: isZh ? "任務參與服務暫時不可用，請稍後再試。" : "Mission interest service unavailable." };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 503,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 503 });
   }
-
-  const { slug } = await context.params;
 
   const { data: mission } = await admin
     .from("missions")
@@ -36,13 +107,15 @@ export async function POST(
     .eq("slug", slug);
 
   if (error) {
-    return NextResponse.json({ error: isZh ? "更新任務參與人數失敗，請稍後再試。" : error.message }, { status: 400 });
+    const errorBody = { error: isZh ? "更新任務參與人數失敗，請稍後再試。" : error.message };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 400,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 400 });
   }
-
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
   await createAppLog({
     level: "info",
@@ -58,5 +131,13 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ ok: true, count: nextCount });
+  const successBody = { ok: true, count: nextCount };
+  await finalizeIdempotentOperation({
+    storageKey: operation.storageKey,
+    ttlMs: operation.ttlMs,
+    status: 200,
+    body: successBody,
+  });
+
+  return NextResponse.json(successBody);
 }

@@ -7,6 +7,7 @@ import { createUserNotification } from "@/lib/notifications";
 import { createAppLog } from "@/lib/observability";
 import { handleReferralPostSettlement } from "@/lib/referral-growth";
 import { isZhRequest } from "@/lib/api-locale";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isAdminEmail } from "@/lib/supabase/env";
@@ -86,6 +87,7 @@ export async function PATCH(
 ) {
   const isZh = isZhRequest(request);
   const t = {
+    csrfFailed: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed.",
     serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
     forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
     notFound: isZh ? "找不到提交紀錄。" : "Submission not found.",
@@ -93,6 +95,10 @@ export async function PATCH(
     invalidDueTime: isZh ? "審核期限格式無效。" : "Invalid review due time.",
     updateFailed: isZh ? "更新提交資料失敗，請稍後再試。" : "Unable to update submission. Please try again.",
   };
+
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: t.csrfFailed }, { status: 403 });
+  }
 
   const [{ id }, supabase, admin] = await Promise.all([
     context.params,

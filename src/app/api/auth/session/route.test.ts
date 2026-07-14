@@ -60,6 +60,18 @@ describe("POST /api/auth/session", () => {
     expect(response.headers.get("retry-after")).toBe("21");
   });
 
+  it("returns 403 when origin does not match", async () => {
+    const response = await POST(new Request("http://localhost/api/auth/session", {
+      method: "POST",
+      headers: {
+        origin: "http://evil.localhost",
+      },
+      body: JSON.stringify({ access_token: "a", refresh_token: "b" }),
+    }));
+
+    expect(response.status).toBe(403);
+  });
+
   it("returns 400 when tokens are missing", async () => {
     const response = await POST(new Request("http://localhost/api/auth/session", {
       method: "POST",

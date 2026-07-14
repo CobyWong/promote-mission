@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { createAppLog } from "@/lib/observability";
+import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getSupportEmail } from "@/lib/supabase/env";
@@ -17,6 +19,8 @@ function isValidEmail(email: string) {
 export async function POST(request: Request) {
   const isZh = isZhRequest(request);
   const t = {
+    csrfFailed: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed.",
+    tooManyRequests: isZh ? "請求次數過於頻繁，請稍後再試。" : "Too many requests. Please try again later.",
     invalidPayload: isZh ? "請求內容格式無效。" : "Invalid payload.",
     nameRequired: isZh ? "請填寫稱呼。" : "Please enter your name.",
     invalidEmail: isZh ? "請輸入有效的電郵地址。" : "Please enter a valid email.",
@@ -24,6 +28,30 @@ export async function POST(request: Request) {
     inboxUnavailable: isZh ? "客服系統暫時不可用，請稍後再試。" : "Support inbox is temporarily unavailable.",
     sendFailed: isZh ? "目前無法送出客服請求，請稍後再試。" : "Failed to send support request right now.",
   };
+
+  if (!isSameOriginMutationRequest(request)) {
+    return NextResponse.json({ error: t.csrfFailed }, { status: 403 });
+  }
+
+  const limiter = await evaluateRateLimit({
+    namespace: "support-ticket-create",
+    key: getClientFingerprint(request),
+    max: 8,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!limiter.allowed) {
+    const retryAfter = getRetryAfterSeconds(limiter.resetAt);
+    return NextResponse.json(
+      { error: t.tooManyRequests },
+      {
+        status: 429,
+        headers: {
+          "retry-after": String(retryAfter),
+        },
+      },
+    );
+  }
 
   const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
 
