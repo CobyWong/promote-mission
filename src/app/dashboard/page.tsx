@@ -140,7 +140,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
-      <div className="tactical-card mt-10 p-6 sm:p-8">
+      <Link href="/dashboard/profile" className="tactical-card mt-10 block p-6 transition hover:bg-white/5 sm:p-8">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-4">
             <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-amber-300/40 bg-amber-300/10 text-3xl font-semibold text-amber-200">
@@ -155,7 +155,7 @@ export default async function DashboardPage() {
           </div>
           <span className="text-3xl leading-none text-slate-400">›</span>
         </div>
-      </div>
+      </Link>
 
       <div className="tactical-card mt-8 p-5 sm:p-8">
         <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.accountSection}</p>

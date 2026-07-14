@@ -60,6 +60,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [followersRange, setFollowersRange] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [showTermsConsentError, setShowTermsConsentError] = useState(false);
   const [registerStep, setRegisterStep] = useState(1);
   const backendReady = hasSupabaseConfig();
   const t = locale === "en"
@@ -166,7 +167,6 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
     }
 
     if (registerStep === 3 && !agreedTerms) {
-      setError(t.needTerms);
       return false;
     }
 
@@ -175,6 +175,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
   function goNextRegisterStep() {
     setError(null);
+    setShowTermsConsentError(false);
     if (!validateCurrentRegisterStep()) {
       return;
     }
@@ -184,6 +185,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
   function goBackRegisterStep() {
     setError(null);
+    setShowTermsConsentError(false);
     setRegisterStep((step) => Math.max(step - 1, 1));
   }
 
@@ -236,6 +238,12 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
     try {
       if (isRegister) {
+        if (registerStep === 3 && !agreedTerms) {
+          setShowTermsConsentError(true);
+        } else {
+          setShowTermsConsentError(false);
+        }
+
         if (registerStep < 3) {
           goNextRegisterStep();
           return;
@@ -526,7 +534,15 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                       </label>
 
                       <label className="flex items-center gap-3 rounded-2xl border border-slate-300 bg-white px-4 py-3 text-base text-slate-700">
-                        <input checked={agreedTerms} onChange={(event) => setAgreedTerms(event.target.checked)} type="checkbox" className="h-5 w-5 rounded border-slate-400" />
+                        <input
+                          checked={agreedTerms}
+                          onChange={(event) => {
+                            setAgreedTerms(event.target.checked);
+                            setShowTermsConsentError(false);
+                          }}
+                          type="checkbox"
+                          className="h-5 w-5 rounded border-slate-400"
+                        />
                         <span>
                           {t.termsPrefix} {" "}
                           <Link href="/terms" target="_blank" rel="noreferrer" className="font-semibold text-sky-300 hover:text-sky-200">
@@ -542,6 +558,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                   ) : null}
 
                   {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+                  {showTermsConsentError ? <p className="text-sm text-rose-600">{t.needTerms}</p> : null}
                 </div>
 
                 <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50 px-8 py-6">
