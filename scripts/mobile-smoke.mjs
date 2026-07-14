@@ -14,8 +14,18 @@ function toAbsolute(path) {
   return `${baseUrl.replace(/\/+$/, "")}${path}`;
 }
 
-async function request(path, init = {}) {
-  const response = await fetch(toAbsolute(path), init);
+async function request(path, init = {}, options = {}) {
+  const { includeAuth = true } = options;
+  const headers = new Headers(init.headers ?? {});
+
+  if (includeAuth && bearerToken && !headers.has("authorization")) {
+    headers.set("authorization", `Bearer ${bearerToken}`);
+  }
+
+  const response = await fetch(toAbsolute(path), {
+    ...init,
+    headers,
+  });
   let json = null;
   try {
     json = await response.json();
@@ -72,7 +82,7 @@ async function verifyAuthenticatedMobileEndpoints(token) {
 
 async function verifyUnauthorizedBehavior() {
   console.log("- Checking unauthorized behavior for /api/mobile/me...");
-  const result = await request("/api/mobile/me");
+  const result = await request("/api/mobile/me", {}, { includeAuth: false });
 
   assert(result.status === 401, `Expected 401 from /api/mobile/me without token, got ${result.status}`);
   console.log("  ✓ /api/mobile/me unauthorized guard ok");
