@@ -89,7 +89,6 @@ export default async function DashboardProfilePage({ searchParams }: { searchPar
           locale={locale}
           initialName={dashboard.profile.name}
           initialHandle={dashboard.profile.handle}
-          initialNiche={dashboard.profile.niche}
           initialFollowersRange={dashboard.profile.followersRange}
           email={dashboard.userEmail}
           startEditing={startEditing}

@@ -11,9 +11,7 @@ type UserProfileCardProps = {
   locale: Locale;
   initialName: string;
   initialHandle: string;
-  initialNiche: string;
   initialFollowersRange: string;
-  initialPortfolioUrl?: string;
   email?: string | null;
   canEdit?: boolean;
   startEditing?: boolean;
@@ -23,9 +21,7 @@ export function UserProfileCard({
   locale,
   initialName,
   initialHandle,
-  initialNiche,
   initialFollowersRange,
-  initialPortfolioUrl,
   email,
   canEdit = true,
   startEditing = false,
@@ -37,9 +33,7 @@ export function UserProfileCard({
       subtitle: "Set up your creator profile like account center.",
       name: "Full name",
       handle: "Instagram handle",
-      niche: "Content niche",
       followers: "Followers range",
-      portfolio: "Portfolio / media kit URL",
       save: "Save profile",
       saving: "Saving...",
       saved: "Profile saved.",
@@ -54,9 +48,7 @@ export function UserProfileCard({
       subtitle: "建立並管理創作者個人檔案。",
       name: "姓名",
       handle: "Instagram 帳號",
-      niche: "內容類型",
       followers: "追蹤數區間",
-      portfolio: "作品集 / Media Kit 連結",
       save: "儲存個人檔案",
       saving: "儲存中...",
       saved: "個人檔案已更新。",
@@ -69,9 +61,7 @@ export function UserProfileCard({
 
   const [name, setName] = useState(initialName);
   const [handle, setHandle] = useState(initialHandle.replace(/^@/, ""));
-  const [niche, setNiche] = useState(initialNiche);
   const [followersRange, setFollowersRange] = useState(initialFollowersRange);
-  const [portfolioUrl, setPortfolioUrl] = useState(initialPortfolioUrl ?? "");
   const [editing, setEditing] = useState(startEditing);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -116,18 +106,14 @@ export function UserProfileCard({
 
     const cleanName = name.trim();
     const cleanHandle = handle.trim().replace(/^@/, "");
-    const cleanNiche = niche.trim();
     const cleanFollowers = followersRange.trim();
-    const cleanPortfolio = portfolioUrl.trim();
 
     const { error: profileError } = await supabase
       .from("profiles")
       .update({
         full_name: cleanName || null,
         instagram_handle: cleanHandle ? `@${cleanHandle}` : null,
-        niche: cleanNiche || null,
         followers_range: cleanFollowers || null,
-        portfolio_url: cleanPortfolio || null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", user.id);
@@ -142,9 +128,7 @@ export function UserProfileCard({
       data: {
         full_name: cleanName || null,
         instagram_handle: cleanHandle ? `@${cleanHandle}` : null,
-        niche: cleanNiche || null,
         followers_range: cleanFollowers || null,
-        portfolio_url: cleanPortfolio || null,
       },
     });
 
@@ -210,32 +194,12 @@ export function UserProfileCard({
           </label>
 
           <label className="text-sm text-slate-300">
-            {t.niche}
-            <input
-              value={niche}
-              onChange={(event) => setNiche(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40"
-              placeholder="Lifestyle / Tech"
-            />
-          </label>
-
-          <label className="text-sm text-slate-300">
             {t.followers}
             <input
               value={followersRange}
               onChange={(event) => setFollowersRange(event.target.value)}
               className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40"
               placeholder="5K - 20K"
-            />
-          </label>
-
-          <label className="text-sm text-slate-300 sm:col-span-2">
-            {t.portfolio}
-            <input
-              value={portfolioUrl}
-              onChange={(event) => setPortfolioUrl(event.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40"
-              placeholder="https://..."
             />
           </label>
 
