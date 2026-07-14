@@ -169,7 +169,7 @@ export default async function DashboardPage() {
         <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.financeSection}</p>
         <div className="mt-4 divide-y divide-white/10">
           <MenuRow href="/dashboard/earnings" label={t.earnings} value={`HK$${dashboard.totalEarned.toLocaleString()}`} />
-          <MenuRow href="/dashboard/profile#recent-orders" label={t.wallet} value={dashboard.balance.toLocaleString()} />
+          <MenuRow href="/dashboard/redemptions" label={t.wallet} value={dashboard.balance.toLocaleString()} />
         </div>
       </div>
 
