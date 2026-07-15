@@ -132,6 +132,21 @@ function toReward(row: RewardRow): Reward {
   };
 }
 
+function isCreatorRewardVisible(row: RewardRow) {
+  const slug = row.slug.toLowerCase();
+  const name = row.name.toLowerCase();
+
+  const isAirpods = slug.includes("airpods") || name.includes("airpods");
+  const isGiftCardOrVoucher =
+    slug.includes("gift-card")
+    || slug.includes("voucher")
+    || name.includes("gift card")
+    || name.includes("禮卡")
+    || name.includes("禮券");
+
+  return isAirpods || isGiftCardOrVoucher;
+}
+
 function toRewardRedemption(row: RewardRedemptionRow): RewardRedemption {
   return {
     id: row.id,
@@ -613,10 +628,11 @@ export async function getRewardsCatalog() {
 
   const { data } = await supabase.from("rewards_catalog").select("*").eq("is_active", true).order("display_order", { ascending: true });
   const rewardRows = (data ?? []) as RewardRow[];
+  const visibleRewardRows = rewardRows.filter(isCreatorRewardVisible);
 
   return {
     mode: "live" as const,
-    rewards: rewardRows.map(toReward),
+    rewards: visibleRewardRows.map(toReward),
   };
 }
 
