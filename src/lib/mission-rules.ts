@@ -4,6 +4,12 @@ export const DIFFICULTY_REQUIRED_LEVEL = {
   Hard: 20,
 } as const;
 
+export const MISSION_REWARD_COINS = {
+  Easy: 100,
+  Medium: 300,
+  Hard: 500,
+} as const;
+
 export const MAX_CREATOR_LEVEL = 30;
 export const CREATOR_EXP_PER_LEVEL = 1000;
 
@@ -32,6 +38,18 @@ export function getMissionRequiredLevel(difficulty: string): number {
   }
 
   return DIFFICULTY_REQUIRED_LEVEL.Easy;
+}
+
+export function getMissionRewardCoins(difficulty: string): number {
+  if (difficulty === "Hard") {
+    return MISSION_REWARD_COINS.Hard;
+  }
+
+  if (difficulty === "Medium") {
+    return MISSION_REWARD_COINS.Medium;
+  }
+
+  return MISSION_REWARD_COINS.Easy;
 }
 
 export function getCreatorLevelFromApprovedCount(approvedCount: number): number {

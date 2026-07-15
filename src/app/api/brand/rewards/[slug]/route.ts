@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getRewardRequiredCoins } from "@/lib/reward-pricing";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
@@ -44,10 +45,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
 
   const { slug } = await context.params;
   const body = (await request.json()) as Partial<Database["public"]["Tables"]["rewards_catalog"]["Update"]>;
+  const computedCost = getRewardRequiredCoins({
+    name: typeof body.name === "string" ? body.name : undefined,
+    slug,
+    fallbackCost: typeof body.cost === "number" ? body.cost : undefined,
+  });
 
   const payload: Database["public"]["Tables"]["rewards_catalog"]["Update"] = {
     name: typeof body.name === "string" ? body.name : undefined,
-    cost: typeof body.cost === "number" ? body.cost : undefined,
+    cost: computedCost,
     badge: typeof body.badge === "string" ? body.badge : body.badge === null ? null : undefined,
     description: typeof body.description === "string" ? body.description : undefined,
     fulfillment_eta: typeof body.fulfillment_eta === "string" ? body.fulfillment_eta : undefined,

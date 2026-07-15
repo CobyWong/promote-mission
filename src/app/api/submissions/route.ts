@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createAppLog, reportApiError } from "@/lib/observability";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
-import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
@@ -116,7 +116,7 @@ export async function POST(request: Request) {
           slug: missionRow.slug,
           title: missionRow.title,
           brand: missionRow.brand,
-          points: missionRow.reward_coins,
+          points: getMissionRewardCoins(missionRow.difficulty ?? "Easy"),
           difficulty: missionRow.difficulty,
         }
       : null;

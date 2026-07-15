@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getMissionRewardCoins } from "@/lib/mission-rules";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
@@ -39,6 +40,19 @@ function normalizeLifecycleStatus(value: unknown) {
   return ["draft", "active", "paused", "full", "ended", "archived"].includes(normalized)
     ? normalized
     : "draft";
+}
+
+function normalizeDifficultyLabel(value: unknown) {
+  const normalized = String(value ?? "Easy").toLowerCase();
+  if (normalized === "hard") {
+    return "Hard";
+  }
+
+  if (normalized === "medium") {
+    return "Medium";
+  }
+
+  return "Easy";
 }
 
 function toIsoOrNull(value: unknown) {
@@ -113,14 +127,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: isZh ? "請填寫必要欄位：slug、title、brand、product。" : "slug/title/brand/product are required." }, { status: 400 });
   }
 
+  const difficulty = normalizeDifficultyLabel(body.difficulty);
+
   const payload: Database["public"]["Tables"]["missions"]["Insert"] = {
     slug: body.slug,
     title: body.title,
     brand: body.brand,
     product: body.product,
     mission_image_url: typeof body.mission_image_url === "string" ? body.mission_image_url : null,
-    reward_coins: Number(body.reward_coins ?? 0),
-    difficulty: String(body.difficulty ?? "Easy"),
+    reward_coins: getMissionRewardCoins(difficulty),
+    difficulty,
     eta: String(body.eta ?? "1 day"),
     category: String(body.category ?? "General"),
     description: String(body.description ?? ""),

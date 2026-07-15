@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getMissionRewardCoins } from "@/lib/mission-rules";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
@@ -41,6 +42,27 @@ function normalizeLifecycleStatus(value: unknown): Database["public"]["Tables"][
     : undefined;
 }
 
+function normalizeDifficultyLabel(value: unknown): "Easy" | "Medium" | "Hard" | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = value.toLowerCase();
+  if (normalized === "hard") {
+    return "Hard";
+  }
+
+  if (normalized === "medium") {
+    return "Medium";
+  }
+
+  if (normalized === "easy") {
+    return "Easy";
+  }
+
+  return undefined;
+}
+
 function toIsoOrUndefined(value: unknown) {
   if (value === null) {
     return null;
@@ -72,14 +94,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
 
   const { slug } = await context.params;
   const body = (await request.json()) as Partial<Database["public"]["Tables"]["missions"]["Update"]>;
+  const normalizedDifficulty = normalizeDifficultyLabel(body.difficulty);
 
   const payload: Database["public"]["Tables"]["missions"]["Update"] = {
     title: typeof body.title === "string" ? body.title : undefined,
     brand: typeof body.brand === "string" ? body.brand : undefined,
     product: typeof body.product === "string" ? body.product : undefined,
     mission_image_url: typeof body.mission_image_url === "string" ? body.mission_image_url : undefined,
-    reward_coins: typeof body.reward_coins === "number" ? body.reward_coins : undefined,
-    difficulty: typeof body.difficulty === "string" ? body.difficulty : undefined,
+    reward_coins: normalizedDifficulty ? getMissionRewardCoins(normalizedDifficulty) : undefined,
+    difficulty: normalizedDifficulty,
     eta: typeof body.eta === "string" ? body.eta : undefined,
     category: typeof body.category === "string" ? body.category : undefined,
     description: typeof body.description === "string" ? body.description : undefined,

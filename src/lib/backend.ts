@@ -5,7 +5,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromTotalExp, getRewardRequiredLevel } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getMissionRewardCoins, getRewardRequiredLevel } from "@/lib/mission-rules";
+import { getRewardRequiredCoins } from "@/lib/reward-pricing";
 
 const REDEMPTION_RETENTION_DAYS = 30;
 
@@ -79,7 +80,7 @@ function toMission(row: MissionRow): Mission {
     brand: row.brand,
     product: row.product,
     imageUrl: row.mission_image_url ?? undefined,
-    points: row.reward_coins,
+    points: getMissionRewardCoins(row.difficulty),
     difficulty: row.difficulty as Mission["difficulty"],
     eta: row.eta,
     category: row.category,
@@ -121,7 +122,11 @@ function toReward(row: RewardRow): Reward {
   return {
     slug: row.slug,
     name: row.name,
-    cost: row.cost,
+    cost: getRewardRequiredCoins({
+      name: row.name,
+      slug: row.slug,
+      fallbackCost: row.cost,
+    }) ?? row.cost,
     minLevel: getRewardRequiredLevel(row.slug),
     badge: row.badge ?? undefined,
     description: row.description,

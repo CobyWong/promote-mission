@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isZhRequest } from "@/lib/api-locale";
-import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { hasSupabaseAdminConfig } from "@/lib/supabase/env";
@@ -335,7 +335,7 @@ export async function POST(request: Request) {
         slug: missionRow.slug,
         title: missionRow.title,
         brand: missionRow.brand,
-        points: missionRow.reward_coins,
+        points: getMissionRewardCoins(missionRow.difficulty ?? "Easy"),
         difficulty: missionRow.difficulty,
       }
       : null;

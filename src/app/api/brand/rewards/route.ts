@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getRewardRequiredCoins } from "@/lib/reward-pricing";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
@@ -83,7 +84,11 @@ export async function POST(request: Request) {
   const payload: Database["public"]["Tables"]["rewards_catalog"]["Insert"] = {
     slug: body.slug,
     name: body.name,
-    cost: Number(body.cost ?? 0),
+    cost: getRewardRequiredCoins({
+      name: body.name,
+      slug: body.slug,
+      fallbackCost: Number(body.cost ?? 0),
+    }) ?? Number(body.cost ?? 0),
     badge: typeof body.badge === "string" ? body.badge : null,
     description: String(body.description ?? ""),
     fulfillment_eta: String(body.fulfillment_eta ?? "1-3 個工作天"),
