@@ -89,11 +89,11 @@ export async function Header() {
       <div className="mx-auto flex max-w-7xl items-center px-4 py-2 sm:px-6 sm:py-3 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
           <Image
-            src="/logo.png"
+            src="/mission-one-logo-trimmed.png"
             alt="Mission One"
-            width={40}
-            height={40}
-            className="h-8 w-8 object-contain sm:h-10 sm:w-10"
+            width={120}
+            height={96}
+            className="h-10 w-auto object-contain sm:h-12"
             priority
           />
           <span className="sr-only">Mission One</span>
