@@ -99,24 +99,27 @@ export default async function Home() {
   return (
     <div className="pb-20">
       <section className="section-shell py-16 sm:py-24">
-        <div className="mx-auto max-w-4xl text-center">
-          <span className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-4 py-2 text-sm text-cyan-200">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-slate-200/90 bg-white/95 px-6 py-12 text-center shadow-[0_24px_52px_rgba(15,23,42,0.09)] sm:px-10 sm:py-16">
+          <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full bg-cyan-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -right-12 h-56 w-56 rounded-full bg-orange-400/15 blur-3xl" />
+
+          <span className="inline-flex rounded-full border border-cyan-500/35 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-700">
             {t.badge}
           </span>
 
-          <h1 className="mt-6 text-3xl font-semibold leading-tight text-white sm:text-5xl lg:text-6xl">
+          <h1 className="mt-6 text-3xl font-semibold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
             {t.title}
           </h1>
 
-          <p className="mx-auto mt-6 max-w-3xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+          <p className="mx-auto mt-6 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
             {t.desc}
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link href="/missions" className="rounded-full bg-cyan-400 px-6 py-3 text-center font-semibold text-slate-950 transition hover:bg-cyan-300">
+            <Link href="/missions" className="rounded-full bg-cyan-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-cyan-600">
               {t.primaryCta}
             </Link>
-            <Link href="/support" className="rounded-full border border-white/15 px-6 py-3 text-center font-semibold text-white transition hover:border-white/30 hover:bg-white/5">
+            <Link href="/support" className="rounded-full border border-slate-300 px-6 py-3 text-center font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50">
               {t.secondaryCta}
             </Link>
           </div>
@@ -125,12 +128,12 @@ export default async function Home() {
 
       <section className="section-shell">
         <div className="glass-panel p-5 sm:p-8">
-          <h2 className="text-2xl font-semibold text-white">{t.overviewTitle}</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">{t.overviewTitle}</h2>
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {t.overviewItems.map((item) => (
-              <article key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-5">
-                <h3 className="text-lg font-semibold text-white">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-300">{item.desc}</p>
+              <article key={item.title} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
+                <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.desc}</p>
               </article>
             ))}
           </div>
@@ -140,34 +143,34 @@ export default async function Home() {
       <section className="section-shell mt-10">
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="glass-panel p-5 sm:p-8">
-            <h2 className="text-2xl font-semibold text-white">{t.flowTitle}</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">{t.flowTitle}</h2>
             <div className="mt-6 space-y-3">
               {t.flowSteps.map((step, index) => (
-                <div key={step} className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-400/20 text-sm font-semibold text-cyan-200">
+                <div key={step} className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-4">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/15 text-sm font-semibold text-cyan-700">
                     {index + 1}
                   </span>
-                  <p className="text-slate-200">{step}</p>
+                  <p className="text-slate-700">{step}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="glass-panel p-5 sm:p-8">
-            <h2 className="text-2xl font-semibold text-white">{t.benefitsTitle}</h2>
+            <h2 className="text-2xl font-semibold text-slate-900">{t.benefitsTitle}</h2>
             <div className="mt-6 space-y-4">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <h3 className="text-base font-semibold text-cyan-200">{t.creatorBenefitsTitle}</h3>
-                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <h3 className="text-base font-semibold text-cyan-700">{t.creatorBenefitsTitle}</h3>
+                <ul className="mt-3 space-y-2 text-sm text-slate-600">
                   {t.creatorBenefits.map((item) => (
                     <li key={item}>• {item}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <h3 className="text-base font-semibold text-cyan-200">{t.brandBenefitsTitle}</h3>
-                <ul className="mt-3 space-y-2 text-sm text-slate-300">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <h3 className="text-base font-semibold text-cyan-700">{t.brandBenefitsTitle}</h3>
+                <ul className="mt-3 space-y-2 text-sm text-slate-600">
                   {t.brandBenefits.map((item) => (
                     <li key={item}>• {item}</li>
                   ))}

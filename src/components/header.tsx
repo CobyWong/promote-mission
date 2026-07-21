@@ -69,7 +69,7 @@ export async function Header() {
 
   const t = linkLabels[locale];
 
-  const textColor = theme === "dark" ? "text-slate-100" : "text-slate-100";
+  const textColor = theme === "dark" ? "text-slate-900" : "text-slate-900";
 
   const navLinks = [
     ...userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => ({
@@ -85,7 +85,7 @@ export async function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-400/35 bg-slate-900/40 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-slate-200/90 bg-white/88 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center px-4 py-2 sm:px-6 sm:py-3 lg:px-8">
         <Link href="/" className={`flex items-center gap-3 text-sm font-semibold ${textColor}`}>
           <Image
@@ -121,8 +121,8 @@ export async function Header() {
             <Link
               href="/login"
               className={`border px-4 py-2 text-sm font-semibold tracking-wide transition ${theme === "dark"
-                ? "border-slate-500 text-slate-200 hover:border-slate-300"
-                : "border-slate-500 text-slate-200 hover:border-slate-300"
+                ? "border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                : "border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-slate-50"
                 }`}
               style={{ borderRadius: "0.75rem", clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}
             >
@@ -131,8 +131,8 @@ export async function Header() {
             <Link
               href="/register"
               className={`px-4 py-2 text-sm font-semibold tracking-wide transition ${theme === "dark"
-                ? "bg-amber-400 text-slate-950 hover:bg-amber-300"
-                : "bg-amber-400 text-slate-950 hover:bg-amber-300"
+                ? "bg-cyan-500 text-white hover:bg-cyan-600"
+                : "bg-cyan-500 text-white hover:bg-cyan-600"
                 }`}
               style={{ borderRadius: "0.75rem", clipPath: "polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px)" }}
             >
