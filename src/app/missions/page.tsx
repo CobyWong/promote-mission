@@ -125,7 +125,6 @@ export default async function MissionsPage() {
                 <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {section.missions.map((mission) => {
                     const missionLocked = userLevel < getMissionRequiredLevel(mission.difficulty);
-                    const initial = mission.brand.trim().charAt(0).toUpperCase() || "M";
                     return (
                       <article
                         key={mission.slug}
@@ -133,16 +132,8 @@ export default async function MissionsPage() {
                           missionLocked ? "border-amber-300/60" : "border-slate-200"
                         }`}
                       >
-                        <div className={`relative h-28 bg-gradient-to-r ${tone.strip}`}>
-                          <div className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/60 bg-white/35 text-lg font-bold text-slate-800">
-                            {initial}
-                          </div>
-                          <div className="absolute bottom-3 left-4 rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-slate-700">
-                            {mission.category}
-                          </div>
-                        </div>
-
                         <div className="space-y-3 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{mission.category}</p>
                           <h3 className="line-clamp-2 text-xl font-bold text-slate-900">{mission.title}</h3>
                           <p className="line-clamp-2 text-sm text-slate-600">{mission.description}</p>
 
