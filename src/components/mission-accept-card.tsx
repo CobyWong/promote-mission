@@ -90,35 +90,35 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       <div className="glass-panel p-8">
         <div className="flex items-center gap-4">
           <span className="text-3xl">🔒</span>
-          <h2 className="text-2xl font-semibold text-white">{labels.lockedTitle}</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">{labels.lockedTitle}</h2>
         </div>
-        <p className="mt-4 text-slate-300">{labels.lockedDesc}</p>
+        <p className="mt-4 text-slate-700">{labels.lockedDesc}</p>
 
-        <div className="mt-6 rounded-2xl bg-white/5 p-5">
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
           <div className="mb-3 flex items-center justify-between text-sm">
-            <span className="text-slate-400">{labels.participants}</span>
-            <span className="font-semibold text-white">{displayCount} / {minParticipants}</span>
+            <span className="text-slate-600">{labels.participants}</span>
+            <span className="font-semibold text-slate-900">{displayCount} / {minParticipants}</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+          <div className="h-2 overflow-hidden rounded-full bg-slate-200">
             <div
               className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 transition-all duration-500"
               style={{ width: `${Math.min(100, (displayCount / (minParticipants ?? 1)) * 100)}%` }}
             />
           </div>
-          <p className="mt-2 text-xs text-slate-400">
+          <p className="mt-2 text-xs text-slate-600">
             {labels.stillNeed.replace("{n}", String(Math.max(0, (minParticipants ?? 0) - displayCount)))}
           </p>
         </div>
 
         {registered ? (
-          <div className="mt-6 rounded-2xl border border-green-400/20 bg-green-400/10 px-4 py-4 text-center text-sm text-green-300">
+          <div className="mt-6 rounded-2xl border border-green-400/45 bg-green-100 px-4 py-4 text-center text-sm text-green-800">
             {labels.registeredMsg}
           </div>
         ) : (
           <button
             type="button"
             onClick={registerInterest}
-            className="mt-6 w-full rounded-full border border-amber-400/30 bg-amber-400/10 px-5 py-4 text-lg font-semibold text-amber-200 transition hover:bg-amber-400/20"
+            className="mt-6 w-full rounded-full border border-amber-400/55 bg-amber-100 px-5 py-4 text-lg font-semibold text-amber-800 transition hover:bg-amber-200"
           >
             {labels.registerInterest}
           </button>
