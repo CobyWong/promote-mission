@@ -9,9 +9,9 @@ type Tab = "coins" | "missions" | "followers";
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 const PLATFORM_COLORS: Record<string, string> = {
-  Instagram: "text-fuchsia-300",
-  TikTok: "text-cyan-300",
-  YouTube: "text-rose-300",
+  Instagram: "text-fuchsia-600",
+  TikTok: "text-cyan-700",
+  YouTube: "text-rose-600",
 };
 
 type Props = {
@@ -70,13 +70,13 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
   return (
     <div className="mt-10">
       {mode === "unavailable" && (
-        <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+        <div className="mb-6 rounded-2xl border border-amber-400/45 bg-amber-100 px-4 py-3 text-sm text-amber-800">
           {t.unavailable}
         </div>
       )}
 
       {/* Tab bar */}
-      <div className="flex w-full gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-white/5 p-1 sm:w-fit">
+      <div className="flex w-full gap-2 overflow-x-auto rounded-2xl border border-slate-300 bg-slate-100 p-1 sm:w-fit">
         {tabs.map((tab) => (
           <button
             key={tab}
@@ -84,8 +84,8 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
             onClick={() => setActiveTab(tab)}
             className={`min-w-[7.5rem] flex-1 rounded-xl px-4 py-2 text-sm font-semibold transition sm:min-w-0 sm:flex-none sm:px-5 ${
               activeTab === tab
-                ? "bg-cyan-400 text-slate-950"
-                : "text-slate-300 hover:text-white"
+                ? "bg-cyan-600 text-white"
+                : "text-slate-700 hover:text-slate-900"
             }`}
           >
             {t.tabs[tab]}
@@ -103,22 +103,22 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
               <div key={leader.name} className="flex flex-col items-center gap-2">
                 <div className="text-3xl">{MEDALS[idx]}</div>
                 <div className="glass-panel w-full p-4 text-center">
-                  <p className="font-semibold text-white truncate">{leader.name}</p>
+                  <p className="truncate font-semibold text-slate-900">{leader.name}</p>
                   <p className={`text-xs mt-1 ${PLATFORM_COLORS[leader.platform] ?? "text-slate-400"}`}>
                     {leader.platform}
                   </p>
                   {activeTab === "coins" && (
-                    <p className="mt-2 text-lg font-bold text-cyan-300">{leader.totalLikes.toLocaleString()}</p>
+                    <p className="mt-2 text-lg font-bold text-cyan-700">{leader.totalLikes.toLocaleString()}</p>
                   )}
                   {activeTab === "missions" && (
-                    <p className="mt-2 text-lg font-bold text-cyan-300">{leader.missionsCompleted ?? 0}</p>
+                    <p className="mt-2 text-lg font-bold text-cyan-700">{leader.missionsCompleted ?? 0}</p>
                   )}
                   {activeTab === "followers" && (
-                    <p className="mt-2 text-lg font-bold text-cyan-300">{leader.followers}</p>
+                    <p className="mt-2 text-lg font-bold text-cyan-700">{leader.followers}</p>
                   )}
                 </div>
                 <div
-                  className={`w-full rounded-t-xl bg-gradient-to-t from-cyan-400/20 to-cyan-400/5 border border-cyan-400/20 ${podiumHeights[idx]}`}
+                  className={`w-full rounded-t-xl border border-cyan-300/45 bg-gradient-to-t from-cyan-200/35 to-cyan-100/30 ${podiumHeights[idx]}`}
                 />
               </div>
             );
@@ -130,8 +130,8 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
       <div className="mt-8 space-y-3">
         {sorted.length === 0 ? (
           <div className="glass-panel p-10 text-center">
-            <p className="text-2xl font-semibold text-white">{t.emptyTitle}</p>
-            <p className="mt-3 text-slate-300">{t.emptyDesc}</p>
+            <p className="text-2xl font-semibold text-slate-900">{t.emptyTitle}</p>
+            <p className="mt-3 text-slate-600">{t.emptyDesc}</p>
           </div>
         ) : (
           sorted.map((leader, index) => {
@@ -141,8 +141,8 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
                 key={leader.name}
                 className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-4 sm:px-5 transition ${
                   isTop3
-                    ? "border-cyan-400/25 bg-cyan-400/8"
-                    : "border-white/8 bg-white/5 hover:bg-white/8"
+                    ? "border-cyan-300/45 bg-cyan-50"
+                    : "border-slate-200 bg-white hover:bg-slate-50"
                 }`}
               >
                 <div className="flex min-w-0 items-center gap-3 sm:gap-4">
@@ -150,7 +150,7 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
                     {isTop3 ? MEDALS[index] : `#${index + 1}`}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-white">{leader.name}</p>
+                    <p className="truncate font-semibold text-slate-900">{leader.name}</p>
                     <p className={`mt-0.5 truncate text-xs ${PLATFORM_COLORS[leader.platform] ?? "text-slate-400"}`}>
                       {leader.platform} · {leader.followers}
                     </p>
@@ -159,20 +159,20 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
                 <div className="shrink-0 text-right">
                   {activeTab === "coins" && (
                     <>
-                      <p className="font-bold text-cyan-300 text-lg">{leader.totalLikes.toLocaleString()}</p>
-                      <p className="text-xs text-slate-400">{t.coins}</p>
+                      <p className="text-lg font-bold text-cyan-700">{leader.totalLikes.toLocaleString()}</p>
+                      <p className="text-xs text-slate-500">{t.coins}</p>
                     </>
                   )}
                   {activeTab === "missions" && (
                     <>
-                      <p className="font-bold text-cyan-300 text-lg">{leader.missionsCompleted ?? 0}</p>
-                      <p className="text-xs text-slate-400">{t.missions}</p>
+                      <p className="text-lg font-bold text-cyan-700">{leader.missionsCompleted ?? 0}</p>
+                      <p className="text-xs text-slate-500">{t.missions}</p>
                     </>
                   )}
                   {activeTab === "followers" && (
                     <>
-                      <p className="font-bold text-cyan-300 text-lg">{leader.followers}</p>
-                      <p className="text-xs text-slate-400">{t.followers}</p>
+                      <p className="text-lg font-bold text-cyan-700">{leader.followers}</p>
+                      <p className="text-xs text-slate-500">{t.followers}</p>
                     </>
                   )}
                 </div>

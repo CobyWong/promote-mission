@@ -13,20 +13,20 @@ export default async function LeaderboardPage() {
   const isRewardEligible = topCreatorLikes >= MONTHLY_REWARD_MIN_LIKES;
   const numberFormat = new Intl.NumberFormat(locale === "en" ? "en-US" : "zh-HK");
 
-  const bannerClass = "border-amber-300/25 bg-gradient-to-br from-slate-900/95 via-slate-800/90 to-[#171229]/90 shadow-lg shadow-slate-950/35";
+  const bannerClass = "border-slate-200 bg-gradient-to-br from-white via-slate-50 to-cyan-50/45 shadow-[0_20px_40px_rgba(15,23,42,0.1)]";
 
-  const glowTopClass = "bg-cyan-300/10";
-  const glowBottomClass = "bg-amber-300/10";
+  const glowTopClass = "bg-cyan-400/16";
+  const glowBottomClass = "bg-orange-400/14";
 
-  const titleTagClass = "text-amber-200/90";
-  const headingClass = "text-white";
-  const descClass = "text-slate-200/90";
+  const titleTagClass = "text-cyan-700";
+  const headingClass = "text-slate-900";
+  const descClass = "text-slate-700";
 
-  const rewardPillClass = "border-amber-300/30 bg-slate-900/75";
-  const rewardLabelClass = "text-amber-100";
+  const rewardPillClass = "border-orange-300/55 bg-white/95";
+  const rewardLabelClass = "text-orange-600";
   const gateBaseClass = "mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-semibold tracking-wide";
-  const gateOkClass = "border-emerald-300/40 bg-emerald-400/15 text-emerald-200";
-  const gateLockedClass = "border-rose-300/35 bg-rose-400/10 text-rose-200";
+  const gateOkClass = "border-emerald-300/60 bg-emerald-100 text-emerald-800";
+  const gateLockedClass = "border-rose-300/60 bg-rose-100 text-rose-700";
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -34,10 +34,10 @@ export default async function LeaderboardPage() {
         <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">
           {locale === "en" ? "Rankings" : "排行榜"}
         </p>
-        <h1 className="mt-3 text-4xl font-semibold text-white">
+        <h1 className="mt-3 text-4xl font-semibold text-slate-900">
           {locale === "en" ? "Creator Leaderboard" : "創作者排行榜"}
         </h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">
+        <p className="mt-4 text-lg leading-8 text-slate-700">
           {locale === "en"
             ? "Top creators ranked by total Likes this month. Complete missions to climb the ranks."
             : "本月以總 Like 數排名創作者。完成任務即可提升排名，贏取額外獎勵。"}
@@ -64,7 +64,7 @@ export default async function LeaderboardPage() {
                 ? "The #1 ranked creator by total likes this month receives a luxury watch only when total likes reach 200,000 or above."
                 : "本月總 Like 數排名第一的創作者，只有在總 Like 數達到 200,000 或以上時，方可獲得名錶獎勵。"}
             </p>
-            <p className="mt-2 text-xs text-slate-300/90">
+            <p className="mt-2 text-xs text-slate-600">
               {locale === "en"
                 ? `Current #1 total likes: ${numberFormat.format(topCreatorLikes)} / ${numberFormat.format(MONTHLY_REWARD_MIN_LIKES)}`
                 : `目前第一名總 Like：${numberFormat.format(topCreatorLikes)} / ${numberFormat.format(MONTHLY_REWARD_MIN_LIKES)}`}
@@ -88,7 +88,7 @@ export default async function LeaderboardPage() {
             <p className={`mt-2 text-lg font-extrabold tracking-wide ${rewardLabelClass}`}>
               {locale === "en" ? "Luxury Watch" : "名錶"}
             </p>
-            <p className="mt-1 text-xs text-slate-300/90">
+            <p className="mt-1 text-xs text-slate-600">
               {locale === "en" ? "Base threshold: 200,000 total likes" : "基礎門檻：總 Like 200,000"}
             </p>
           </div>
