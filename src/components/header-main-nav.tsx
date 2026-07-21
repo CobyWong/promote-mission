@@ -71,16 +71,12 @@ function isActivePath(pathname: string, href: string) {
 export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
   const pathname = usePathname();
 
-  const activeClass = theme === "dark"
-    ? "border-amber-300/60 bg-amber-300/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
-    : "border-amber-300/60 bg-amber-300/15 text-amber-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]";
+  const activeClass = "border-cyan-500/35 bg-cyan-500/12 text-cyan-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]";
 
-  const inactiveClass = theme === "dark"
-    ? "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white"
-    : "border-transparent text-slate-300 hover:border-slate-500/70 hover:bg-white/5 hover:text-white";
+  const inactiveClass = "border-transparent text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900";
 
   return (
-    <nav className={`hidden items-center border p-1 text-sm md:flex ${theme === "dark" ? "border-slate-400/60 bg-slate-800/45" : "border-slate-400/60 bg-slate-800/45"}`} style={{ borderRadius: "0.9rem", clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}>
+    <nav className="hidden items-center border border-slate-300 bg-slate-100/90 p-1 text-sm md:flex" style={{ borderRadius: "0.9rem", clipPath: "polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px)" }}>
       {links.map((link) => {
         const isActive = isActivePath(pathname, link.href);
 

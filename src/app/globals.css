@@ -206,6 +206,20 @@ a {
   background-color: rgba(255, 255, 255, 0.94) !important;
 }
 
+.bg-slate-800\/45,
+.bg-slate-900\/35,
+.bg-slate-900\/45,
+.bg-slate-900\/70,
+.bg-slate-900\/75,
+.bg-slate-900\/95,
+.bg-slate-950\/40,
+.bg-slate-950\/70,
+.bg-slate-950\/95,
+.bg-slate-700\/70,
+.bg-slate-700\/80 {
+  background-color: rgba(248, 250, 252, 0.96) !important;
+}
+
 .bg-white\/5 {
   background-color: rgba(15, 23, 42, 0.03) !important;
 }
@@ -221,6 +235,24 @@ a {
 .border-slate-200,
 .border-slate-300 {
   border-color: rgba(148, 163, 184, 0.48) !important;
+}
+
+.border-slate-500\/70,
+.border-slate-600\/60 {
+  border-color: rgba(148, 163, 184, 0.52) !important;
+}
+
+.text-cyan-100,
+.text-cyan-200 {
+  color: #0e7490 !important;
+}
+
+.text-rose-100 {
+  color: #9f1239 !important;
+}
+
+.text-emerald-100 {
+  color: #065f46 !important;
 }
 
 .bg-cyan-400,

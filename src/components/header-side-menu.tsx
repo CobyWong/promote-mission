@@ -87,18 +87,16 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
       signOut: "登出",
     };
 
-  const panelBg = theme === "dark" ? "bg-slate-950 border-white/20" : "bg-white border-cyan-500";
-  const textMain = theme === "dark" ? "text-white" : "text-slate-900";
-  const textSub = theme === "dark" ? "text-slate-300" : "text-slate-600";
+  const panelBg = "bg-white border-slate-300";
+  const textMain = "text-slate-900";
+  const textSub = "text-slate-600";
+  const menuLinkClass = "block rounded-2xl border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50";
 
   return (
     <details ref={detailsRef} className="relative z-[80]">
       <summary
         aria-label={links.menu}
-        className={`flex h-12 w-12 items-center justify-center rounded-full border transition ${theme === "dark"
-          ? "border-white/20 text-white hover:border-white/40"
-          : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300"
-          } list-none cursor-pointer [&::-webkit-details-marker]:hidden`}
+        className="flex h-12 w-12 list-none cursor-pointer items-center justify-center rounded-full border border-slate-300 bg-slate-50 text-slate-700 transition hover:border-slate-400 [&::-webkit-details-marker]:hidden"
       >
         <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
           <path d="M4.5 6.5h11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -124,69 +122,39 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
           <div className="mt-8 flex-1 space-y-3 overflow-y-auto pr-1">
             {isAuthenticated ? (
               <>
-                <Link href="/missions" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
+                <Link href="/missions" prefetch className={menuLinkClass}>
                   {links.missions}
                 </Link>
-                <Link href="/rewards" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
+                <Link href="/rewards" prefetch className={menuLinkClass}>
                   {links.rewards}
                 </Link>
-                <Link href="/leaderboard" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
+                <Link href="/leaderboard" prefetch className={menuLinkClass}>
                   {links.leaderboard}
                 </Link>
                 {!isAdmin && (
-                  <Link href="/dashboard" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                    ? "border-white/10 text-slate-200 hover:bg-white/5"
-                    : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                    }`}>
+                  <Link href="/dashboard" prefetch className={menuLinkClass}>
                     {links.dashboard}
                   </Link>
                 )}
-                <Link href="/dashboard#support-center" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
+                <Link href="/dashboard#support-center" prefetch className={menuLinkClass}>
                   {links.support}
                 </Link>
 
                 {isAdmin ? (
                   <>
-                    <Link href="/admin/reviews" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                      ? "border-white/10 text-slate-200 hover:bg-white/5"
-                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}>
+                    <Link href="/admin/reviews" className={menuLinkClass}>
                       {links.adminReview}
                     </Link>
-                    <Link href="/admin/redemptions" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                      ? "border-white/10 text-slate-200 hover:bg-white/5"
-                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}>
+                    <Link href="/admin/redemptions" className={menuLinkClass}>
                       {links.adminRedemptions}
                     </Link>
-                    <Link href="/admin/users" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                      ? "border-white/10 text-slate-200 hover:bg-white/5"
-                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}>
+                    <Link href="/admin/users" className={menuLinkClass}>
                       {links.adminUsers}
                     </Link>
-                    <Link href="/brand/missions" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                      ? "border-white/10 text-slate-200 hover:bg-white/5"
-                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}>
+                    <Link href="/brand/missions" className={menuLinkClass}>
                       {links.brandMissions}
                     </Link>
-                    <Link href="/brand/rewards" className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                      ? "border-white/10 text-slate-200 hover:bg-white/5"
-                      : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}>
+                    <Link href="/brand/rewards" className={menuLinkClass}>
                       {links.brandRewards}
                     </Link>
                   </>
@@ -194,22 +162,13 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
               </>
             ) : (
               <>
-                <Link href="/login" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
+                <Link href="/login" prefetch className={menuLinkClass}>
                   {links.login}
                 </Link>
-                <Link href="/register" prefetch className={`block rounded-full px-4 py-3 text-center text-sm font-semibold transition ${theme === "dark"
-                  ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                  : "bg-cyan-500 text-white hover:bg-cyan-600"
-                  }`}>
+                <Link href="/register" prefetch className="block rounded-full bg-cyan-500 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-cyan-600">
                   {links.register}
                 </Link>
-                <Link href="/dashboard#support-center" prefetch className={`block rounded-2xl border px-4 py-3 text-sm font-medium transition ${theme === "dark"
-                  ? "border-white/10 text-slate-200 hover:bg-white/5"
-                  : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                  }`}>
+                <Link href="/dashboard#support-center" prefetch className={menuLinkClass}>
                   {links.support}
                 </Link>
               </>
@@ -217,13 +176,10 @@ export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: Head
           </div>
 
           {isAuthenticated ? (
-            <div className="mt-4 border-t border-white/10 pt-4">
+            <div className="mt-4 border-t border-slate-200 pt-4">
               <SignOutButton
                 label={links.signOut}
-                className={`w-full rounded-full px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-70 ${theme === "dark"
-                  ? "bg-cyan-400 text-slate-950 hover:bg-cyan-300"
-                  : "bg-cyan-500 text-white hover:bg-cyan-600"
-                  }`}
+                className="w-full rounded-full bg-cyan-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-cyan-600 disabled:cursor-not-allowed disabled:opacity-70"
               />
             </div>
           ) : null}

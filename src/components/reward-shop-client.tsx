@@ -169,14 +169,14 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
   return (
     <div className="space-y-7">
       <div className="tactical-card p-6">
-        <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.walletTitle}</p>
-        <p className="mt-2 text-sm text-slate-400">{t.availableCoins}</p>
-        <p className="mt-2 text-3xl font-semibold text-amber-200 sm:text-4xl">{balance.toLocaleString()}</p>
-        <p className="mt-2 text-sm font-semibold text-cyan-200">
+        <p className="text-xs uppercase tracking-[0.18em] text-cyan-700">{t.walletTitle}</p>
+        <p className="mt-2 text-sm text-slate-600">{t.availableCoins}</p>
+        <p className="mt-2 text-3xl font-semibold text-orange-600 sm:text-4xl">{balance.toLocaleString()}</p>
+        <p className="mt-2 text-sm font-semibold text-cyan-700">
           {t.currentLevel}: Lv.{userLevel}
         </p>
         {!isAuthenticated ? (
-          <p className="mt-3 text-sm text-slate-300">
+          <p className="mt-3 text-sm text-slate-600">
             {locale === "en" ? "Log in to use live redemption." : "登入後方可使用正式兌換流程。"}
           </p>
         ) : null}
@@ -187,8 +187,8 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
         ) : null}
       </div>
 
-      {error ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 px-4 py-4 text-sm text-rose-100">{error}</div> : null}
-      {success ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-4 text-sm text-emerald-100">{success}</div> : null}
+      {error ? <div className="rounded-xl border border-rose-400/45 bg-rose-100 px-4 py-4 text-sm text-rose-800">{error}</div> : null}
+      {success ? <div className="rounded-xl border border-emerald-400/45 bg-emerald-100 px-4 py-4 text-sm text-emerald-800">{success}</div> : null}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
         {filteredRewards.map((reward) => {
@@ -199,29 +199,29 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
               key={reward.slug}
               type="button"
               onClick={() => setSelectedReward(reward)}
-              className="overflow-hidden rounded-3xl border border-slate-500/70 bg-slate-900/45 text-left shadow-[0_18px_34px_rgba(9,14,22,0.24)] transition hover:-translate-y-1 hover:border-cyan-300/45"
+              className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-left shadow-[0_16px_32px_rgba(9,14,22,0.1)] transition hover:-translate-y-1 hover:border-cyan-400/40"
             >
               <div className="relative overflow-hidden px-3 pb-3 pt-3 sm:px-5 sm:pb-4 sm:pt-5">
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-300/16 via-transparent to-slate-900/10" />
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-cyan-100/70 via-transparent to-orange-100/40" />
                 <div className="relative flex flex-col gap-2">
                   <div className="flex min-w-0 items-start gap-2">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-300/35 bg-cyan-300/10 text-base font-bold text-cyan-100 sm:h-12 sm:w-12 sm:text-lg">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-cyan-500/35 bg-cyan-500/10 text-base font-bold text-cyan-800 sm:h-12 sm:w-12 sm:text-lg">
                       {rewardInitial}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="line-clamp-2 break-words text-lg font-bold leading-tight text-slate-100 sm:text-xl">{reward.name}</h3>
+                      <h3 className="line-clamp-2 break-words text-lg font-bold leading-tight text-slate-900 sm:text-xl">{reward.name}</h3>
                     </div>
                   </div>
                 </div>
 
               </div>
 
-              <div className="border-t border-slate-600/60 bg-slate-900/35 px-3 py-3 sm:px-5 sm:py-4">
+              <div className="border-t border-slate-200 bg-slate-50/75 px-3 py-3 sm:px-5 sm:py-4">
                 <div>
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-slate-400">{t.priceLabel}</p>
-                    <p className="mt-1 text-2xl font-black leading-none text-amber-200 sm:text-4xl">{reward.cost.toLocaleString()}</p>
-                    <p className="mt-1 text-xs text-slate-400">{t.coins}</p>
+                    <p className="text-xs uppercase tracking-wide text-slate-500">{t.priceLabel}</p>
+                    <p className="mt-1 text-2xl font-black leading-none text-orange-600 sm:text-4xl">{reward.cost.toLocaleString()}</p>
+                    <p className="mt-1 text-xs text-slate-500">{t.coins}</p>
                   </div>
                 </div>
               </div>
@@ -251,30 +251,30 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
               : t.loginToRedeem;
 
         return (
-          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/70 p-4" role="dialog" aria-modal="true">
-            <div className="w-full max-w-lg rounded-3xl border border-slate-500/70 bg-slate-900/95 p-5 shadow-2xl">
+          <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/35 p-4" role="dialog" aria-modal="true">
+            <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-200/90">{t.detailTitle}</p>
-                  <h3 className="mt-1 text-2xl font-semibold text-slate-100">{selectedReward.name}</h3>
+                  <p className="text-xs uppercase tracking-[0.18em] text-cyan-700">{t.detailTitle}</p>
+                  <h3 className="mt-1 text-2xl font-semibold text-slate-900">{selectedReward.name}</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedReward(null)}
-                  className="rounded-full border border-white/20 px-3 py-1 text-sm text-slate-200"
+                  className="rounded-full border border-slate-300 px-3 py-1 text-sm text-slate-700"
                 >
                   {t.close}
                 </button>
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">{t.priceLabel}</p>
-                  <p className="mt-1 text-xl font-black text-amber-200">{selectedReward.cost.toLocaleString()}</p>
-                  <p className="text-xs text-slate-400">{t.coins}</p>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">{t.priceLabel}</p>
+                  <p className="mt-1 text-xl font-black text-orange-600">{selectedReward.cost.toLocaleString()}</p>
+                  <p className="text-xs text-slate-500">{t.coins}</p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
-                  <p className="text-xs text-slate-400">{t.unlockLevel}</p>
-                  <p className="mt-1 text-xl font-black text-cyan-100">Lv.{minLevel}</p>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                  <p className="text-xs text-slate-500">{t.unlockLevel}</p>
+                  <p className="mt-1 text-xl font-black text-cyan-800">Lv.{minLevel}</p>
                 </div>
               </div>
 
@@ -287,7 +287,7 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
                     setSelectedReward(null);
                   }
                 }}
-                className="tactical-btn-primary mt-5 h-11 w-full rounded-2xl px-4 text-sm sm:h-12 sm:text-base disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
+                className="tactical-btn-primary mt-5 h-11 w-full rounded-2xl px-4 text-sm sm:h-12 sm:text-base disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500"
               >
                 {actionLabel}
               </button>
@@ -298,8 +298,8 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
 
       {filteredRewards.length === 0 ? (
         <div className="tactical-card p-10 text-center">
-          <p className="text-2xl font-semibold text-slate-100">{t.emptyTitle}</p>
-          <p className="mt-2 text-sm text-slate-300">{t.emptyDesc}</p>
+          <p className="text-2xl font-semibold text-slate-900">{t.emptyTitle}</p>
+          <p className="mt-2 text-sm text-slate-600">{t.emptyDesc}</p>
         </div>
       ) : null}
     </div>
