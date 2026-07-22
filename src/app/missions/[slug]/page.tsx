@@ -126,13 +126,13 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {(locale === "en"
                 ? [
-                  `Apply and submit before deadline (${deadlineLabel ?? "mission deadline"})`,
-                  "Publish IG Reels and add @missionone_hk as collaborator, then submit your Reel URL",
+                  `Apply before deadline (${deadlineLabel ?? "mission deadline"})`,
+                  "Publish IG Reels and add @missionone_hk as collaborator, then sync Instagram. No manual proof submission is needed.",
                   `After deadline, ranking is fixed by Likes and top 3 share HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`,
                 ]
                 : [
-                  `請於截止時間（${deadlineLabel ?? "任務截止"}）前申請並提交`,
-                  "公開發佈 Instagram Reels，將 @missionone_hk 設為協作者，再提交 Reels 連結",
+                  `請於截止時間（${deadlineLabel ?? "任務截止"}）前申請`,
+                  "公開發佈 Instagram Reels，並將 @missionone_hk 設為協作者，之後同步 Instagram，無需手動提交 proof",
                   `截止後排名按 Likes 鎖定，前 3 名瓜分 HK$${rewards.totalPrize.toLocaleString()}（60% / 30% / 10%）`,
                 ]
               ).map((step, index) => (

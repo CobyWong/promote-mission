@@ -21,6 +21,9 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
   const [acceptedAt, setAcceptedAt] = useState<number | null>(null);
   const [registered, setRegistered] = useState(false);
   const [displayCount, setDisplayCount] = useState(currentParticipants ?? 0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [autoSubmissionReady, setAutoSubmissionReady] = useState(false);
 
   const isLocked = (minParticipants ?? 0) > 0 && displayCount < (minParticipants ?? 0);
   const isOpenForAcceptance = lifecyclePhase === "live";
@@ -32,10 +35,12 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       needIg: "Requires linked Instagram account",
       styleFit: "Content style matching required",
       dailyCap: "Platform can set daily order limits",
-      collaborator: "Add @missionone_hk as collaborator before submission",
+      collaborator: "Add @missionone_hk as collaborator. No manual proof submission is needed.",
       accept: "Accept mission",
       accepted: "Mission accepted",
       restart: "Re-accept mission",
+      accepting: "Accepting...",
+      acceptedHint: "Applied successfully. We auto-created your mission submission from synced Instagram reels.",
       lockedTitle: "Waiting to Open",
       lockedDesc: "This mission requires a minimum number of creators before it unlocks. Register your interest to help it open faster!",
       participants: "Registered creators",
@@ -51,10 +56,12 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       needIg: "需要綁定 Instagram 帳號",
       styleFit: "需要過往內容風格配對",
       dailyCap: "平台可設定每日接單上限",
-      collaborator: "提交前需將 @missionone_hk 設為協作者",
+      collaborator: "只需將 @missionone_hk 設為協作者，無需手動提交 proof。",
       accept: "接受任務",
       accepted: "已接受任務",
       restart: "重新接受任務",
+      accepting: "接受中...",
+      acceptedHint: "已成功申請。系統已根據同步的 Instagram Reels 自動建立任務提交。",
       lockedTitle: "等待人數開放",
       lockedDesc: "此任務需要達到最低人數才會正式開放。立即登記參加，讓任務更快開放！",
       participants: "已登記創作者",
@@ -75,10 +82,36 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
     }
   }, [storageKey]);
 
-  const acceptMission = () => {
-    const startedAt = Date.now();
-    setAcceptedAt(startedAt);
-    window.localStorage.setItem(storageKey, String(startedAt));
+  const acceptMission = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`/api/missions/${missionSlug}/interest`, { method: "POST" });
+      const result = (await response.json().catch(() => null)) as { error?: string; count?: number; autoDetected?: boolean } | null;
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          window.location.assign(`/login?next=/missions/${missionSlug}`);
+          return;
+        }
+
+        setError(result?.error ?? (locale === "en" ? "Unable to accept mission right now." : "目前無法接受任務，請稍後再試。"));
+        return;
+      }
+
+      const startedAt = Date.now();
+      setAcceptedAt(startedAt);
+      window.localStorage.setItem(storageKey, String(startedAt));
+      if (typeof result?.count === "number") {
+        setDisplayCount(result.count);
+      }
+      setAutoSubmissionReady(Boolean(result?.autoDetected));
+    } catch {
+      setError(locale === "en" ? "Unable to accept mission right now." : "目前無法接受任務，請稍後再試。");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const registerInterest = async () => {
@@ -142,12 +175,17 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
   }
 
   return (
-    <button
-      type="button"
-      onClick={acceptMission}
-      className="w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300"
-    >
-      {acceptedAt ? labels.restart : labels.accept}
-    </button>
+    <div className="space-y-3">
+      <button
+        type="button"
+        onClick={acceptMission}
+        disabled={loading}
+        className="w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        {loading ? labels.accepting : acceptedAt ? labels.restart : labels.accept}
+      </button>
+      {error ? <p className="text-sm text-rose-700">{error}</p> : null}
+      {autoSubmissionReady ? <p className="text-sm text-emerald-700">{labels.acceptedHint}</p> : null}
+    </div>
   );
 }

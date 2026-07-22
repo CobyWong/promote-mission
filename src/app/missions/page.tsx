@@ -1,6 +1,7 @@
 import { getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
 import { DIFFICULTY_REQUIRED_LEVEL, getMissionRequiredLevel } from "@/lib/mission-rules";
+import { getRankingRewardsByDifficulty } from "@/lib/mission-rules";
 import Link from "next/link";
 
 export default async function MissionsPage() {
@@ -122,6 +123,7 @@ export default async function MissionsPage() {
                   {section.missions.map((mission) => {
                     const missionLocked = userLevel < getMissionRequiredLevel(mission.difficulty);
                     const rankingEntries = mission.rankings?.slice(0, 3) ?? [];
+                    const rankingRewards = getRankingRewardsByDifficulty(mission.difficulty);
                     return (
                       <article
                         key={mission.slug}
@@ -145,7 +147,7 @@ export default async function MissionsPage() {
 
                           <div className="space-y-1 text-sm text-slate-600">
                             <p>
-                              {locale === "en" ? "Difficulty" : "難度"}: <span className="font-semibold text-slate-800">{mission.difficulty}</span>
+                              {locale === "en" ? "Prize pool" : "獎金池"}: <span className="font-semibold text-slate-800">HK${numberFormat.format(rankingRewards.totalPrize)}</span>
                             </p>
                             <p>
                               {locale === "en" ? "Ends" : "截止日"}: <span className="font-semibold text-slate-800">{formatEndsAt(mission.endsAt)}</span>

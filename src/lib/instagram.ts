@@ -14,6 +14,16 @@ export type InstagramReelInsight = {
   metrics: Record<string, number>;
 };
 
+const MISSION_ONE_COLLAB_HANDLE = "missionone_hk";
+
+export function hasMissionOneCollaborator(caption?: string | null) {
+  if (!caption) {
+    return false;
+  }
+
+  return new RegExp(`@${MISSION_ONE_COLLAB_HANDLE}\\b`, "i").test(caption);
+}
+
 export const instagramScopes = [
   "pages_show_list",
   "instagram_basic",

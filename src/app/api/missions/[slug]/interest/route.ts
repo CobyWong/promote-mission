@@ -4,6 +4,7 @@ import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 import { isMissionOpenForApplications } from "@/lib/mission-lifecycle";
+import { getMissionRewardCoins } from "@/lib/mission-rules";
 import { createAppLog } from "@/lib/observability";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -96,7 +97,7 @@ export async function POST(
 
   const { data: mission } = await admin
     .from("missions")
-    .select("current_participants, status, starts_at, ends_at")
+    .select("slug, title, brand, difficulty, current_participants, status, starts_at, ends_at")
     .eq("slug", slug)
     .single();
 
@@ -130,6 +131,105 @@ export async function POST(
     return NextResponse.json(errorBody, { status: 409 });
   }
 
+  const { data: existingSubmission } = await admin
+    .from("submissions")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("mission_slug", slug)
+    .in("status", ["Pending", "Approved"])
+    .maybeSingle();
+
+  if (existingSubmission) {
+    const successBody = {
+      ok: true,
+      count: mission.current_participants ?? 0,
+      alreadyApplied: true,
+      submissionId: existingSubmission.id,
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 200,
+      body: successBody,
+    });
+
+    return NextResponse.json(successBody);
+  }
+
+  const { data: latestCollaboratorReel } = await admin
+    .from("reel_insights")
+    .select("reel_url, metric_date, created_at")
+    .eq("user_id", user.id)
+    .contains("raw_metrics", { hasMissionOneCollaborator: true })
+    .order("metric_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!latestCollaboratorReel?.reel_url) {
+    const errorBody = {
+      error: isZh
+        ? "未找到包含 @missionone_hk 協作者的 Reels。請先發佈並完成 Instagram 同步後再接受任務。"
+        : "No Reel with @missionone_hk collaborator was found. Publish it first and run Instagram sync before accepting mission.",
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 409,
+      body: errorBody,
+    });
+
+    return NextResponse.json(errorBody, { status: 409 });
+  }
+
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name, instagram_handle")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const { data: submissionCreated, error: submissionError } = await admin
+    .from("submissions")
+    .insert({
+      user_id: user.id,
+      mission_slug: mission.slug,
+      mission_title: mission.title,
+      mission_brand: mission.brand,
+      reward_coins: getMissionRewardCoins(mission.difficulty ?? "Easy"),
+      reel_url: latestCollaboratorReel.reel_url,
+      caption_summary: null,
+      notes: isZh
+        ? "系統已自動檢測包含 @missionone_hk 協作者的 Reels，無需手動提交 proof。"
+        : "Auto-detected Reel with @missionone_hk collaborator. Manual proof submission is not required.",
+      checklist: {
+        addedCollaborator: true,
+        autoDetectedByInstagramSync: true,
+      },
+      screenshot_count: 0,
+      screenshot_paths: [],
+      creator_name: profile?.full_name ?? user.email ?? "Creator",
+      creator_handle: profile?.instagram_handle ?? null,
+      status: "Pending",
+    })
+    .select("id")
+    .single();
+
+  if (submissionError || !submissionCreated?.id) {
+    const errorBody = {
+      error: isZh
+        ? "已登記任務，但自動建立任務提交失敗，請稍後重試。"
+        : `Mission accepted but failed to auto-create submission: ${submissionError?.message ?? "unknown error"}`,
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 400,
+      body: errorBody,
+    });
+
+    return NextResponse.json(errorBody, { status: 400 });
+  }
+
   const nextCount = (mission?.current_participants ?? 0) + 1;
 
   const { error } = await admin
@@ -159,10 +259,12 @@ export async function POST(
       method: request.method,
       channel: "web",
       participantsAfter: nextCount,
+      submissionId: submissionCreated.id,
+      autoSubmission: true,
     },
   });
 
-  const successBody = { ok: true, count: nextCount };
+  const successBody = { ok: true, count: nextCount, submissionId: submissionCreated.id, autoDetected: true };
   await finalizeIdempotentOperation({
     storageKey: operation.storageKey,
     ttlMs: operation.ttlMs,

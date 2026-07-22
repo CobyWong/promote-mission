@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isZhRequest } from "@/lib/api-locale";
 import {
   fetchRecentReelsInsights,
+  hasMissionOneCollaborator,
   normalizeInstagramPermalink,
 } from "@/lib/instagram";
 import type { Database } from "@/lib/supabase/database.types";
@@ -72,7 +73,12 @@ export async function POST(request: Request) {
       shares: reel.metrics.shares ?? 0,
       saves: reel.metrics.saved ?? 0,
       total_interactions: reel.metrics.total_interactions ?? 0,
-      raw_metrics: reel.metrics,
+      raw_metrics: {
+        ...reel.metrics,
+        caption: reel.caption ?? "",
+        published_at: reel.publishedAt ?? null,
+        hasMissionOneCollaborator: hasMissionOneCollaborator(reel.caption),
+      },
     }));
 
     if (rows.length > 0) {
