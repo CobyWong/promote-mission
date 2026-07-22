@@ -171,7 +171,7 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
       <div className="tactical-card p-6">
         <p className="text-xs uppercase tracking-[0.18em] text-cyan-700">{t.walletTitle}</p>
         <p className="mt-2 text-sm text-slate-600">{t.availableCoins}</p>
-        <p className="mt-2 text-3xl font-semibold text-orange-600 sm:text-4xl">{balance.toLocaleString()}</p>
+        <p className="mt-2 text-3xl font-semibold text-teal-700 sm:text-4xl">{balance.toLocaleString()}</p>
         <p className="mt-2 text-sm font-semibold text-cyan-700">
           {t.currentLevel}: Lv.{userLevel}
         </p>
@@ -220,7 +220,7 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
                 <div>
                   <div>
                     <p className="text-xs uppercase tracking-wide text-slate-500">{t.priceLabel}</p>
-                    <p className="mt-1 text-2xl font-black leading-none text-orange-600 sm:text-4xl">{reward.cost.toLocaleString()}</p>
+                    <p className="mt-1 text-2xl font-black leading-none text-teal-700 sm:text-4xl">{reward.cost.toLocaleString()}</p>
                     <p className="mt-1 text-xs text-slate-500">{t.coins}</p>
                   </div>
                 </div>
@@ -269,7 +269,7 @@ export function RewardShopClient({ rewards, balance, isAuthenticated, userLevel,
               <div className="mt-4 grid grid-cols-2 gap-3 text-center">
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">{t.priceLabel}</p>
-                  <p className="mt-1 text-xl font-black text-orange-600">{selectedReward.cost.toLocaleString()}</p>
+                  <p className="mt-1 text-xl font-black text-teal-700">{selectedReward.cost.toLocaleString()}</p>
                   <p className="text-xs text-slate-500">{t.coins}</p>
                 </div>
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
