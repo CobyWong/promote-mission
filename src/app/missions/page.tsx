@@ -59,8 +59,8 @@ export default async function MissionsPage() {
       };
     }
     return {
-      chip: "bg-orange-100 text-orange-800 border-orange-300/60",
-      strip: "from-orange-300 via-amber-300 to-yellow-200",
+      chip: "bg-sky-100 text-sky-800 border-sky-300/60",
+      strip: "from-sky-300 via-cyan-300 to-indigo-200",
     };
   };
 
@@ -129,7 +129,7 @@ export default async function MissionsPage() {
                       <article
                         key={mission.slug}
                         className={`overflow-hidden rounded-3xl border bg-white shadow-[0_12px_26px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 ${
-                          missionLocked ? "border-amber-300/60" : "border-slate-200"
+                          missionLocked ? "border-sky-300/60" : "border-slate-200"
                         }`}
                       >
                         <div className="space-y-3 p-4">
@@ -161,7 +161,7 @@ export default async function MissionsPage() {
                           </div>
 
                           {missionLocked ? (
-                            <p className="rounded-xl border border-amber-300/60 bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800">
+                            <p className="rounded-xl border border-sky-300/60 bg-sky-100 px-3 py-2 text-sm font-medium text-sky-800">
                               {locale === "en"
                                 ? `Preview only. Unlock at Lv.${getMissionRequiredLevel(mission.difficulty)}.`
                                 : `目前可預覽，達 Lv.${getMissionRequiredLevel(mission.difficulty)} 後可接任務。`}
@@ -172,7 +172,7 @@ export default async function MissionsPage() {
                             href={`/missions/${mission.slug}`}
                             className={`flex h-11 w-full items-center justify-center rounded-xl border px-4 text-sm font-semibold transition ${
                               missionLocked
-                                ? "border-amber-300/60 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                                ? "border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200"
                                 : "border-cyan-500 bg-cyan-500 text-white hover:bg-cyan-600"
                             }`}
                           >
@@ -188,7 +188,7 @@ export default async function MissionsPage() {
               )}
 
               {locked ? (
-                <p className="mt-3 text-sm font-semibold text-amber-700">
+                <p className="mt-3 text-sm font-semibold text-sky-800">
                   {locale === "en"
                     ? `This zone unlocks at Lv.${section.requiredLevel}.`
                     : `此分區需達 Lv.${section.requiredLevel} 才可正式接任務。`}
