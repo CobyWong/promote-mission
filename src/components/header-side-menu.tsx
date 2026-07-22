@@ -6,16 +6,14 @@ import { useEffect, useRef } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { SignOutButton } from "@/components/sign-out-button";
 import type { Locale } from "@/lib/i18n";
-import type { Theme } from "@/lib/theme";
 
 type HeaderSideMenuProps = {
   locale: Locale;
-  theme: Theme;
   isAuthenticated: boolean;
   isAdmin: boolean;
 };
 
-export function HeaderSideMenu({ locale, theme, isAuthenticated, isAdmin }: HeaderSideMenuProps) {
+export function HeaderSideMenu({ locale, isAuthenticated, isAdmin }: HeaderSideMenuProps) {
   const detailsRef = useRef<HTMLDetailsElement | null>(null);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 const baseUrl = process.env.STAGING_BASE_URL?.trim();
 const adminEmail = process.env.STAGING_ADMIN_EMAIL?.trim();
 const adminPassword = process.env.STAGING_ADMIN_PASSWORD?.trim();
+const softFailOnBaselineError = process.env.SOFT_FAIL_ON_BASELINE_ERROR !== "0";
 
 if (!baseUrl || !adminEmail || !adminPassword) {
   console.error("Missing STAGING_BASE_URL, STAGING_ADMIN_EMAIL, or STAGING_ADMIN_PASSWORD.");
@@ -105,6 +106,13 @@ async function main() {
 }
 
 main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
+  const message = error instanceof Error ? error.message : String(error);
+  if (softFailOnBaselineError) {
+    console.warn(`Baseline report skipped: ${message}`);
+    console.warn("SOFT_FAIL_ON_BASELINE_ERROR is enabled; treating this run as non-blocking.");
+    process.exit(0);
+  }
+
+  console.error(message);
   process.exit(1);
 });

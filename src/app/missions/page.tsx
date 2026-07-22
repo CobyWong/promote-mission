@@ -138,7 +138,7 @@ export default async function MissionsPage() {
                             ) : null}
                           </div>
 
-                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                          <div className="pt-1">
                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
                               {locale === "en" ? "Top rankings" : "排行榜"}
                             </p>
@@ -167,7 +167,7 @@ export default async function MissionsPage() {
                                 ))}
                               </div>
                             ) : (
-                              <p className="mt-2 text-xs text-slate-500">
+                              <p className="mt-2 text-sm text-slate-700">
                                 {locale === "en" ? "No ranking records yet." : "目前尚無排名紀錄。"}
                               </p>
                             )}

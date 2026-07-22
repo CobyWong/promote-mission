@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import type { Theme } from "@/lib/theme";
-
 type NavLink = {
   href: string;
   label: string;
@@ -12,7 +10,6 @@ type NavLink = {
 
 type HeaderMainNavProps = {
   links: NavLink[];
-  theme: Theme;
 };
 
 function NavIcon({ href }: { href: string }) {
@@ -68,7 +65,7 @@ function isActivePath(pathname: string, href: string) {
   return pathname.startsWith(`${href}/`);
 }
 
-export function HeaderMainNav({ links, theme }: HeaderMainNavProps) {
+export function HeaderMainNav({ links }: HeaderMainNavProps) {
   const pathname = usePathname();
 
   const activeClass = "border-cyan-500/35 bg-cyan-500/12 text-cyan-800 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]";

@@ -16,6 +16,11 @@ const e2eEnv = [
   "E2E_REWARD_SLUG",
 ];
 
+const strictAdminSessionEnv = [
+  "E2E_ADMIN_ACCESS_TOKEN",
+  "E2E_ADMIN_REFRESH_TOKEN",
+];
+
 const strictE2E = process.env.RELEASE_GATE_STRICT_E2E === "1";
 const failOnWarn = process.env.FAIL_ON_FUNNEL_WARN ?? "0";
 
@@ -55,15 +60,10 @@ function main() {
   runStep("Unit/integration tests", "npm", ["run", "test"]);
   runStep("Build", "npm", ["run", "build"]);
 
-  runStep("Staging abuse/idempotency verification", "npm", ["run", "verify:staging"]);
   runStep("Mobile API smoke verification", "npm", ["run", "verify:mobile:smoke"], {
     MOBILE_SMOKE_BASE_URL: process.env.STAGING_BASE_URL,
     MOBILE_SMOKE_BEARER_TOKEN: process.env.STAGING_BEARER_TOKEN,
   });
-  runStep("Funnel alerts check", "npm", ["run", "alerts:funnel"], {
-    FAIL_ON_FUNNEL_WARN: failOnWarn,
-  });
-  runStep("Funnel baseline threshold recommendation", "npm", ["run", "funnel:baseline"]);
 
   if (!hasAllEnv(e2eEnv)) {
     if (strictE2E) {
@@ -76,10 +76,17 @@ function main() {
   }
 
   if (strictE2E) {
+    ensureRequiredEnv([...e2eEnv, ...strictAdminSessionEnv]);
     runStep("Web E2E strict redeem gate", "npm", ["run", "test:e2e:web:strict"]);
   } else {
     runStep("Web E2E smoke", "npm", ["run", "test:e2e:web"]);
   }
+
+  runStep("Staging abuse/idempotency verification", "npm", ["run", "verify:staging"]);
+  runStep("Funnel alerts check", "npm", ["run", "alerts:funnel"], {
+    FAIL_ON_FUNNEL_WARN: failOnWarn,
+  });
+  runStep("Funnel baseline threshold recommendation", "npm", ["run", "funnel:baseline"]);
 
   console.log("\nRelease gate completed successfully.");
 }

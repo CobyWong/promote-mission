@@ -5,9 +5,12 @@ const userAccessToken = process.env.E2E_USER_ACCESS_TOKEN?.trim() ?? "";
 const userRefreshToken = process.env.E2E_USER_REFRESH_TOKEN?.trim() ?? "";
 const adminEmail = process.env.E2E_ADMIN_EMAIL?.trim() ?? "";
 const adminPassword = process.env.E2E_ADMIN_PASSWORD?.trim() ?? "";
+const adminAccessToken = process.env.E2E_ADMIN_ACCESS_TOKEN?.trim() ?? "";
+const adminRefreshToken = process.env.E2E_ADMIN_REFRESH_TOKEN?.trim() ?? "";
 const missionSlug = process.env.E2E_MISSION_SLUG?.trim() || "pulse-active-home-workout";
 const rewardSlug = process.env.E2E_REWARD_SLUG?.trim() || "parknshop-voucher-100";
 const strictRedeem = process.env.E2E_STRICT_REDEEM === "1";
+const runForwardedFor = `203.0.113.${Math.floor(Math.random() * 200) + 1}`;
 
 const hasRequiredEnv = Boolean(baseUrl && userAccessToken && userRefreshToken && adminEmail && adminPassword);
 
@@ -38,6 +41,33 @@ function getCookieHeader(response: Response) {
   return cookiePairs.join("; ");
 }
 
+function mergeCookies(...cookieHeaders: string[]) {
+  const byName = new Map<string, string>();
+
+  for (const header of cookieHeaders) {
+    if (!header) {
+      continue;
+    }
+
+    for (const pair of header.split(";")) {
+      const trimmed = pair.trim();
+      if (!trimmed) {
+        continue;
+      }
+
+      const separator = trimmed.indexOf("=");
+      if (separator <= 0) {
+        continue;
+      }
+
+      const name = trimmed.slice(0, separator);
+      byName.set(name, trimmed);
+    }
+  }
+
+  return Array.from(byName.values()).join("; ");
+}
+
 async function readJson(response: Response) {
   try {
     return await response.json() as Record<string, unknown>;
@@ -54,6 +84,7 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     headers: {
       "content-type": "application/json",
       "x-forwarded-proto": "https",
+      "x-forwarded-for": runForwardedFor,
     },
     body: JSON.stringify({
       access_token: userAccessToken,
@@ -69,6 +100,7 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     method: "POST",
     headers: {
       cookie: userCookie,
+      "x-forwarded-for": runForwardedFor,
     },
   });
   const acceptPayload = await readJson(acceptResponse);
@@ -101,6 +133,7 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
         cookie: userCookie,
         "idempotency-key": `e2e-submit-${Date.now()}`,
         "x-forwarded-proto": "https",
+        "x-forwarded-for": runForwardedFor,
       },
       body: JSON.stringify(submitPayloadBody),
     });
@@ -121,6 +154,7 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     headers: {
       "content-type": "application/json",
       "x-forwarded-proto": "https",
+      "x-forwarded-for": runForwardedFor,
     },
     body: JSON.stringify({
       email: adminEmail,
@@ -130,9 +164,27 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
 
   const adminLoginPayload = await readJson(adminLoginResponse);
   expect(adminLoginResponse.status).toBe(200);
-  const adminCookie = getCookieHeader(adminLoginResponse);
+  let adminCookie = getCookieHeader(adminLoginResponse);
   expect(adminCookie.length).toBeGreaterThan(0);
   expect(adminLoginPayload?.ok).toBe(true);
+
+  if (adminAccessToken && adminRefreshToken) {
+    const adminSessionResponse = await fetch(`${baseUrl}/api/auth/session`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-proto": "https",
+        "x-forwarded-for": runForwardedFor,
+      },
+      body: JSON.stringify({
+        access_token: adminAccessToken,
+        refresh_token: adminRefreshToken,
+      }),
+    });
+
+    expect(adminSessionResponse.status).toBe(200);
+    adminCookie = mergeCookies(adminCookie, getCookieHeader(adminSessionResponse));
+  }
 
   async function approveSubmission(submissionId: string) {
     const approveResponse = await fetch(`${baseUrl}/api/admin/submissions/${submissionId}`, {
@@ -141,6 +193,7 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
         "content-type": "application/json",
         cookie: adminCookie,
         "x-forwarded-proto": "https",
+        "x-forwarded-for": runForwardedFor,
       },
       body: JSON.stringify({
         status: "Approved",
@@ -149,6 +202,9 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     });
 
     const approvePayload = await readJson(approveResponse);
+    if (approveResponse.status === 401 && !(adminAccessToken && adminRefreshToken)) {
+      throw new Error("Admin approval returned 401. Set E2E_ADMIN_ACCESS_TOKEN and E2E_ADMIN_REFRESH_TOKEN for strict E2E.");
+    }
     expect(approveResponse.status).toBe(200);
     expect(approvePayload?.ok).toBe(true);
   }
@@ -168,6 +224,7 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
       cookie: userCookie,
       "idempotency-key": `e2e-redeem-${Date.now()}`,
       "x-forwarded-proto": "https",
+      "x-forwarded-for": runForwardedFor,
     },
     body: JSON.stringify({ rewardSlug }),
   });
