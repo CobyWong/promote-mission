@@ -220,7 +220,7 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
 
         {recoveryState === "ready" ? (
           <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-            <label className="block text-sm text-slate-200">
+            <label className="block text-sm text-slate-800">
               {t.newPassword}
               <div className="relative mt-2">
                 <input
@@ -229,21 +229,21 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
                   required
                   value={newPassword}
                   onChange={(event) => setNewPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 pr-12 text-slate-100 outline-none transition focus:border-cyan-300/60"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500"
                   placeholder="********"
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword((current) => !current)}
                   aria-label={showNewPassword ? t.hidePassword : t.showPassword}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 transition hover:text-cyan-100"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 transition hover:text-cyan-700"
                 >
                   {showNewPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                 </button>
               </div>
             </label>
 
-            <label className="block text-sm text-slate-200">
+            <label className="block text-sm text-slate-800">
               {t.confirmPassword}
               <div className="relative mt-2">
                 <input
@@ -252,14 +252,14 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
                   required
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-500/70 bg-slate-900/60 px-4 py-3 pr-12 text-slate-100 outline-none transition focus:border-cyan-300/60"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 pr-12 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-500"
                   placeholder="********"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword((current) => !current)}
                   aria-label={showConfirmPassword ? t.hidePassword : t.showPassword}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-200 transition hover:text-cyan-100"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 transition hover:text-cyan-700"
                 >
                   {showConfirmPassword ? <EyeClosedIcon /> : <EyeOpenIcon />}
                 </button>
@@ -269,7 +269,7 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="tactical-btn-primary mt-2 w-full px-5 py-3 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-700 disabled:text-slate-400"
+              className="mt-2 w-full rounded-xl border border-cyan-600 bg-cyan-600 px-5 py-3 font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500"
             >
               {loading ? t.submitting : t.submit}
             </button>
