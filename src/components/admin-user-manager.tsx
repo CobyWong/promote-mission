@@ -178,7 +178,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
         ].map((item) => (
           <div key={item.label} className="glass-panel p-5">
             <p className="text-sm text-slate-400">{item.label}</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{item.value}</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</p>
           </div>
         ))}
       </div>
@@ -188,7 +188,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder={t.search}
-          className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500 focus:border-cyan-400/40"
+          className="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-cyan-400"
         />
       </div>
 
@@ -206,7 +206,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
                 <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate text-xl font-semibold text-white">{user.fullName || "-"}</p>
+                      <p className="truncate text-xl font-semibold text-slate-900">{user.fullName || "-"}</p>
                       {user.isAdmin ? (
                         <span className="rounded-full border border-fuchsia-400/25 bg-fuchsia-400/10 px-2 py-1 text-xs text-fuchsia-200">{t.adminTag}</span>
                       ) : null}
@@ -214,62 +214,62 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
                         <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-2 py-1 text-xs text-amber-200">{t.brandTag}</span>
                       ) : null}
                     </div>
-                    <p className="mt-2 text-slate-300">{user.email}</p>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <p className="mt-2 text-slate-700">{user.email}</p>
+                    <p className="mt-2 text-sm text-slate-500">
                       {t.joined}: {formatDate(user.createdAt, locale)} · {t.lastSignIn}: {formatDate(user.lastSignInAt, locale)}
                     </p>
 
                     {!isEditing ? (
                       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-300">{t.profile}: {user.instagramHandle || "-"}</div>
-                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-300">{t.niche}: {user.niche || "-"}</div>
-                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-300">{t.followersRange}: {user.followersRange || "-"}</div>
-                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-300">{t.portfolioUrl}: {user.portfolioUrl || "-"}</div>
+                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-700">{t.profile}: {user.instagramHandle || "-"}</div>
+                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-700">{t.niche}: {user.niche || "-"}</div>
+                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-700">{t.followersRange}: {user.followersRange || "-"}</div>
+                        <div className="rounded-2xl bg-white/5 px-4 py-3 text-sm text-slate-700">{t.portfolioUrl}: {user.portfolioUrl || "-"}</div>
                       </div>
                     ) : (
                       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                        <label className="text-sm text-slate-300">
+                        <label className="text-sm text-slate-700">
                           {t.fullName}
                           <input
                             value={form.fullName}
                             onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-cyan-400"
                           />
                         </label>
 
-                        <label className="text-sm text-slate-300">
+                        <label className="text-sm text-slate-700">
                           {t.igHandle}
                           <input
                             value={form.instagramHandle}
                             onChange={(event) => setForm((current) => ({ ...current, instagramHandle: event.target.value.replace(/^@/, "") }))}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-cyan-400"
                           />
                         </label>
 
-                        <label className="text-sm text-slate-300">
+                        <label className="text-sm text-slate-700">
                           {t.niche}
                           <input
                             value={form.niche}
                             onChange={(event) => setForm((current) => ({ ...current, niche: event.target.value }))}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-cyan-400"
                           />
                         </label>
 
-                        <label className="text-sm text-slate-300">
+                        <label className="text-sm text-slate-700">
                           {t.followersRange}
                           <input
                             value={form.followersRange}
                             onChange={(event) => setForm((current) => ({ ...current, followersRange: event.target.value }))}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-cyan-400"
                           />
                         </label>
 
-                        <label className="text-sm text-slate-300 sm:col-span-2">
+                        <label className="text-sm text-slate-700 sm:col-span-2">
                           {t.portfolioUrl}
                           <input
                             value={form.portfolioUrl}
                             onChange={(event) => setForm((current) => ({ ...current, portfolioUrl: event.target.value }))}
-                            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                            className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-cyan-400"
                           />
                         </label>
                       </div>
@@ -281,7 +281,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
                       <button
                         type="button"
                         onClick={() => openEdit(user)}
-                        className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40"
+                        className="tactical-btn-ghost px-4 py-2 text-sm"
                       >
                         {t.edit}
                       </button>
@@ -325,7 +325,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
                             setEditingId(null);
                             setSavingId(null);
                           }}
-                          className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-300"
+                          className="tactical-btn-primary px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-55"
                         >
                           {isSaving ? t.saving : t.save}
                         </button>
@@ -337,7 +337,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
                             setEditingId(null);
                             setError(null);
                           }}
-                          className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/40 disabled:cursor-not-allowed"
+                          className="tactical-btn-ghost px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
                         >
                           {t.cancel}
                         </button>
@@ -375,7 +375,7 @@ export function AdminUserManager({ initialUsers, locale }: AdminUserManagerProps
                           setEditingId(null);
                         }
                       }}
-                      className="rounded-full border border-rose-400/30 px-4 py-2 text-sm font-semibold text-rose-200 transition hover:border-rose-300 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="rounded-full border border-rose-400/40 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {isDeleting ? t.deleting : t.delete}
                     </button>

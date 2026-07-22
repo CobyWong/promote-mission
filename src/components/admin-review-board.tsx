@@ -84,6 +84,9 @@ function slaBadgeClassName(state: SlaState) {
   return "border-slate-400/20 bg-slate-400/10 text-slate-200";
 }
 
+const fieldClassName = "w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900";
+const subPanelClassName = "w-full max-w-xl rounded-[1.5rem] border border-slate-200 bg-white/92 p-5";
+
 export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale }: AdminReviewBoardProps) {
   const t = locale === "en"
     ? {
@@ -403,18 +406,18 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       <div className="glass-panel p-5">
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm uppercase tracking-[0.2em] text-slate-400">{t.bulkActions}</p>
-          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-200">{t.selected}: {selectedIds.length}</span>
+          <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs text-cyan-700">{t.selected}: {selectedIds.length}</span>
           <button
             type="button"
             onClick={() => setSelectedIds(filteredSubmissions.map((item) => item.id))}
-            className="rounded-full border border-white/20 px-3 py-1 text-xs text-slate-200"
+            className="tactical-btn-ghost px-3 py-1 text-xs"
           >
             {t.selectAllFiltered}
           </button>
           <button
             type="button"
             onClick={() => setSelectedIds([])}
-            className="rounded-full border border-white/20 px-3 py-1 text-xs text-slate-200"
+            className="tactical-btn-ghost px-3 py-1 text-xs"
           >
             {t.clearSelection}
           </button>
@@ -422,8 +425,8 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
 
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">{t.statusFilter}</label>
-            <select value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as SubmissionStatus)} className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-white">
+            <label className="text-sm text-slate-700">{t.statusFilter}</label>
+            <select value={bulkStatus} onChange={(event) => setBulkStatus(event.target.value as SubmissionStatus)} className={fieldClassName}>
               {(["Pending", "Needs edits", "Approved"] as SubmissionStatus[]).map((status) => (
                 <option key={status} value={status} className="bg-slate-900">{status}</option>
               ))}
@@ -431,26 +434,26 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
             <button
               type="button"
               onClick={() => runBulkUpdate({ status: bulkStatus })}
-              className="w-full rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200"
+              className="tactical-btn-primary w-full px-4 py-2 text-sm"
             >
               {t.bulkApplyStatus}
             </button>
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <label className="text-sm text-slate-300">{t.assignedReviewer}</label>
-            <select value={bulkReviewerId} onChange={(event) => setBulkReviewerId(event.target.value)} className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-white">
+            <label className="text-sm text-slate-700">{t.assignedReviewer}</label>
+            <select value={bulkReviewerId} onChange={(event) => setBulkReviewerId(event.target.value)} className={fieldClassName}>
               <option value="" className="bg-slate-900">{t.unassigned}</option>
               {reviewers.map((reviewer) => (
                 <option key={reviewer.id} value={reviewer.id} className="bg-slate-900">{reviewer.email}</option>
               ))}
             </select>
-            <label className="text-sm text-slate-300">{t.reviewDueAt}</label>
+            <label className="text-sm text-slate-700">{t.reviewDueAt}</label>
             <input
               type="datetime-local"
               value={bulkDueAt}
               onChange={(event) => setBulkDueAt(event.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-white"
+              className={fieldClassName}
             />
             <button
               type="button"
@@ -458,23 +461,23 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                 assignedReviewerId: bulkReviewerId || null,
                 reviewDueAt: bulkDueAt ? new Date(bulkDueAt).toISOString() : null,
               })}
-              className="w-full rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-200"
+              className="tactical-btn-primary w-full px-4 py-2 text-sm"
             >
               {t.bulkApplyAssignment}
             </button>
           </div>
 
           <div className="space-y-2 md:col-span-3">
-            <label className="text-sm text-slate-300">{t.bulkNotes}</label>
+            <label className="text-sm text-slate-700">{t.bulkNotes}</label>
             <textarea
               value={bulkNotes}
               onChange={(event) => setBulkNotes(event.target.value)}
-              className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-white"
+              className="min-h-24 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
             />
             <button
               type="button"
               onClick={() => runBulkUpdate({ notes: bulkNotes })}
-              className="w-full rounded-full border border-sky-300/30 bg-sky-400/10 px-4 py-2 text-sm font-semibold text-sky-200"
+              className="tactical-btn-primary w-full px-4 py-2 text-sm"
             >
               {t.bulkApplyNotes}
             </button>
@@ -492,7 +495,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                     type="checkbox"
                     checked={selectedIds.includes(submission.id)}
                     onChange={() => toggleSubmissionSelection(submission.id)}
-                    className="h-4 w-4 rounded border-white/20 bg-slate-900"
+                    className="h-4 w-4 rounded border-slate-300 bg-white"
                     aria-label={`Select ${submission.id}`}
                   />
                   <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{submission.id}</p>
@@ -504,16 +507,16 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                   </span>
                   {savingId === submission.id ? <span className="text-xs text-slate-400">{t.saving}</span> : null}
                 </div>
-                <h2 className="mt-3 text-xl font-semibold text-white">{submission.missionTitle}</h2>
-                <p className="mt-3 text-slate-300">
+                <h2 className="mt-3 text-xl font-semibold text-slate-900">{submission.missionTitle}</h2>
+                <p className="mt-3 text-slate-700">
                   {submission.creatorName} · {submission.platform} · {t.submitted} {submission.submittedAt}
                 </p>
-                <div className="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-300">
+                <div className="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-700">
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.coins}: {submission.coins}</div>
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.screenshots}: {submission.screenshotCount}</div>
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.link}: {submission.reelUrl}</div>
                 </div>
-                <div className="mt-3 grid gap-3 md:grid-cols-2 text-sm text-slate-300">
+                <div className="mt-3 grid gap-3 md:grid-cols-2 text-sm text-slate-700">
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.assignedReviewer}: {submission.assignedReviewerId ? (reviewerNameMap.get(submission.assignedReviewerId) ?? submission.assignedReviewerId) : t.noReviewer}</div>
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.reviewDueAt}: {submission.reviewDueAt ? new Date(submission.reviewDueAt).toLocaleString() : t.noDueDate}</div>
                 </div>
@@ -530,8 +533,8 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                 ) : null}
               </div>
 
-              <div className="w-full max-w-xl rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                <p className="font-semibold text-white">{t.reviewerNotes}</p>
+              <div className={subPanelClassName}>
+                <p className="font-semibold text-slate-900">{t.reviewerNotes}</p>
                 <textarea
                   value={submission.notes}
                   onChange={(event) => {
@@ -542,10 +545,10 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                       ),
                     );
                   }}
-                  className="mt-4 min-h-28 w-full resize-none rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+                  className="mt-4 min-h-28 w-full resize-none rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none focus:border-cyan-400"
                 />
                 <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <label className="text-sm text-slate-300">
+                  <label className="text-sm text-slate-700">
                     {t.assignedReviewer}
                     <select
                       value={submission.assignedReviewerId ?? ""}
@@ -553,7 +556,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                         const nextReviewerId = event.target.value || null;
                         setSubmissions((current) => current.map((item) => item.id === submission.id ? { ...item, assignedReviewerId: nextReviewerId } : item));
                       }}
-                      className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-white"
+                      className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
                     >
                       <option value="" className="bg-slate-900">{t.unassigned}</option>
                       {reviewers.map((reviewer) => (
@@ -562,7 +565,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                     </select>
                   </label>
 
-                  <label className="text-sm text-slate-300">
+                  <label className="text-sm text-slate-700">
                     {t.reviewDueAt}
                     <input
                       type="datetime-local"
@@ -571,7 +574,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                         const nextValue = event.target.value ? new Date(event.target.value).toISOString() : null;
                         setSubmissions((current) => current.map((item) => item.id === submission.id ? { ...item, reviewDueAt: nextValue } : item));
                       }}
-                      className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950/60 px-3 py-2 text-white"
+                      className="mt-2 w-full rounded-2xl border border-slate-300 bg-white px-3 py-2 text-slate-900"
                     />
                   </label>
                 </div>
@@ -599,7 +602,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
 
                     setSavingId(null);
                   }}
-                  className="mt-4 rounded-full border border-emerald-300/30 bg-emerald-400/10 px-4 py-2 text-sm font-semibold text-emerald-200"
+                  className="tactical-btn-primary mt-4 px-4 py-2 text-sm"
                 >
                   {t.saveAssignment}
                 </button>
@@ -638,7 +641,7 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
 
                         setSavingId(null);
                       }}
-                      className="rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-white/10"
+                      className="tactical-btn-ghost px-4 py-2 text-sm"
                     >
                       {t.markAs} {status}
                     </button>

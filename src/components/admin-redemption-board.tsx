@@ -77,7 +77,7 @@ export function AdminRedemptionBoard({ initialRedemptions, locale }: AdminRedemp
         ].map((item) => (
           <div key={item.label} className="glass-panel p-5">
             <p className="text-sm text-slate-400">{item.label}</p>
-            <p className="mt-2 text-2xl font-semibold text-white">{item.value}</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</p>
           </div>
         ))}
       </div>
@@ -94,13 +94,13 @@ export function AdminRedemptionBoard({ initialRedemptions, locale }: AdminRedemp
                   </span>
                   {savingId === item.id ? <span className="text-xs text-slate-400">{t.saving}</span> : null}
                 </div>
-                <h2 className="mt-3 text-xl font-semibold text-white">{item.rewardName}</h2>
-                <p className="mt-3 text-slate-300">{item.createdAt} · {item.costCoins.toLocaleString()} Coins</p>
-                <p className="mt-3 text-sm text-slate-300">{item.notes || t.noNotes}</p>
+                <h2 className="mt-3 text-xl font-semibold text-slate-900">{item.rewardName}</h2>
+                <p className="mt-3 text-slate-700">{item.createdAt} · {item.costCoins.toLocaleString()} Coins</p>
+                <p className="mt-3 text-sm text-slate-700">{item.notes || t.noNotes}</p>
               </div>
 
-              <div className="w-full max-w-xl rounded-[1.75rem] border border-white/10 bg-white/5 p-5">
-                <p className="font-semibold text-white">{t.action}</p>
+              <div className="w-full max-w-xl rounded-[1.5rem] border border-slate-200 bg-white/92 p-5">
+                <p className="font-semibold text-slate-900">{t.action}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   {(["Pending", "Fulfilled", "Rejected"] as RewardRedemptionStatus[]).map((status) => (
                     <button
@@ -131,7 +131,7 @@ export function AdminRedemptionBoard({ initialRedemptions, locale }: AdminRedemp
 
                         setSavingId(null);
                       }}
-                      className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${statusClassName(status)}`}
+                      className="tactical-btn-primary px-4 py-2 text-sm"
                     >
                       {t.markAs} {status}
                     </button>

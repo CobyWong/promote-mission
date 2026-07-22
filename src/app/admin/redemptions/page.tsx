@@ -23,18 +23,16 @@ export default async function AdminRedemptionsPage() {
   return (
     <section className="admin-mobile-ui section-shell py-10 sm:py-16">
       <div className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Admin Fulfillment</p>
-        <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">{t.title}</h1>
-        <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-          {t.desc}
-        </p>
+        <p className="tactical-section-kicker">Admin Fulfillment</p>
+        <h1 className="tactical-section-title">{t.title}</h1>
+        <p className="tactical-section-lead">{t.desc}</p>
       </div>
 
       <div className="mt-10">
         {!redemptionData.authorized && redemptionData.mode === "live" ? (
           <div className="glass-panel max-w-3xl p-8">
-            <h2 className="text-2xl font-semibold text-white">{t.needAdmin}</h2>
-            <p className="mt-4 text-slate-300">{t.needAdminDesc}</p>
+            <h2 className="text-2xl font-semibold text-slate-900">{t.needAdmin}</h2>
+            <p className="mt-4 text-slate-600">{t.needAdminDesc}</p>
           </div>
         ) : (
           <AdminRedemptionBoard initialRedemptions={redemptionData.redemptions} locale={locale} />

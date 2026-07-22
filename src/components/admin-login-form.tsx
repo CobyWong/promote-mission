@@ -11,7 +11,7 @@ type AdminLoginFormProps = {
 };
 
 const inputClassName =
-  "mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400/40 focus:bg-white/8";
+  "mt-2 w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-cyan-400";
 
 export function AdminLoginForm({ locale, nextPath = "/admin/reviews" }: AdminLoginFormProps) {
   const adminEmailPlaceholder = getAdminEmails()[0] ?? "admin@example.com";
@@ -89,16 +89,16 @@ export function AdminLoginForm({ locale, nextPath = "/admin/reviews" }: AdminLog
   return (
     <div className="mx-auto max-w-xl glass-panel p-8">
       <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">{t.subtitle}</p>
-      <h1 className="mt-3 text-3xl font-semibold text-white">{t.title}</h1>
-      <p className="mt-4 text-sm text-slate-300">{t.hint}</p>
+      <h1 className="mt-3 text-3xl font-semibold text-slate-900">{t.title}</h1>
+      <p className="mt-4 text-sm text-slate-600">{t.hint}</p>
 
       <form className="mt-8 space-y-5" onSubmit={onSubmit}>
-        <label className="block text-sm text-slate-300">
+        <label className="block text-sm text-slate-700">
           {t.email}
           <input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} className={inputClassName} placeholder={adminEmailPlaceholder} />
         </label>
 
-        <label className="block text-sm text-slate-300">
+        <label className="block text-sm text-slate-700">
           {t.password}
           <input required type="password" value={password} onChange={(event) => setPassword(event.target.value)} className={inputClassName} placeholder="••••••••" />
         </label>
@@ -107,7 +107,7 @@ export function AdminLoginForm({ locale, nextPath = "/admin/reviews" }: AdminLog
 
         <button
           disabled={loading}
-          className="w-full rounded-full bg-cyan-400 px-5 py-3 font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400"
+          className="tactical-btn-primary w-full disabled:cursor-not-allowed disabled:opacity-55"
         >
           {loading ? t.processing : t.submit}
         </button>
