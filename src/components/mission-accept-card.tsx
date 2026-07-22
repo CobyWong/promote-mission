@@ -13,15 +13,17 @@ type MissionAcceptCardProps = {
   locale: Locale;
   minParticipants?: number;
   currentParticipants?: number;
+  lifecyclePhase?: "upcoming" | "live" | "ranking_confirmation" | "closed";
 };
 
-export function MissionAcceptCard({ missionSlug, locale, minParticipants, currentParticipants }: MissionAcceptCardProps) {
+export function MissionAcceptCard({ missionSlug, locale, minParticipants, currentParticipants, lifecyclePhase }: MissionAcceptCardProps) {
   const storageKey = getMissionAcceptanceStorageKey(missionSlug);
   const [acceptedAt, setAcceptedAt] = useState<number | null>(null);
   const [registered, setRegistered] = useState(false);
   const [displayCount, setDisplayCount] = useState(currentParticipants ?? 0);
 
   const isLocked = (minParticipants ?? 0) > 0 && displayCount < (minParticipants ?? 0);
+  const isOpenForAcceptance = lifecyclePhase === "live";
 
   const labels = locale === "en"
     ? {
@@ -40,6 +42,8 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       stillNeed: "Still need {n} more to unlock",
       registerInterest: "✋ Register Interest",
       registeredMsg: "You're registered! We'll open the mission once enough creators have joined.",
+      deadlinePassed: "Mission deadline has passed. Ranking is fixed and waiting for confirmation.",
+      notOpenYet: "This mission is not open for acceptance yet.",
     }
     : {
       title: "立即申請",
@@ -57,6 +61,8 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       stillNeed: "還差 {n} 人即可開放",
       registerInterest: "✋ 立即登記參加",
       registeredMsg: "已完成登記；達到指定人數後，任務將正式開放。",
+      deadlinePassed: "任務截止時間已過，排名已鎖定並等待確認。",
+      notOpenYet: "此任務尚未開放接受。",
     };
 
   useEffect(() => {
@@ -123,6 +129,14 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
             {labels.registerInterest}
           </button>
         )}
+      </div>
+    );
+  }
+
+  if (!isOpenForAcceptance) {
+    return (
+      <div className="glass-panel p-8 text-sm text-amber-700">
+        {lifecyclePhase === "ranking_confirmation" || lifecyclePhase === "closed" ? labels.deadlinePassed : labels.notOpenYet}
       </div>
     );
   }

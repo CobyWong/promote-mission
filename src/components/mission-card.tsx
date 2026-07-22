@@ -41,6 +41,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
   const rankingEntries = mission.rankings && mission.rankings.length > 0
     ? mission.rankings.slice(0, 3)
     : [];
+  const isRankingFinalized = mission.lifecyclePhase === "ranking_confirmation" || mission.lifecyclePhase === "closed";
 
   if (compactMobile) {
     return (
@@ -66,7 +67,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
 
         {!isLocked ? (
           <div className="mt-2 space-y-1.5 rounded-xl border border-slate-600/60 bg-slate-900/45 px-3 py-2 text-[11px] text-slate-300">
-            <p className="text-[11px] font-semibold text-slate-400">{locale === "en" ? "Mission ranking" : "任務排名"}</p>
+            <p className="text-[11px] font-semibold text-slate-400">{locale === "en" ? "Mission ranking (Likes)" : "任務排名（Likes）"}</p>
             {rankingEntries.length > 0 ? (
               rankingEntries.map((entry) => (
                 <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between gap-2">
@@ -81,12 +82,15 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                       {entry.handle}
                     </a>
                   </div>
-                  <span className="shrink-0 text-slate-400">{entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}</span>
+                  <span className="shrink-0 text-slate-400">{entry.likes >= 1000 ? `${(entry.likes / 1000).toFixed(1)}K` : entry.likes}</span>
                 </div>
               ))
             ) : (
               <p className="text-slate-400">{locale === "en" ? "No ranking entries yet." : "目前尚無排名紀錄。"}</p>
             )}
+            {isRankingFinalized ? (
+              <p className="pt-1 text-[10px] text-amber-200">{locale === "en" ? "Ranking fixed at deadline." : "排名已於截止時間鎖定。"}</p>
+            ) : null}
           </div>
         ) : null}
 
@@ -172,7 +176,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
               : `排名派彩：第 1 名 60%（HK$${rewards.first.toLocaleString()}） · 第 2 名 30%（HK$${rewards.second.toLocaleString()}） · 第 3 名 10%（HK$${rewards.third.toLocaleString()}）`}
           </div>
           <div className={`${compactMobile ? "hidden sm:block" : "block"} space-y-2`}>
-            <p className="text-sm text-slate-400">{locale === "en" ? "Top creators" : "頂尖創作者"}</p>
+            <p className="text-sm text-slate-400">{locale === "en" ? "Top creators (Likes)" : "頂尖創作者（Likes）"}</p>
             {rankingEntries.length > 0 ? (
               rankingEntries.map((entry) => (
                 <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-xl border border-slate-600/60 bg-slate-900/50 px-3 py-2 text-sm text-slate-300">
@@ -187,7 +191,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                       {entry.handle}
                     </a>
                   </div>
-                  <span className="text-slate-400">{entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}</span>
+                  <span className="text-slate-400">{entry.likes >= 1000 ? `${(entry.likes / 1000).toFixed(1)}K` : entry.likes}</span>
                 </div>
               ))
             ) : (
@@ -195,6 +199,9 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                 {locale === "en" ? "No top creators yet." : "目前尚無頂尖創作者資料。"}
               </div>
             )}
+            {isRankingFinalized ? (
+              <p className="text-xs text-amber-200">{locale === "en" ? "Ranking is finalized after deadline." : "截止後排名已固定。"}</p>
+            ) : null}
           </div>
         </>
 

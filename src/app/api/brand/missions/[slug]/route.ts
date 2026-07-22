@@ -96,6 +96,16 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
   const body = (await request.json()) as Partial<Database["public"]["Tables"]["missions"]["Update"]>;
   const normalizedDifficulty = normalizeDifficultyLabel(body.difficulty);
 
+  const { data: existingMission } = await access.admin
+    .from("missions")
+    .select("starts_at, ends_at")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!existingMission) {
+    return NextResponse.json({ error: isZh ? "找不到任務。" : "Mission not found." }, { status: 404 });
+  }
+
   const payload: Database["public"]["Tables"]["missions"]["Update"] = {
     title: typeof body.title === "string" ? body.title : undefined,
     brand: typeof body.brand === "string" ? body.brand : undefined,
@@ -125,6 +135,23 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
     min_participants: typeof body.min_participants === "number" ? body.min_participants : undefined,
     current_participants: typeof body.current_participants === "number" ? body.current_participants : undefined,
   };
+
+  const nextEndsAt = payload.ends_at === undefined ? existingMission.ends_at : payload.ends_at;
+  const nextStartsAt = payload.starts_at === undefined ? existingMission.starts_at : payload.starts_at;
+
+  if (!nextEndsAt) {
+    return NextResponse.json(
+      { error: isZh ? "每個任務必須設定截止時間。" : "Every mission must define a deadline (ends_at)." },
+      { status: 400 },
+    );
+  }
+
+  if (nextStartsAt && new Date(nextStartsAt).getTime() >= new Date(nextEndsAt).getTime()) {
+    return NextResponse.json(
+      { error: isZh ? "截止時間必須晚於開始時間。" : "Mission deadline must be later than start time." },
+      { status: 400 },
+    );
+  }
 
   const { error } = await access.admin.from("missions").update(payload).eq("slug", slug);
 

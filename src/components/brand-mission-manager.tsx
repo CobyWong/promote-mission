@@ -62,7 +62,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       fieldCurrentParticipants: "Current registered participants",
       fieldLifecycleStatus: "Lifecycle status",
       fieldStartsAt: "Starts at",
-      fieldEndsAt: "Ends at",
+      fieldEndsAt: "Ends at (required)",
       lifecycleStatusLabel: "Status",
       transitionFailed: "Failed to update mission status.",
       transitionToActive: "Activate",
@@ -112,7 +112,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       fieldCurrentParticipants: "目前登記人數",
       fieldLifecycleStatus: "生命週期狀態",
       fieldStartsAt: "開始時間",
-      fieldEndsAt: "結束時間",
+      fieldEndsAt: "結束時間（必填）",
       lifecycleStatusLabel: "狀態",
       transitionFailed: "更新任務狀態失敗。",
       transitionToActive: "啟用",
@@ -383,6 +383,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                   }
                   className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
                   disabled={field.key === "slug" && Boolean(editingSlug)}
+                  required={field.key === "endsAt"}
                 />
               )}
             </label>

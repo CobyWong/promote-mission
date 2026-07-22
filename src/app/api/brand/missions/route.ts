@@ -154,6 +154,20 @@ export async function POST(request: Request) {
     current_participants: Number(body.current_participants ?? 0),
   };
 
+  if (!payload.ends_at) {
+    return NextResponse.json(
+      { error: isZh ? "每個任務必須設定截止時間。" : "Every mission must define a deadline (ends_at)." },
+      { status: 400 },
+    );
+  }
+
+  if (payload.starts_at && new Date(payload.starts_at).getTime() >= new Date(payload.ends_at).getTime()) {
+    return NextResponse.json(
+      { error: isZh ? "截止時間必須晚於開始時間。" : "Mission deadline must be later than start time." },
+      { status: 400 },
+    );
+  }
+
   const { data, error } = await access.admin.from("missions").insert(payload).select("slug").single();
 
   if (error) {

@@ -56,6 +56,25 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
     return NextResponse.json({ error: isZh ? "任務狀態無效。" : "Invalid mission status." }, { status: 400 });
   }
 
+  if (status === "active") {
+    const { data: missionRow } = await access.admin
+      .from("missions")
+      .select("ends_at")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    if (!missionRow) {
+      return NextResponse.json({ error: isZh ? "找不到任務。" : "Mission not found." }, { status: 404 });
+    }
+
+    if (!missionRow.ends_at) {
+      return NextResponse.json(
+        { error: isZh ? "任務必須先設定截止時間，才可啟用。" : "Set mission deadline before activating this mission." },
+        { status: 400 },
+      );
+    }
+  }
+
   const nowIso = new Date().toISOString();
   const payload: {
     status: MissionLifecycleStatus;

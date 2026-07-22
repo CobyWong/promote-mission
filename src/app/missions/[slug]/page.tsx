@@ -20,6 +20,24 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
   const missionCenterData = await getMissionCenterData();
   const userLevel = missionCenterData.userLevel ?? 1;
   const isLevelLocked = userLevel < requiredLevel;
+  const deadlineLabel = mission.endsAt
+    ? new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-HK", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(mission.endsAt))
+    : null;
+  const confirmationLabel = mission.rankingConfirmationEndsAt
+    ? new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-HK", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(mission.rankingConfirmationEndsAt))
+    : null;
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -62,8 +80,21 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               <p className="mt-2 text-2xl font-semibold text-slate-900">{mission.difficulty}</p>
               <p className="mt-2 text-xs text-slate-600">{locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}</p>
               <p className="mt-2 text-xs text-cyan-700">{locale === "en" ? `Your level: Lv.${userLevel}` : `目前等級：Lv.${userLevel}`}</p>
+              <p className="mt-2 text-xs text-slate-600">
+                {locale === "en"
+                  ? `Submission deadline: ${deadlineLabel ?? "Not set"}`
+                  : `提交截止：${deadlineLabel ?? "未設定"}`}
+              </p>
             </div>
           </div>
+
+          {mission.lifecyclePhase === "ranking_confirmation" ? (
+            <div className="mt-6 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-4 text-sm text-amber-800">
+              {locale === "en"
+                ? `Deadline passed. Ranking is now fixed by Likes and stays visible until ${confirmationLabel ?? "the confirmation window ends"}.`
+                : `截止時間已過，排名已按 Likes 鎖定，並會展示至 ${confirmationLabel ?? "確認期結束"}。`}
+            </div>
+          ) : null}
         </div>
 
         <div className="space-y-6">
@@ -94,8 +125,16 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {(locale === "en"
-                ? ["Film & publish your IG Reels publicly", "Add @missionone.hk as collaborator and submit your Reel URL", `Rewards are settled by likes ranking from HK$${rewards.totalPrize.toLocaleString()}: #1 60%, #2 30%, #3 10%`]
-                : ["拍攝並公開發佈 Instagram Reels", "將 @missionone_hk 設為協作者，並提交 Reels 連結", `獎勵按 Like 排名自 HK$${rewards.totalPrize.toLocaleString()} 獎金池派發：第 1 名 60%、第 2 名 30%、第 3 名 10%`]
+                ? [
+                  `Apply and submit before deadline (${deadlineLabel ?? "mission deadline"})`,
+                  "Publish IG Reels and add @missionone_hk as collaborator, then submit your Reel URL",
+                  `After deadline, ranking is fixed by Likes and top 3 share HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`,
+                ]
+                : [
+                  `請於截止時間（${deadlineLabel ?? "任務截止"}）前申請並提交`,
+                  "公開發佈 Instagram Reels，將 @missionone_hk 設為協作者，再提交 Reels 連結",
+                  `截止後排名按 Likes 鎖定，前 3 名瓜分 HK$${rewards.totalPrize.toLocaleString()}（60% / 30% / 10%）`,
+                ]
               ).map((step, index) => (
                 <div key={step} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
                   <p className="text-sm text-cyan-700">Step {index + 1}</p>
@@ -111,6 +150,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               locale={locale}
               minParticipants={mission.minParticipants}
               currentParticipants={mission.currentParticipants}
+              lifecyclePhase={mission.lifecyclePhase}
             />
           ) : null}
         </div>

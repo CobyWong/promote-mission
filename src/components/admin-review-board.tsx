@@ -108,6 +108,10 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       coins: "Coins",
       screenshots: "Screenshots",
       link: "Link",
+      likes: "Likes",
+      plays: "Plays",
+      comments: "Comments",
+      insightUpdated: "Insight updated",
       screenshotAlt: "submission screenshot",
       reviewerNotes: "Reviewer notes",
       assignedReviewer: "Assigned reviewer",
@@ -150,6 +154,10 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
       coins: "Coins",
       screenshots: "截圖",
       link: "連結",
+      likes: "Likes",
+      plays: "觀看",
+      comments: "留言",
+      insightUpdated: "數據更新時間",
       screenshotAlt: "提交截圖",
       reviewerNotes: "審核備註",
       assignedReviewer: "指派審核者",
@@ -511,9 +519,13 @@ export function AdminReviewBoard({ initialSubmissions, initialReviewers, locale 
                 <p className="mt-3 text-slate-700">
                   {submission.creatorName} · {submission.platform} · {t.submitted} {submission.submittedAt}
                 </p>
-                <div className="mt-5 grid gap-3 md:grid-cols-3 text-sm text-slate-700">
+                <div className="mt-5 grid gap-3 md:grid-cols-4 text-sm text-slate-700">
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.coins}: {submission.coins}</div>
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.screenshots}: {submission.screenshotCount}</div>
+                  <div className="rounded-2xl bg-white/5 px-4 py-3">{t.likes}: {submission.latestLikeCount ?? 0}</div>
+                  <div className="rounded-2xl bg-white/5 px-4 py-3">{t.plays}: {submission.latestPlayCount ?? 0}</div>
+                  <div className="rounded-2xl bg-white/5 px-4 py-3">{t.comments}: {submission.latestCommentCount ?? 0}</div>
+                  <div className="rounded-2xl bg-white/5 px-4 py-3">{t.insightUpdated}: {submission.latestInsightAt ? new Date(submission.latestInsightAt).toLocaleString() : "-"}</div>
                   <div className="rounded-2xl bg-white/5 px-4 py-3">{t.link}: {submission.reelUrl}</div>
                 </div>
                 <div className="mt-3 grid gap-3 md:grid-cols-2 text-sm text-slate-700">

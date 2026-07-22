@@ -41,6 +41,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
   const idempotencyKeyRef = useRef<string>("");
   const backendReady = hasSupabaseConfig();
   const rewards = getRankingRewardsByDifficulty(mission.difficulty);
+  const submissionClosed = mission.lifecyclePhase === "ranking_confirmation" || mission.lifecyclePhase === "closed";
 
   const buildIdempotencyKey = () => {
     const base = `web-submission:${mission.slug}`;
@@ -76,7 +77,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
     [checks],
   );
 
-  const canSubmit = acceptedAndValid && reelUrl.trim().startsWith("http") && completedChecks === 3;
+  const canSubmit = !submissionClosed && acceptedAndValid && reelUrl.trim().startsWith("http") && completedChecks === 3;
 
   if (submitted) {
     return (
@@ -221,6 +222,14 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
           </div>
         ) : null}
 
+        {submissionClosed ? (
+          <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
+            {locale === "en"
+              ? "Mission deadline has passed. Ranking is now fixed and proof submission is closed."
+              : "任務截止時間已過，排名已鎖定，Proof 提交已關閉。"}
+          </div>
+        ) : null}
+
         {!backendReady ? (
           <div className="mt-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-4 text-sm text-amber-100">
             {locale === "en"
@@ -267,7 +276,7 @@ export function ProofSubmissionForm({ mission, locale = "zh-HK" }: ProofSubmissi
               {[
                 { key: "published", label: isEnglish ? "Video is published publicly" : "影片已公開發佈" },
                 { key: "taggedBrand", label: isEnglish ? "Brand account and hashtags are tagged" : "已標註品牌帳號與 hashtag" },
-                { key: "addedCollaborator", label: isEnglish ? "@missionone.hk is added as collaborator" : "已將 @missionone_hk 設為協作者" },
+                { key: "addedCollaborator", label: isEnglish ? "@missionone_hk is added as collaborator" : "已將 @missionone_hk 設為協作者" },
               ].map((item) => (
                 <label key={item.key} className="flex items-start gap-3 rounded-2xl bg-slate-950/60 px-4 py-4">
                   <input

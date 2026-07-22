@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
+import { isMissionOpenForApplications } from "@/lib/mission-lifecycle";
 import { createAppLog } from "@/lib/observability";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -95,9 +96,39 @@ export async function POST(
 
   const { data: mission } = await admin
     .from("missions")
-    .select("current_participants")
+    .select("current_participants, status, starts_at, ends_at")
     .eq("slug", slug)
     .single();
+
+  if (!mission) {
+    const errorBody = { error: isZh ? "找不到此任務。" : "Mission not found." };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 404,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 404 });
+  }
+
+  if (!isMissionOpenForApplications({
+    status: mission.status,
+    starts_at: mission.starts_at,
+    ends_at: mission.ends_at,
+  })) {
+    const errorBody = {
+      error: isZh
+        ? "此任務已過截止時間或暫未開放，暫時不能申請。"
+        : "This mission is closed for new applications (deadline passed or not active).",
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 409,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 409 });
+  }
 
   const nextCount = (mission?.current_participants ?? 0) + 1;
 

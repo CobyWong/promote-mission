@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createAppLog, reportApiError } from "@/lib/observability";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { isMissionOpenForApplications } from "@/lib/mission-lifecycle";
 import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { isZhRequest } from "@/lib/api-locale";
 import type { Database } from "@/lib/supabase/database.types";
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
       ? `此任務需達 Lv.${requiredLevel} 方可提交；你目前等級為 Lv.${creatorLevel}/${MAX_CREATOR_LEVEL}。`
       : `This mission requires level ${requiredLevel}. Your current level is ${creatorLevel}/${MAX_CREATOR_LEVEL}.`,
     invalidReelUrl: isZh ? "請提供有效的 Reels 連結。" : "A valid reel URL is required.",
+    missionClosed: isZh ? "此任務已過截止時間或暫未開放，暫時不能提交。" : "This mission is closed for submissions (deadline passed or not active).",
     missingCollaborator: isZh
       ? "提交前請先將 @missionone_hk 設為協作者。"
       : "Please add @missionone_hk as collaborator before submission.",
@@ -108,21 +110,26 @@ export async function POST(request: Request) {
       .from("missions")
       .select("*")
       .eq("slug", slug)
-      .eq("is_active", true)
       .maybeSingle();
 
-    const mission = missionRow
-      ? {
-          slug: missionRow.slug,
-          title: missionRow.title,
-          brand: missionRow.brand,
-          points: getMissionRewardCoins(missionRow.difficulty ?? "Easy"),
-          difficulty: missionRow.difficulty,
-        }
-      : null;
-
-    if (!mission) {
+    if (!missionRow) {
       return NextResponse.json({ error: t.missionNotFound }, { status: 404 });
+    }
+
+    const mission = {
+      slug: missionRow.slug,
+      title: missionRow.title,
+      brand: missionRow.brand,
+      points: getMissionRewardCoins(missionRow.difficulty ?? "Easy"),
+      difficulty: missionRow.difficulty,
+    };
+
+    if (!isMissionOpenForApplications({
+      status: missionRow.status,
+      starts_at: missionRow.starts_at,
+      ends_at: missionRow.ends_at,
+    })) {
+      return NextResponse.json({ error: t.missionClosed }, { status: 409 });
     }
 
     const { data: approvedSubmissions } = await supabase

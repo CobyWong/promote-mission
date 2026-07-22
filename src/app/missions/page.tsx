@@ -62,6 +62,25 @@ export default async function MissionsPage() {
     }).format(parsed);
   };
 
+  const formatDateTime = (value?: string | null) => {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return null;
+    }
+
+    return new Intl.DateTimeFormat(dateLocale, {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(parsed);
+  };
+
   return (
     <section className="section-shell py-10 sm:py-12">
       <div className="max-w-4xl">
@@ -140,7 +159,7 @@ export default async function MissionsPage() {
 
                           <div className="pt-1">
                             <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                              {locale === "en" ? "Top rankings" : "排行榜"}
+                              {locale === "en" ? "Top rankings (Likes)" : "排行榜（Likes）"}
                             </p>
 
                             {rankingEntries.length > 0 ? (
@@ -161,7 +180,7 @@ export default async function MissionsPage() {
                                       </a>
                                     </div>
                                     <span className="shrink-0 text-xs text-slate-500">
-                                      {entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}
+                                      {entry.likes >= 1000 ? `${(entry.likes / 1000).toFixed(1)}K` : entry.likes}
                                     </span>
                                   </div>
                                 ))}
@@ -171,6 +190,14 @@ export default async function MissionsPage() {
                                 {locale === "en" ? "No ranking records yet." : "目前尚無排名紀錄。"}
                               </p>
                             )}
+
+                            {mission.lifecyclePhase === "ranking_confirmation" && mission.rankingConfirmationEndsAt ? (
+                              <p className="mt-2 text-xs text-amber-700">
+                                {locale === "en"
+                                  ? `Ranking fixed at deadline. Confirmation window until ${formatDateTime(mission.rankingConfirmationEndsAt) ?? mission.rankingConfirmationEndsAt}.`
+                                  : `排名已於截止時間鎖定，確認期至 ${formatDateTime(mission.rankingConfirmationEndsAt) ?? mission.rankingConfirmationEndsAt}。`}
+                              </p>
+                            ) : null}
                           </div>
 
                           {missionLocked ? (

@@ -1,11 +1,17 @@
 import type { AdminReviewer, CreatorProfile, Leader, Mission, MissionRankingEntry, Reward, RewardRedemption, Submission } from "@/lib/data";
 import { cache } from "react";
 import { hasAdminSession } from "@/lib/admin-session";
+import {
+  getMissionLifecyclePhase,
+  getMissionRankingConfirmationEndsAt,
+  getMissionRankingCutoffDate,
+  isMissionVisibleForCreators,
+} from "@/lib/mission-lifecycle";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromTotalExp, getMissionRewardCoins, getRewardRequiredLevel } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getMissionRewardCoins, getMissionTotalPrizeByDifficulty, getRankingRewardByPosition, getRewardRequiredLevel } from "@/lib/mission-rules";
 import { getRewardRequiredCoins } from "@/lib/reward-pricing";
 
 const REDEMPTION_RETENTION_DAYS = 30;
@@ -74,6 +80,13 @@ function getFallbackReferralCode(userId: string) {
 }
 
 function toMission(row: MissionRow): Mission {
+  const now = Date.now();
+  const lifecyclePhase = getMissionLifecyclePhase({
+    status: row.status,
+    starts_at: row.starts_at,
+    ends_at: row.ends_at,
+  }, now);
+
   return {
     slug: row.slug,
     title: row.title,
@@ -97,25 +110,11 @@ function toMission(row: MissionRow): Mission {
     archivedAt: row.archived_at,
     minParticipants: row.min_participants,
     currentParticipants: row.current_participants,
+    lifecyclePhase,
+    rankingMetric: "likes",
+    rankingFinalizedAt: lifecyclePhase === "ranking_confirmation" || lifecyclePhase === "closed" ? row.ends_at : null,
+    rankingConfirmationEndsAt: getMissionRankingConfirmationEndsAt(row.ends_at),
   };
-}
-
-function isMissionVisibleForCreators(row: MissionRow) {
-  const lifecycleStatus = (row.status ?? (row.is_active ? "active" : "paused")).toLowerCase();
-  if (!row.is_active || lifecycleStatus !== "active") {
-    return false;
-  }
-
-  const now = Date.now();
-  if (row.starts_at && new Date(row.starts_at).getTime() > now) {
-    return false;
-  }
-
-  if (row.ends_at && new Date(row.ends_at).getTime() < now) {
-    return false;
-  }
-
-  return true;
 }
 
 function toReward(row: RewardRow): Reward {
@@ -218,6 +217,13 @@ async function getMissionRankingMap(missionSlugs: string[]) {
     return new Map<string, MissionRankingEntry[]>();
   }
 
+  const { data: missionData } = await admin
+    .from("missions")
+    .select("slug, difficulty, status, starts_at, ends_at")
+    .in("slug", missionSlugs);
+
+  const missionRows = (missionData ?? []) as Array<Pick<MissionRow, "slug" | "difficulty" | "status" | "starts_at" | "ends_at">>;
+
   const { data: submissionData } = await admin
     .from("submissions")
     .select("id, mission_slug, creator_handle, reel_url, status, submitted_at")
@@ -234,48 +240,76 @@ async function getMissionRankingMap(missionSlugs: string[]) {
 
   const { data: insightData } = await admin
     .from("reel_insights")
-    .select("submission_id, plays, metric_date, created_at")
+    .select("submission_id, likes, metric_date, created_at")
     .in("submission_id", submissionIds);
 
-  const insights = (insightData ?? []) as Array<Pick<ReelInsightRow, "submission_id" | "plays" | "metric_date" | "created_at">>;
-  const latestInsightBySubmission = new Map<string, Pick<ReelInsightRow, "submission_id" | "plays" | "metric_date" | "created_at">>();
+  const insights = (insightData ?? []) as Array<Pick<ReelInsightRow, "submission_id" | "likes" | "metric_date" | "created_at">>;
+  const insightsBySubmission = new Map<string, Array<Pick<ReelInsightRow, "submission_id" | "likes" | "metric_date" | "created_at">>>();
 
   for (const insight of insights) {
     if (!insight.submission_id) {
       continue;
     }
 
-    const existing = latestInsightBySubmission.get(insight.submission_id);
-    if (!existing) {
-      latestInsightBySubmission.set(insight.submission_id, insight);
-      continue;
-    }
+    const existing = insightsBySubmission.get(insight.submission_id) ?? [];
+    existing.push(insight);
+    insightsBySubmission.set(insight.submission_id, existing);
+  }
 
-    const existingTime = new Date(`${existing.metric_date}T00:00:00Z`).getTime();
-    const currentTime = new Date(`${insight.metric_date}T00:00:00Z`).getTime();
+  for (const [submissionId, rows] of insightsBySubmission.entries()) {
+    rows.sort((a, b) => {
+      const byDate = b.metric_date.localeCompare(a.metric_date);
+      if (byDate !== 0) {
+        return byDate;
+      }
 
-    if (currentTime >= existingTime) {
-      latestInsightBySubmission.set(insight.submission_id, insight);
-    }
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+    insightsBySubmission.set(submissionId, rows);
   }
 
   const rankingMap = new Map<string, MissionRankingEntry[]>();
+  const now = Date.now();
+  const missionMetaMap = new Map(
+    missionRows.map((row) => {
+      const cutoffDate = getMissionRankingCutoffDate({
+        status: row.status,
+        starts_at: row.starts_at,
+        ends_at: row.ends_at,
+      }, now);
+
+      return [row.slug, {
+        cutoffDate,
+        totalPrizeHkd: getMissionTotalPrizeByDifficulty(row.difficulty),
+      }] as const;
+    }),
+  );
 
   for (const slug of missionSlugs) {
+    const missionMeta = missionMetaMap.get(slug) ?? {
+      cutoffDate: null,
+      totalPrizeHkd: getMissionTotalPrizeByDifficulty("Easy"),
+    };
+
     const missionRows = submissions.filter((item) => item.mission_slug === slug);
+    const cutoffDate = missionMeta.cutoffDate;
     const ranked = missionRows
       .map((item) => {
-        const latestInsight = latestInsightBySubmission.get(item.id);
+        const insightCandidates = insightsBySubmission.get(item.id) ?? [];
+        const selectedInsight = cutoffDate
+          ? insightCandidates.find((candidate) => candidate.metric_date <= cutoffDate)
+          : insightCandidates[0];
+
         return {
           handle: item.creator_handle?.trim() || "@creator",
           reelUrl: item.reel_url,
-          views: latestInsight?.plays ?? 0,
+          likes: selectedInsight?.likes ?? 0,
           submittedAt: item.submitted_at,
         };
       })
       .sort((a, b) => {
-        if (b.views !== a.views) {
-          return b.views - a.views;
+        if (b.likes !== a.likes) {
+          return b.likes - a.likes;
         }
 
         return new Date(a.submittedAt).getTime() - new Date(b.submittedAt).getTime();
@@ -285,7 +319,8 @@ async function getMissionRankingMap(missionSlugs: string[]) {
         rank: index + 1,
         handle: item.handle.startsWith("@") ? item.handle : `@${item.handle}`,
         reelUrl: item.reelUrl,
-        views: item.views,
+        likes: item.likes,
+        prizeHkd: getRankingRewardByPosition(index + 1, missionMeta.totalPrizeHkd),
       }));
 
     rankingMap.set(slug, ranked);
@@ -522,7 +557,13 @@ export async function getMissionCatalog() {
 
   const { data } = await supabase.from("missions").select("*").order("display_order", { ascending: true });
   const missionRows = (data ?? []) as MissionRow[];
-  const liveMissions = missionRows.filter(isMissionVisibleForCreators).map(toMission);
+  const liveMissions = missionRows
+    .filter((row) => isMissionVisibleForCreators({
+      status: row.status,
+      starts_at: row.starts_at,
+      ends_at: row.ends_at,
+    }))
+    .map(toMission);
 
   const sortedMissions = liveMissions.sort((a, b) => {
     const aOrder = a.displayOrder ?? Number.MAX_SAFE_INTEGER;
@@ -613,7 +654,11 @@ export async function getMissionBySlug(slug: string) {
   const { data } = await supabase.from("missions").select("*").eq("slug", slug).maybeSingle();
   const missionRow = (data ?? null) as MissionRow | null;
 
-  if (!missionRow || !isMissionVisibleForCreators(missionRow)) {
+  if (!missionRow || !isMissionVisibleForCreators({
+    status: missionRow.status,
+    starts_at: missionRow.starts_at,
+    ends_at: missionRow.ends_at,
+  })) {
     return null;
   }
 
@@ -998,6 +1043,34 @@ export async function getAdminReviewData() {
   const uniquePaths = Array.from(new Set(allScreenshotPaths));
   const signedUrlMap = new Map<string, string>();
 
+  const submissionIds = submissionRows.map((row) => row.id);
+  const latestInsightBySubmission = new Map<string, Pick<ReelInsightRow, "submission_id" | "likes" | "plays" | "comments" | "metric_date" | "created_at">>();
+
+  if (submissionIds.length > 0) {
+    const { data: insightRows } = await admin
+      .from("reel_insights")
+      .select("submission_id, likes, plays, comments, metric_date, created_at")
+      .in("submission_id", submissionIds);
+
+    const typedInsightRows = (insightRows ?? []) as Array<Pick<ReelInsightRow, "submission_id" | "likes" | "plays" | "comments" | "metric_date" | "created_at">>;
+
+    for (const insight of typedInsightRows) {
+      if (!insight.submission_id) {
+        continue;
+      }
+
+      const current = latestInsightBySubmission.get(insight.submission_id);
+      if (!current) {
+        latestInsightBySubmission.set(insight.submission_id, insight);
+        continue;
+      }
+
+      if (insight.metric_date > current.metric_date || (insight.metric_date === current.metric_date && insight.created_at > current.created_at)) {
+        latestInsightBySubmission.set(insight.submission_id, insight);
+      }
+    }
+  }
+
   if (uniquePaths.length > 0) {
     const { data: signedUrls } = await admin.storage
       .from("mission screenshot")
@@ -1015,11 +1088,16 @@ export async function getAdminReviewData() {
     reviewers: Array.from(reviewerMap.values()).sort((a, b) => a.email.localeCompare(b.email)),
     submissions: submissionRows.map((row) => {
       const parsedSubmission = toSubmission(row);
+      const latestInsight = latestInsightBySubmission.get(parsedSubmission.id);
       return {
         ...parsedSubmission,
         screenshotSignedUrls: (parsedSubmission.screenshotPaths ?? [])
           .map((path) => signedUrlMap.get(path))
           .filter((url): url is string => Boolean(url)),
+        latestLikeCount: latestInsight?.likes ?? 0,
+        latestPlayCount: latestInsight?.plays ?? 0,
+        latestCommentCount: latestInsight?.comments ?? 0,
+        latestInsightAt: latestInsight ? `${latestInsight.metric_date}T00:00:00.000Z` : null,
       };
     }),
     authorized: true,

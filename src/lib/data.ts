@@ -21,6 +21,10 @@ export type Mission = {
   archivedAt?: string | null;
   minParticipants?: number;
   currentParticipants?: number;
+  lifecyclePhase?: "upcoming" | "live" | "ranking_confirmation" | "closed";
+  rankingMetric?: "likes";
+  rankingFinalizedAt?: string | null;
+  rankingConfirmationEndsAt?: string | null;
   rankings?: MissionRankingEntry[];
 };
 
@@ -28,7 +32,8 @@ export type MissionRankingEntry = {
   rank: number;
   handle: string;
   reelUrl: string;
-  views: number;
+  likes: number;
+  prizeHkd?: number;
 };
 
 export type Reward = {
@@ -80,6 +85,10 @@ export type Submission = {
   slaBreachedAt?: string | null;
   screenshotPaths?: string[];
   screenshotSignedUrls?: string[];
+  latestLikeCount?: number;
+  latestPlayCount?: number;
+  latestCommentCount?: number;
+  latestInsightAt?: string | null;
 };
 
 export type AdminReviewer = {
