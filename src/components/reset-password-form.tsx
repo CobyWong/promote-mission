@@ -88,48 +88,76 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
       setError(t.noSupabase);
       return;
     }
+    const client = supabase;
 
-    const hash = window.location.hash;
-    if (!hash.startsWith("#")) {
-      setRecoveryState("invalid");
-      setError(t.invalidLink);
-      return;
-    }
+    let cancelled = false;
 
-    const params = new URLSearchParams(hash.slice(1));
-    const accessToken = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-    const type = params.get("type");
-    const hashError = params.get("error") || params.get("error_description");
+    async function resolveRecoveryState() {
+      const hash = window.location.hash;
 
-    if (hashError) {
-      setRecoveryState("invalid");
-      setError(t.invalidLink);
-      return;
-    }
+      if (hash.startsWith("#")) {
+        const params = new URLSearchParams(hash.slice(1));
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+        const type = params.get("type");
+        const hashError = params.get("error") || params.get("error_description");
 
-    if (type !== "recovery" || !accessToken || !refreshToken) {
-      setRecoveryState("invalid");
-      setError(t.invalidLink);
-      return;
-    }
-
-    supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
-      .then(({ error: sessionError }) => {
-        if (sessionError) {
-          setRecoveryState("invalid");
-          setError(t.invalidLink);
+        if (hashError) {
+          if (!cancelled) {
+            setRecoveryState("invalid");
+            setError(t.invalidLink);
+          }
           return;
         }
 
-        // Avoid leaving auth tokens in URL hash after session is established.
-        window.history.replaceState(null, "", "/reset-password");
-        setRecoveryState("ready");
-      })
-      .catch(() => {
+        if (type === "recovery" && accessToken && refreshToken) {
+          const { error: sessionError } = await client.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+
+          if (sessionError) {
+            if (!cancelled) {
+              setRecoveryState("invalid");
+              setError(t.invalidLink);
+            }
+            return;
+          }
+
+          // Avoid leaving auth tokens in URL hash after session is established.
+          window.history.replaceState(null, "", "/reset-password");
+          if (!cancelled) {
+            setRecoveryState("ready");
+            setError(null);
+          }
+          return;
+        }
+      }
+
+      // Support recovery flows that exchange code on /auth/callback first and then
+      // redirect to /reset-password without URL hash tokens.
+      const { data } = await client.auth.getSession();
+      if (data.session) {
+        if (!cancelled) {
+          setRecoveryState("ready");
+          setError(null);
+        }
+        return;
+      }
+
+      if (!cancelled) {
         setRecoveryState("invalid");
         setError(t.invalidLink);
-      });
+      }
+    }
+
+    resolveRecoveryState().catch(() => {
+      if (!cancelled) {
+        setRecoveryState("invalid");
+        setError(t.invalidLink);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [supabase, t.invalidLink, t.noSupabase]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
