@@ -102,6 +102,7 @@ export default async function MissionsPage() {
                 <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {section.missions.map((mission) => {
                     const missionLocked = userLevel < getMissionRequiredLevel(mission.difficulty);
+                    const rankingEntries = mission.rankings?.slice(0, 3) ?? [];
                     return (
                       <article
                         key={mission.slug}
@@ -118,7 +119,7 @@ export default async function MissionsPage() {
                             <p className="text-xs uppercase tracking-wide text-slate-500">
                               {locale === "en" ? "Mission reward" : "任務獎勵"}
                             </p>
-                            <p className="mt-1 text-2xl font-extrabold text-orange-600">
+                            <p className="mt-1 text-2xl font-extrabold text-teal-700">
                               {numberFormat.format(mission.points)} {locale === "en" ? "Coins" : "金幣"}
                             </p>
                           </div>
@@ -135,6 +136,41 @@ export default async function MissionsPage() {
                                 {locale === "en" ? "Creators" : "創作者"}: <span className="font-semibold text-slate-800">{mission.currentParticipants ?? 0} / {mission.minParticipants}</span>
                               </p>
                             ) : null}
+                          </div>
+
+                          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                              {locale === "en" ? "Top rankings" : "排行榜"}
+                            </p>
+
+                            {rankingEntries.length > 0 ? (
+                              <div className="mt-2 space-y-1.5">
+                                {rankingEntries.map((entry) => (
+                                  <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between gap-2">
+                                    <div className="flex min-w-0 items-center gap-2">
+                                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-[10px] font-bold text-teal-800">
+                                        {entry.rank}
+                                      </span>
+                                      <a
+                                        href={entry.reelUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="truncate font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-teal-700"
+                                      >
+                                        {entry.handle}
+                                      </a>
+                                    </div>
+                                    <span className="shrink-0 text-xs text-slate-500">
+                                      {entry.views >= 1000 ? `${(entry.views / 1000).toFixed(1)}K` : entry.views}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="mt-2 text-xs text-slate-500">
+                                {locale === "en" ? "No ranking records yet." : "目前尚無排名紀錄。"}
+                              </p>
+                            )}
                           </div>
 
                           {missionLocked ? (
