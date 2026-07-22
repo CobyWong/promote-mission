@@ -45,25 +45,6 @@ export default async function MissionsPage() {
         : "高強度挑戰，適合進階創作者";
   };
 
-  const sectionTone = (key: "Easy" | "Medium" | "Hard") => {
-    if (key === "Easy") {
-      return {
-        chip: "bg-cyan-100 text-cyan-800 border-cyan-300/60",
-        strip: "from-cyan-300 via-sky-300 to-cyan-200",
-      };
-    }
-    if (key === "Medium") {
-      return {
-        chip: "bg-indigo-100 text-indigo-800 border-indigo-300/60",
-        strip: "from-indigo-300 via-sky-300 to-cyan-200",
-      };
-    }
-    return {
-      chip: "bg-sky-100 text-sky-800 border-sky-300/60",
-      strip: "from-sky-300 via-cyan-300 to-indigo-200",
-    };
-  };
-
   const formatEndsAt = (endsAt?: string | null) => {
     if (!endsAt) {
       return locale === "en" ? "No fixed deadline" : "暫無固定截止日";
@@ -103,7 +84,6 @@ export default async function MissionsPage() {
       <div className="mt-8 space-y-10">
         {levelSections.map((section) => {
           const locked = userLevel < section.requiredLevel;
-          const tone = sectionTone(section.key);
 
           return (
             <div key={section.key}>
@@ -112,9 +92,6 @@ export default async function MissionsPage() {
                   <h2 className="text-2xl font-bold text-slate-900">{sectionLabel(section.key)}</h2>
                   <p className="mt-1 text-sm text-slate-600">{sectionSubLabel(section.key)}</p>
                 </div>
-                <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${tone.chip}`}>
-                  {locale === "en" ? `Unlock Lv.${section.requiredLevel}` : `Lv.${section.requiredLevel} 解鎖`}
-                </span>
               </div>
 
               {section.missions.length === 0 ? (
