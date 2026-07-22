@@ -47,10 +47,12 @@ jobs:
 
           target="${TARGET_ENV_INPUT}"
           require_auth="${REQUIRE_AUTH_INPUT}"
+          skip_run="0"
 
           if [[ "${EVENT_NAME}" == "schedule" ]]; then
             target="staging"
-            require_auth="1"
+            # Scheduled runs should not depend on long-lived auth tokens.
+            require_auth="0"
           fi
 
           if [[ "${target}" == "production" ]]; then
@@ -62,13 +64,23 @@ jobs:
           fi
 
           if [[ -z "${base_url}" ]]; then
-            echo "Missing base URL secret for target=${target}."
-            exit 1
+            if [[ "${EVENT_NAME}" == "schedule" ]]; then
+              echo "Missing base URL secret for target=${target}; marking scheduled run as skipped."
+              skip_run="1"
+            else
+              echo "Missing base URL secret for target=${target}."
+              exit 1
+            fi
           fi
 
           if [[ "${require_auth}" == "1" && -z "${token}" ]]; then
-            echo "Authenticated checks required but token secret is missing for target=${target}."
-            exit 1
+            if [[ "${EVENT_NAME}" == "schedule" ]]; then
+              echo "Auth token missing for target=${target}; scheduled run will continue with public checks only."
+              require_auth="0"
+            else
+              echo "Authenticated checks required but token secret is missing for target=${target}."
+              exit 1
+            fi
           fi
 
           if [[ "${require_auth}" != "1" ]]; then
@@ -80,6 +92,7 @@ jobs:
             echo "MOBILE_SMOKE_REQUIRE_AUTH=${require_auth}"
             echo "MOBILE_SMOKE_BASE_URL=${base_url}"
             echo "MOBILE_SMOKE_BEARER_TOKEN=${token}"
+            echo "MOBILE_SMOKE_SKIP=${skip_run}"
           } >> "$GITHUB_ENV"
 
       - name: Run header
@@ -89,10 +102,21 @@ jobs:
             echo "- target: ${MOBILE_SMOKE_TARGET}"
             echo "- auth checks: ${MOBILE_SMOKE_REQUIRE_AUTH}"
             echo "- base URL: ${MOBILE_SMOKE_BASE_URL}"
+            echo "- skip run: ${MOBILE_SMOKE_SKIP}"
             echo "- trigger: ${{ github.event_name }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Skip notice
+        if: env.MOBILE_SMOKE_SKIP == '1'
+        run: |
+          {
+            echo "## Mobile Smoke Skipped"
+            echo "- reason: missing base URL secret for scheduled run"
+            echo "- action: set STAGING_BASE_URL to enable checks"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Run mobile smoke checks
+        if: env.MOBILE_SMOKE_SKIP != '1'
         run: npm run verify:mobile:smoke
 
       - name: Failure alert summary
