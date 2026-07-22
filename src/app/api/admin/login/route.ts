@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
 import {
   ADMIN_SESSION_COOKIE,
@@ -10,6 +11,8 @@ import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { getClientFingerprint, evaluateRateLimit, getRetryAfterSeconds } from "@/lib/rate-limit";
 import { logApiEvent, reportApiError } from "@/lib/observability";
+import type { Database } from "@/lib/supabase/database.types";
+import { getSupabaseAnonKey, getSupabaseUrl, hasSupabaseConfig } from "@/lib/supabase/env";
 
 export async function POST(request: Request) {
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
@@ -87,6 +90,47 @@ export async function POST(request: Request) {
     }
 
     const response = NextResponse.json({ ok: true });
+
+    // Keep Supabase auth cookies in sync so hasAdminSession can verify admin user identity.
+    if (hasSupabaseConfig()) {
+      const supabase = createServerClient<Database>(getSupabaseUrl(), getSupabaseAnonKey(), {
+        cookies: {
+          getAll() {
+            return [];
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, {
+                ...options,
+                secure: isHttps || options.secure,
+              });
+            });
+          },
+        },
+      });
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (signInError) {
+        await logApiEvent({
+          level: "warn",
+          route: "/api/admin/login",
+          event: "admin.login.supabase_signin_failed",
+          request,
+          requestId,
+          message: signInError.message,
+          context: {
+            email: email.trim().toLowerCase(),
+          },
+        });
+
+        return NextResponse.json({ error: isZh ? "管理員登入服務暫時不可用，請稍後再試。" : "Unable to establish admin session." }, { status: 401 });
+      }
+    }
+
     response.cookies.set(ADMIN_SESSION_COOKIE, getAdminSessionCookieValue(), {
       httpOnly: true,
       sameSite: "lax",
