@@ -1,7 +1,6 @@
 "use client";
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import type { Locale } from "@/lib/i18n";
@@ -40,6 +39,7 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [navigatingLogin, setNavigatingLogin] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [recoveryState, setRecoveryState] = useState<RecoveryState>("checking");
@@ -196,6 +196,18 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
     }
   }
 
+  async function handleBackToLogin() {
+    setNavigatingLogin(true);
+
+    try {
+      if (supabase) {
+        await supabase.auth.signOut();
+      }
+    } finally {
+      window.location.assign("/login");
+    }
+  }
+
   return (
     <div className="mx-auto max-w-xl">
       <div className="tactical-card p-6 sm:p-8">
@@ -269,7 +281,7 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 w-full rounded-xl border border-cyan-600 bg-cyan-600 px-5 py-3 font-semibold text-white transition hover:bg-cyan-700 disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500"
+              className="mt-2 w-full rounded-xl border border-[#1f5cc7] bg-[#1f5cc7] px-5 py-3 font-semibold text-white transition hover:border-[#184ca4] hover:bg-[#184ca4] disabled:cursor-not-allowed disabled:border-slate-300 disabled:bg-slate-200 disabled:text-slate-500"
             >
               {loading ? t.submitting : t.submit}
             </button>
@@ -277,9 +289,14 @@ export function ResetPasswordForm({ locale }: ResetPasswordFormProps) {
         ) : null}
 
         <div className="mt-6">
-          <Link href="/login" className="text-sm font-semibold text-cyan-200 hover:text-cyan-100">
+          <button
+            type="button"
+            onClick={handleBackToLogin}
+            disabled={navigatingLogin}
+            className="text-sm font-semibold text-cyan-700 transition hover:text-cyan-800 disabled:cursor-not-allowed disabled:text-slate-400"
+          >
             {t.goLogin}
-          </Link>
+          </button>
         </div>
       </div>
     </div>

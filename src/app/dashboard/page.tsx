@@ -30,7 +30,7 @@ export default async function DashboardPage() {
       subtitle: "Manage your account, earnings, missions, and referral tools.",
       profileSection: "Profile",
       accountSection: "Account & Progress",
-      financeSection: "Earnings & Wallet",
+      financeSection: "Real Money & Coins",
       missionSection: "Missions",
       referralSection: "Referral",
       settingsSection: "Settings",
@@ -38,8 +38,9 @@ export default async function DashboardPage() {
       setting: "Setting",
       profile: "Profile details",
       level: "Level progress",
-      earnings: "Earnings summary",
-      wallet: "Wallet and redemption",
+      earnings: "Real money balance",
+      wallet: "Coins balance",
+      coinsUnit: "Coins",
       missions: "Active missions",
       referrals: "Referral center",
       support: "Support center",
@@ -58,7 +59,7 @@ export default async function DashboardPage() {
       subtitle: "集中管理個人檔案、收益、任務與推薦功能。",
       profileSection: "個人檔案",
       accountSection: "帳戶與進度",
-      financeSection: "收益與錢包",
+      financeSection: "現金與金幣",
       missionSection: "任務",
       referralSection: "推薦",
       settingsSection: "設定",
@@ -66,8 +67,9 @@ export default async function DashboardPage() {
       setting: "設定",
       profile: "個人資料",
       level: "等級進度",
-      earnings: "收益總覽",
-      wallet: "錢包與兌換",
+      earnings: "可提現現金",
+      wallet: "金幣餘額",
+      coinsUnit: "金幣",
       missions: "進行中任務",
       referrals: "推薦中心",
       support: "客服中心",
@@ -166,7 +168,7 @@ export default async function DashboardPage() {
         <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.financeSection}</p>
         <div className="mt-4 divide-y divide-white/10">
           <MenuRow href="/dashboard/earnings" label={t.earnings} value={`HK$${dashboard.totalEarned.toLocaleString()}`} />
-          <MenuRow href="/dashboard/redemptions" label={t.wallet} value={dashboard.balance.toLocaleString()} />
+          <MenuRow href="/dashboard/redemptions" label={t.wallet} value={`${dashboard.balance.toLocaleString()} ${t.coinsUnit}`} />
         </div>
       </div>
 

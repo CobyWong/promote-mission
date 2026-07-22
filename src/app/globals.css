@@ -108,11 +108,11 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  border: 1px solid rgba(255, 122, 26, 0.5);
+  border: 1px solid rgba(31, 92, 199, 0.58);
   border-radius: 0.75rem;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-  background: linear-gradient(180deg, #ff9c54 0%, #ff7a1a 100%);
-  color: #1a1f2b;
+  background: linear-gradient(180deg, #2d6fdf 0%, #1f5cc7 100%);
+  color: #f8fafc;
   font-weight: 700;
   letter-spacing: 0.03em;
   transition: transform 0.18s ease, filter 0.18s ease;
@@ -128,19 +128,19 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 44px;
-  border: 1px solid rgba(148, 163, 184, 0.62);
+  border: 1px solid rgba(31, 92, 199, 0.5);
   border-radius: 0.75rem;
   clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-  background: rgba(255, 255, 255, 0.72);
-  color: #334155;
+  background: rgba(31, 92, 199, 0.06);
+  color: #1f5cc7;
   font-weight: 700;
   letter-spacing: 0.03em;
   transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 
 .tactical-btn-ghost:hover {
-  border-color: rgba(100, 116, 139, 0.72);
-  background: rgba(241, 245, 249, 0.96);
+  border-color: rgba(31, 92, 199, 0.7);
+  background: rgba(31, 92, 199, 0.12);
 }
 
 .tactical-link {
@@ -259,7 +259,7 @@ a {
 .bg-cyan-500,
 .bg-blue-600,
 .bg-blue-700 {
-  background-color: #0b8f94 !important;
+  background-color: #1f5cc7 !important;
   color: #f8fafc !important;
 }
 
@@ -267,7 +267,7 @@ a {
 .hover\:bg-cyan-600:hover,
 .hover\:bg-blue-600:hover,
 .hover\:bg-blue-700:hover {
-  background-color: #0d7480 !important;
+  background-color: #184ca4 !important;
   color: #f8fafc !important;
 }
 
