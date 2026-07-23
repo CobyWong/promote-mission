@@ -230,6 +230,34 @@ export async function POST(
     return NextResponse.json(errorBody, { status: 400 });
   }
 
+  const { error: autoApproveError } = await admin.rpc("approve_submission", {
+    submission_id_input: submissionCreated.id,
+    reviewer_id_input: null,
+    review_notes_input: isZh
+      ? "系統已根據 Instagram 同步協作者資料自動審核通過。"
+      : "Auto-approved from Instagram sync collaborator detection.",
+  });
+
+  if (autoApproveError) {
+    const errorBody = {
+      error: isZh
+        ? "任務已接受，但自動審核失敗，請稍後重試。"
+        : `Mission accepted but auto-approval failed: ${autoApproveError.message}`,
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 400,
+      body: errorBody,
+    });
+
+    return NextResponse.json(errorBody, { status: 400 });
+  }
+
+  await admin.rpc("settle_referral_reward", {
+    approved_submission_id_input: submissionCreated.id,
+  });
+
   const nextCount = (mission?.current_participants ?? 0) + 1;
 
   const { error } = await admin
@@ -261,6 +289,21 @@ export async function POST(
       participantsAfter: nextCount,
       submissionId: submissionCreated.id,
       autoSubmission: true,
+    },
+  });
+
+  await createAppLog({
+    level: "info",
+    category: "funnel",
+    event: "funnel.submission_approved",
+    route: "/api/missions/[slug]/interest",
+    userId: user?.id ?? null,
+    context: {
+      missionSlug: slug,
+      method: request.method,
+      channel: "web",
+      submissionId: submissionCreated.id,
+      autoApproved: true,
     },
   });
 
