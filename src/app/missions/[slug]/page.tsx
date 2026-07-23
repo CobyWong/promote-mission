@@ -75,17 +75,6 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
                     : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`)}
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">{locale === "en" ? "Difficulty" : "難度"}</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{mission.difficulty}</p>
-              <p className="mt-2 text-xs text-slate-600">{locale === "en" ? `Required level: Lv.${requiredLevel}` : `需要等級：Lv.${requiredLevel}`}</p>
-              <p className="mt-2 text-xs text-cyan-700">{locale === "en" ? `Your level: Lv.${userLevel}` : `目前等級：Lv.${userLevel}`}</p>
-              <p className="mt-2 text-xs text-slate-600">
-                {locale === "en"
-                  ? `Submission deadline: ${deadlineLabel ?? "Not set"}`
-                  : `提交截止：${deadlineLabel ?? "未設定"}`}
-              </p>
-            </div>
           </div>
 
           {mission.lifecyclePhase === "ranking_confirmation" ? (

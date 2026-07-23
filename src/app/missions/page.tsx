@@ -138,16 +138,16 @@ export default async function MissionsPage() {
 
                           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
                             <p className="text-xs uppercase tracking-wide text-slate-500">
-                              {locale === "en" ? "Mission reward" : "任務獎勵"}
+                              {locale === "en" ? "Top cash prize" : "最高現金獎勵"}
                             </p>
                             <p className="mt-1 text-2xl font-extrabold text-teal-700">
-                              {numberFormat.format(mission.points)} {locale === "en" ? "Coins" : "金幣"}
+                              HK${numberFormat.format(rankingRewards.first)}
                             </p>
                           </div>
 
                           <div className="space-y-1 text-sm text-slate-600">
                             <p>
-                              {locale === "en" ? "Prize pool" : "獎金池"}: <span className="font-semibold text-slate-800">HK${numberFormat.format(rankingRewards.totalPrize)}</span>
+                              {locale === "en" ? "Total cash pool" : "總現金獎金池"}: <span className="font-semibold text-slate-800">HK${numberFormat.format(rankingRewards.totalPrize)}</span>
                             </p>
                             <p>
                               {locale === "en" ? "Ends" : "截止日"}: <span className="font-semibold text-slate-800">{formatEndsAt(mission.endsAt)}</span>
