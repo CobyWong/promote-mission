@@ -24,6 +24,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [autoSubmissionReady, setAutoSubmissionReady] = useState(false);
+  const [awaitingCollaborator, setAwaitingCollaborator] = useState(false);
 
   const isLocked = (minParticipants ?? 0) > 0 && displayCount < (minParticipants ?? 0);
   const isOpenForAcceptance = lifecyclePhase === "live";
@@ -41,6 +42,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       restart: "Re-accept mission",
       accepting: "Accepting...",
       acceptedHint: "Applied successfully. We auto-created your mission submission from synced Instagram reels.",
+      awaitingHint: "Mission accepted. Next step: publish Reel + add @missionone_hk collaborator, sync Instagram, then tap accept again to complete submission.",
       lockedTitle: "Waiting to Open",
       lockedDesc: "This mission requires a minimum number of creators before it unlocks. Register your interest to help it open faster!",
       participants: "Registered creators",
@@ -62,6 +64,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       restart: "重新接受任務",
       accepting: "接受中...",
       acceptedHint: "已成功申請。系統已根據同步的 Instagram Reels 自動建立任務提交。",
+      awaitingHint: "已接受任務。下一步：發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後再按一次接受任務完成提交。",
       lockedTitle: "等待人數開放",
       lockedDesc: "此任務需要達到最低人數才會正式開放。立即登記參加，讓任務更快開放！",
       participants: "已登記創作者",
@@ -88,7 +91,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
 
     try {
       const response = await fetch(`/api/missions/${missionSlug}/interest`, { method: "POST" });
-      const result = (await response.json().catch(() => null)) as { error?: string; count?: number; autoDetected?: boolean } | null;
+      const result = (await response.json().catch(() => null)) as { error?: string; count?: number; autoDetected?: boolean; awaitingCollaborator?: boolean } | null;
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -107,6 +110,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
         setDisplayCount(result.count);
       }
       setAutoSubmissionReady(Boolean(result?.autoDetected));
+      setAwaitingCollaborator(Boolean(result?.awaitingCollaborator));
     } catch {
       setError(locale === "en" ? "Unable to accept mission right now." : "目前無法接受任務，請稍後再試。");
     } finally {
@@ -186,6 +190,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       </button>
       {error ? <p className="text-sm text-rose-700">{error}</p> : null}
       {autoSubmissionReady ? <p className="text-sm text-emerald-700">{labels.acceptedHint}</p> : null}
+      {awaitingCollaborator ? <p className="text-sm text-amber-700">{labels.awaitingHint}</p> : null}
     </div>
   );
 }

@@ -167,19 +167,22 @@ export async function POST(
     .maybeSingle();
 
   if (!latestCollaboratorReel?.reel_url) {
-    const errorBody = {
-      error: isZh
-        ? "未找到包含 @missionone_hk 協作者的 Reels。請先發佈並完成 Instagram 同步後再接受任務。"
-        : "No Reel with @missionone_hk collaborator was found. Publish it first and run Instagram sync before accepting mission.",
+    const successBody = {
+      ok: true,
+      count: mission.current_participants ?? 0,
+      awaitingCollaborator: true,
+      message: isZh
+        ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後再按一次接受任務完成提交。"
+        : "Mission accepted. Publish your Reel with @missionone_hk as collaborator, sync Instagram, then tap accept again to complete submission.",
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
       ttlMs: operation.ttlMs,
-      status: 409,
-      body: errorBody,
+      status: 200,
+      body: successBody,
     });
 
-    return NextResponse.json(errorBody, { status: 409 });
+    return NextResponse.json(successBody);
   }
 
   const { data: profile } = await admin
