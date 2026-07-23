@@ -369,7 +369,7 @@ async function getReferralStatsForUser(
   const fallbackCoinsPerBatch = REFERRAL_REWARD_COINS_PER_USER;
   const totalRewardCoins = referralRewardRows.length > 0
     ? referralRewardRows.reduce((sum, item) => sum + Math.max(item.amount, 0), 0)
-    : paidBatches * fallbackCoinsPerBatch;
+    : invitedCount * fallbackCoinsPerBatch;
 
   return {
     referralCode: referralProfileRow?.referral_code ?? getFallbackReferralCode(userId),

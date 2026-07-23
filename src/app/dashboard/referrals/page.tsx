@@ -59,7 +59,6 @@ export default async function DashboardReferralsPage() {
         locale={locale}
         referralCode={dashboard.referralStats.referralCode}
         invitedCount={dashboard.referralStats.invitedCount}
-        paidBatches={dashboard.referralStats.paidBatches}
         totalRewardCoins={dashboard.referralStats.totalRewardCoins}
       />
 

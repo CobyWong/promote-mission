@@ -6,7 +6,6 @@ type ReferralRewardsCardProps = {
   locale: "zh-HK" | "en";
   referralCode: string;
   invitedCount: number;
-  paidBatches: number;
   totalRewardCoins: number;
 };
 
@@ -14,13 +13,11 @@ export function ReferralRewardsCard({
   locale,
   referralCode,
   invitedCount,
-  paidBatches,
   totalRewardCoins,
 }: ReferralRewardsCardProps) {
   const [copied, setCopied] = useState(false);
   const rewardPerReferral = 200;
-  const progressTarget = Math.max(invitedCount, 1);
-  const progressPercent = Math.min(100, Math.round((invitedCount / progressTarget) * 100));
+  const displayRewardCoins = Math.max(totalRewardCoins, invitedCount * rewardPerReferral);
 
   const t = locale === "en"
     ? {
@@ -28,10 +25,7 @@ export function ReferralRewardsCard({
       subtitle: "Each successfully qualified referral gives you 200 Coins.",
       yourCode: "Your referral code",
       invited: "Invited",
-      batches: "Rewarded referrals",
       reward: "Rewards earned",
-      progress: "Invite progress",
-      rule: "Reward rule",
       copy: "Copy",
       copied: "Copied",
     }
@@ -40,10 +34,7 @@ export function ReferralRewardsCard({
       subtitle: "每位成功達資格的推薦用戶，你可獲得 200 金幣。",
       yourCode: "你的推薦碼",
       invited: "已推薦",
-      batches: "已派獎推薦",
       reward: "已賺取獎勵",
-      progress: "邀請進度",
-      rule: "獎勵規則",
       copy: "複製",
       copied: "已複製",
     };
@@ -98,35 +89,21 @@ export function ReferralRewardsCard({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-3">
+      <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="tactical-subcard px-5 py-4">
           <p className="text-sm text-slate-400">{t.invited}</p>
           <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">{invitedCount}</p>
         </div>
 
         <div className="tactical-subcard px-5 py-4">
-          <p className="text-sm text-slate-400">{t.batches}</p>
-          <p className="mt-2 text-2xl font-semibold text-slate-100 sm:text-3xl">{paidBatches}</p>
-        </div>
-
-        <div className="tactical-subcard px-5 py-4">
           <p className="text-sm text-slate-400">{t.reward}</p>
-          <p className="mt-2 text-2xl font-semibold text-amber-200 sm:text-3xl">{totalRewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
+          <p className="mt-2 text-2xl font-semibold text-amber-200 sm:text-3xl">{displayRewardCoins.toLocaleString()} {locale === "en" ? "Coins" : "金幣"}</p>
         </div>
       </div>
 
-      <div className="tactical-subcard mt-5 px-5 py-4">
-        <div className="flex items-center justify-between gap-3 text-sm text-slate-300">
-          <p className="font-semibold text-slate-200">{t.progress}</p>
-          <p>{invitedCount} / {progressTarget}</p>
-        </div>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-700/80">
-          <div className="h-full rounded-full bg-amber-300 transition-all" style={{ width: `${progressPercent}%` }} />
-        </div>
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-300">
-          <p>{t.rule}: <span className="font-semibold text-amber-200">{locale === "en" ? `${rewardPerReferral} Coins per successful referral` : `每位成功推薦 +${rewardPerReferral} 金幣`}</span></p>
-        </div>
-      </div>
+      <p className="mt-4 text-sm text-slate-300">
+        {locale === "en" ? `Reward rule: ${rewardPerReferral} Coins per successful referral` : `獎勵規則：每位成功推薦 +${rewardPerReferral} 金幣`}
+      </p>
     </section>
   );
 }
