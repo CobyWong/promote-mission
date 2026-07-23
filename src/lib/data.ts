@@ -56,6 +56,7 @@ export type Leader = {
   coins: number;
   totalLikes: number;
   missionsCompleted?: number;
+  reelUrl?: string;
 };
 
 export type ReelIdea = {

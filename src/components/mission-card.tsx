@@ -77,7 +77,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                       href={entry.reelUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="truncate font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
+                      className="truncate text-[11px] font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
                     >
                       {entry.handle}
                     </a>
@@ -186,7 +186,7 @@ export function MissionCard({ mission, locale = "zh-HK", userLevel = 1, compactM
                       href={entry.reelUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
+                      className="text-xs font-semibold text-amber-200 underline decoration-amber-300/40 underline-offset-2 hover:text-amber-100"
                     >
                       {entry.handle}
                     </a>

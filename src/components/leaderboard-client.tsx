@@ -103,7 +103,18 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
               <div key={leader.name} className="flex flex-col items-center gap-2">
                 <div className="text-3xl">{MEDALS[idx]}</div>
                 <div className="glass-panel w-full p-4 text-center">
-                  <p className="truncate font-semibold text-slate-900">{leader.name}</p>
+                  {leader.reelUrl ? (
+                    <a
+                      href={leader.reelUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate text-sm font-semibold text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-cyan-700"
+                    >
+                      {leader.name}
+                    </a>
+                  ) : (
+                    <p className="truncate text-sm font-semibold text-slate-900">{leader.name}</p>
+                  )}
                   <p className={`text-xs mt-1 ${PLATFORM_COLORS[leader.platform] ?? "text-slate-400"}`}>
                     {leader.platform}
                   </p>
@@ -150,7 +161,18 @@ export function LeaderboardClient({ locale, leaders, mode }: Props) {
                     {isTop3 ? MEDALS[index] : `#${index + 1}`}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-900">{leader.name}</p>
+                    {leader.reelUrl ? (
+                      <a
+                        href={leader.reelUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="block truncate text-sm font-semibold text-slate-900 underline decoration-slate-300 underline-offset-2 hover:text-cyan-700"
+                      >
+                        {leader.name}
+                      </a>
+                    ) : (
+                      <p className="truncate text-sm font-semibold text-slate-900">{leader.name}</p>
+                    )}
                     <p className={`mt-0.5 truncate text-xs ${PLATFORM_COLORS[leader.platform] ?? "text-slate-400"}`}>
                       {leader.platform} · {leader.followers}
                     </p>

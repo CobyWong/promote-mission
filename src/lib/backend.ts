@@ -1373,7 +1373,7 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
   // double counting snapshots from different metric_date rows.
   const { data: insights } = await admin
     .from("reel_insights")
-    .select("user_id, media_id, likes");
+    .select("user_id, media_id, likes, reel_url");
 
   const likesByUserAndMedia = new Map<string, Map<string, number>>();
   for (const insight of insights ?? []) {
@@ -1394,11 +1394,32 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
   }
 
   const totalLikesMap = new Map<string, number>();
+  const topReelUrlMap = new Map<string, string>();
   for (const [userId, mediaMap] of likesByUserAndMedia.entries()) {
     let sum = 0;
+    let topLikes = -1;
+    let topMediaId = "";
     for (const likes of mediaMap.values()) {
       sum += likes;
     }
+
+    for (const [mediaId, likes] of mediaMap.entries()) {
+      if (likes > topLikes) {
+        topLikes = likes;
+        topMediaId = mediaId;
+      }
+    }
+
+    if (topMediaId) {
+      const matchingInsight = (insights ?? []).find(
+        (item) => item.user_id === userId && ((item.media_id?.trim() || "__unknown_media") === topMediaId),
+      );
+
+      if (matchingInsight?.reel_url) {
+        topReelUrlMap.set(userId, matchingInsight.reel_url);
+      }
+    }
+
     totalLikesMap.set(userId, sum);
   }
 
@@ -1431,6 +1452,7 @@ export async function getLeaderboardData(): Promise<{ mode: "unavailable" | "liv
         coins: coinMap.get(uid) ?? 0,
         totalLikes: totalLikesMap.get(uid) ?? 0,
         missionsCompleted: missionMap.get(uid) ?? 0,
+        reelUrl: topReelUrlMap.get(uid),
       };
     })
     .sort((a, b) => {

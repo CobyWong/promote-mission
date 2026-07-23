@@ -212,7 +212,7 @@ export default async function MissionsPage() {
                                         href={entry.reelUrl}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="truncate font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-teal-700"
+                                        className="truncate text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-2 hover:text-teal-700"
                                       >
                                         {entry.handle}
                                       </a>
