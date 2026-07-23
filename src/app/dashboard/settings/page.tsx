@@ -48,15 +48,15 @@ export default async function DashboardSettingsPage() {
         <h1 className="text-3xl font-semibold text-slate-100">{t.title}</h1>
         <p className="mt-2 text-sm text-slate-300">{t.subtitle}</p>
 
-        <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <p className="text-sm font-semibold text-slate-100">{t.languageTitle}</p>
-          <p className="mt-1 text-xs text-slate-400">{t.languageHint}</p>
-          <div className="mt-3">
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.languageTitle}</p>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-4 rounded-xl px-1 py-2">
+            <p className="text-sm text-slate-400">{t.languageHint}</p>
             <LanguageSwitcher locale={locale} />
           </div>
         </div>
 
-        <div className="mt-6 border-t border-white/10 pt-5">
+        <div className="mt-5 border-t border-white/10 pt-5">
           <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.accountTitle}</p>
           <div className="mt-3 divide-y divide-white/10">
             <Link href="/dashboard/support" className="flex items-center justify-between gap-3 rounded-xl px-1 py-3 text-slate-200 transition hover:bg-white/5">
