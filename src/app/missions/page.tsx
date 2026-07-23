@@ -8,6 +8,15 @@ export default async function MissionsPage() {
   const locale = await getCurrentLocale();
   const missionCatalog = await getMissionCenterData();
   const userLevel = missionCatalog.userLevel ?? 1;
+  const levelProgress = missionCatalog.levelProgress ?? {
+    level: userLevel,
+    totalExp: 0,
+    expIntoLevel: 0,
+    expToNextLevel: 1000,
+    expForNextLevel: 1000,
+    progressPercent: 0,
+    isMaxLevel: false,
+  };
   const dateLocale = locale === "en" ? "en-US" : "zh-HK";
   const numberFormat = new Intl.NumberFormat(dateLocale);
 
@@ -94,11 +103,33 @@ export default async function MissionsPage() {
         </p>
       </div>
 
-      <div className="mt-8 rounded-3xl border border-slate-200 bg-white/85 p-4 shadow-[0_14px_30px_rgba(15,23,42,0.08)] sm:p-5">
-        <p className="text-sm font-semibold text-slate-700">
-          {locale === "en" ? "Current creator level" : "目前創作者等級"}
-        </p>
-        <p className="mt-1 text-2xl font-bold text-cyan-700">Lv.{userLevel}</p>
+      <div className="mt-6 inline-flex w-full max-w-md flex-col rounded-2xl border border-cyan-200 bg-white/95 p-3 shadow-[0_10px_24px_rgba(15,23,42,0.08)] sm:mt-7 sm:p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {locale === "en" ? "Creator level" : "創作者等級"}
+          </p>
+          <p className="text-sm font-bold text-cyan-700">Lv.{userLevel}</p>
+        </div>
+
+        <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 transition-all"
+            style={{ width: `${Math.max(0, Math.min(100, levelProgress.progressPercent))}%` }}
+          />
+        </div>
+
+        <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+          <span>
+            {locale === "en" ? "EXP" : "經驗值"}: {numberFormat.format(levelProgress.expIntoLevel)} / {numberFormat.format(levelProgress.expForNextLevel)}
+          </span>
+          <span>
+            {levelProgress.isMaxLevel
+              ? (locale === "en" ? "MAX" : "已滿級")
+              : (locale === "en"
+                ? `${numberFormat.format(levelProgress.expToNextLevel)} to next`
+                : `尚差 ${numberFormat.format(levelProgress.expToNextLevel)} 升級`)}
+          </span>
+        </div>
       </div>
 
       <div className="mt-8 space-y-10">

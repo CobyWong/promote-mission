@@ -11,7 +11,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConfig, isAdminEmail, isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { getCreatorLevelFromTotalExp, getMissionRewardCoins, getMissionTotalPrizeByDifficulty, getRankingRewardByPosition, getRewardRequiredLevel } from "@/lib/mission-rules";
+import { getCreatorLevelFromTotalExp, getLevelProgressFromTotalExp, getMissionRewardCoins, getMissionTotalPrizeByDifficulty, getRankingRewardByPosition, getRewardRequiredLevel } from "@/lib/mission-rules";
 import { getRewardRequiredCoins } from "@/lib/reward-pricing";
 
 const REDEMPTION_RETENTION_DAYS = 30;
@@ -578,6 +578,7 @@ export async function getMissionCatalog() {
 }
 
 export async function getMissionCenterData() {
+  const zeroLevelProgress = getLevelProgressFromTotalExp(0);
   const missionCatalog = await getMissionCatalog();
 
   if (missionCatalog.mode === "unavailable") {
@@ -585,6 +586,8 @@ export async function getMissionCenterData() {
       ...missionCatalog,
       userLevel: 1,
       approvedMissionCount: 0,
+      approvedExp: 0,
+      levelProgress: zeroLevelProgress,
     };
   }
 
@@ -599,6 +602,8 @@ export async function getMissionCenterData() {
       missions: rankedMissions,
       userLevel: 1,
       approvedMissionCount: 0,
+      approvedExp: 0,
+      levelProgress: zeroLevelProgress,
     };
   }
 
@@ -612,6 +617,8 @@ export async function getMissionCenterData() {
       missions: rankedMissions,
       userLevel: 1,
       approvedMissionCount: 0,
+      approvedExp: 0,
+      levelProgress: zeroLevelProgress,
     };
   }
 
@@ -631,10 +638,13 @@ export async function getMissionCenterData() {
     .filter((item) => item.status === "Approved")
     .reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
   const userLevel = getCreatorLevelFromTotalExp(approvedExp);
+  const levelProgress = getLevelProgressFromTotalExp(approvedExp);
 
   return {
     ...missionCatalog,
     userLevel,
+    approvedExp,
+    levelProgress,
     approvedMissionCount,
     missions: rankedMissions.filter((mission) => !completedMissionSlugs.has(mission.slug)),
   };
