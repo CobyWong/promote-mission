@@ -143,6 +143,11 @@ export default async function MissionsPage() {
                             <p className="mt-1 text-2xl font-extrabold text-teal-700">
                               HK${numberFormat.format(rankingRewards.first)}
                             </p>
+                            <p className="mt-1 text-sm font-semibold text-slate-600">
+                              {locale === "en"
+                                ? `Coin reward: ${numberFormat.format(mission.points)} Coins`
+                                : `金幣獎勵：${numberFormat.format(mission.points)} 金幣`}
+                            </p>
                           </div>
 
                           <div className="space-y-1 text-sm text-slate-600">
