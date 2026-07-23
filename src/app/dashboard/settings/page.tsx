@@ -42,7 +42,7 @@ export default async function DashboardSettingsPage() {
 
   return (
     <section className="section-shell py-12 sm:py-16">
-      <Link href="/dashboard" className="text-sm font-semibold text-cyan-300">← {t.back}</Link>
+      <Link href="/dashboard" className="text-sm font-semibold text-blue-700 hover:text-blue-800">← {t.back}</Link>
 
       <div className="tactical-card mt-6 p-6 sm:p-8">
         <h1 className="text-3xl font-semibold text-slate-100">{t.title}</h1>

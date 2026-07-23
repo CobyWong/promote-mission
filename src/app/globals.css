@@ -289,10 +289,7 @@ a {
 
 @media (max-width: 767px) {
   body {
-    background:
-      radial-gradient(circle at 12% -5%, rgba(11, 143, 148, 0.14), transparent 34%),
-      radial-gradient(circle at 88% 6%, rgba(255, 122, 26, 0.12), transparent 36%),
-      linear-gradient(180deg, #fafdff 0%, #f3f8fd 42%, #ecf2f8 100%);
+    background: var(--hud-bg);
   }
 
   .tactical-card,
