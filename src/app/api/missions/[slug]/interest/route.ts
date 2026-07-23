@@ -133,18 +133,142 @@ export async function POST(
 
   const { data: existingSubmission } = await admin
     .from("submissions")
-    .select("id")
+    .select("id, status, checklist")
     .eq("user_id", user.id)
     .eq("mission_slug", slug)
     .in("status", ["Pending", "Approved"])
     .maybeSingle();
 
   if (existingSubmission) {
+    const checklist = (existingSubmission.checklist ?? null) as Record<string, unknown> | null;
+    const awaitingCollaborator = existingSubmission.status === "Pending" && checklist?.awaitingCollaborator === true;
+
+    if (!awaitingCollaborator) {
+      const successBody = {
+        ok: true,
+        count: mission.current_participants ?? 0,
+        alreadyApplied: true,
+        submissionId: existingSubmission.id,
+      };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 200,
+        body: successBody,
+      });
+
+      return NextResponse.json(successBody);
+    }
+
+    const { data: latestCollaboratorReel } = await admin
+      .from("reel_insights")
+      .select("reel_url, metric_date, created_at")
+      .eq("user_id", user.id)
+      .contains("raw_metrics", { hasMissionOneCollaborator: true })
+      .order("metric_date", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (!latestCollaboratorReel?.reel_url) {
+      const successBody = {
+        ok: true,
+        count: mission.current_participants ?? 0,
+        submissionId: existingSubmission.id,
+        awaitingCollaborator: true,
+        message: isZh
+          ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後再按一次接受任務完成提交。"
+          : "Mission accepted. Publish your Reel with @missionone_hk as collaborator, sync Instagram, then tap accept again to complete submission.",
+      };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 200,
+        body: successBody,
+      });
+
+      return NextResponse.json(successBody);
+    }
+
+    const { error: updateSubmissionError } = await admin
+      .from("submissions")
+      .update({
+        reel_url: latestCollaboratorReel.reel_url,
+        notes: isZh
+          ? "系統已自動檢測包含 @missionone_hk 協作者的 Reels，無需手動提交 proof。"
+          : "Auto-detected Reel with @missionone_hk collaborator. Manual proof submission is not required.",
+        checklist: {
+          addedCollaborator: true,
+          autoDetectedByInstagramSync: true,
+          awaitingCollaborator: false,
+        },
+      })
+      .eq("id", existingSubmission.id);
+
+    if (updateSubmissionError) {
+      const errorBody = {
+        error: isZh
+          ? "任務已接受，但更新 Reels 提交資料失敗，請稍後重試。"
+          : `Mission accepted but failed to update synced Reel: ${updateSubmissionError.message}`,
+      };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 400,
+        body: errorBody,
+      });
+
+      return NextResponse.json(errorBody, { status: 400 });
+    }
+
+    const { error: autoApproveError } = await admin.rpc("approve_submission", {
+      submission_id_input: existingSubmission.id,
+      reviewer_id_input: null,
+      review_notes_input: isZh
+        ? "系統已根據 Instagram 同步協作者資料自動審核通過。"
+        : "Auto-approved from Instagram sync collaborator detection.",
+    });
+
+    if (autoApproveError) {
+      const errorBody = {
+        error: isZh
+          ? "任務已接受，但自動審核失敗，請稍後重試。"
+          : `Mission accepted but auto-approval failed: ${autoApproveError.message}`,
+      };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 400,
+        body: errorBody,
+      });
+
+      return NextResponse.json(errorBody, { status: 400 });
+    }
+
+    await admin.rpc("settle_referral_reward", {
+      approved_submission_id_input: existingSubmission.id,
+    });
+
+    await createAppLog({
+      level: "info",
+      category: "funnel",
+      event: "funnel.submission_approved",
+      route: "/api/missions/[slug]/interest",
+      userId: user?.id ?? null,
+      context: {
+        missionSlug: slug,
+        method: request.method,
+        channel: "web",
+        submissionId: existingSubmission.id,
+        autoApproved: true,
+      },
+    });
+
     const successBody = {
       ok: true,
       count: mission.current_participants ?? 0,
-      alreadyApplied: true,
       submissionId: existingSubmission.id,
+      autoDetected: true,
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
@@ -167,9 +291,87 @@ export async function POST(
     .maybeSingle();
 
   if (!latestCollaboratorReel?.reel_url) {
+    const { data: placeholderSubmission, error: placeholderError } = await admin
+      .from("submissions")
+      .insert({
+        user_id: user.id,
+        mission_slug: mission.slug,
+        mission_title: mission.title,
+        mission_brand: mission.brand,
+        reward_coins: getMissionRewardCoins(mission.difficulty ?? "Easy"),
+        reel_url: `pending://awaiting-collaborator/${mission.slug}`,
+        caption_summary: null,
+        notes: isZh
+          ? "已接受任務，等待同步含 @missionone_hk 協作者的 Reels。"
+          : "Mission accepted, waiting for synced Reel with @missionone_hk collaborator.",
+        checklist: {
+          awaitingCollaborator: true,
+          addedCollaborator: false,
+          autoDetectedByInstagramSync: false,
+        },
+        screenshot_count: 0,
+        screenshot_paths: [],
+        creator_name: user.email ?? "Creator",
+        creator_handle: null,
+        status: "Pending",
+      })
+      .select("id")
+      .single();
+
+    if (placeholderError || !placeholderSubmission?.id) {
+      const errorBody = {
+        error: isZh
+          ? "任務接受成功，但建立進行中狀態失敗，請稍後重試。"
+          : `Mission accepted but failed to create active mission placeholder: ${placeholderError?.message ?? "unknown error"}`,
+      };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 400,
+        body: errorBody,
+      });
+
+      return NextResponse.json(errorBody, { status: 400 });
+    }
+
+    const nextCount = (mission?.current_participants ?? 0) + 1;
+
+    const { error: updateMissionError } = await admin
+      .from("missions")
+      .update({ current_participants: nextCount })
+      .eq("slug", slug);
+
+    if (updateMissionError) {
+      const errorBody = { error: isZh ? "更新任務參與人數失敗，請稍後再試。" : updateMissionError.message };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 400,
+        body: errorBody,
+      });
+      return NextResponse.json(errorBody, { status: 400 });
+    }
+
+    await createAppLog({
+      level: "info",
+      category: "funnel",
+      event: "funnel.mission_accepted",
+      route: "/api/missions/[slug]/interest",
+      userId: user?.id ?? null,
+      context: {
+        missionSlug: slug,
+        method: request.method,
+        channel: "web",
+        participantsAfter: nextCount,
+        submissionId: placeholderSubmission.id,
+        awaitingCollaborator: true,
+      },
+    });
+
     const successBody = {
       ok: true,
-      count: mission.current_participants ?? 0,
+      count: nextCount,
+      submissionId: placeholderSubmission.id,
       awaitingCollaborator: true,
       message: isZh
         ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後再按一次接受任務完成提交。"

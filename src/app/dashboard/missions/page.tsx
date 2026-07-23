@@ -31,6 +31,8 @@ export default async function DashboardMissionsPage() {
       approved: "Approved",
       pending: "Pending",
       needsEdits: "Needs edits",
+      notPosted: "Not posted yet",
+      postedPending: "Posted and in sync review",
     }
     : {
       title: "進行中任務",
@@ -44,13 +46,27 @@ export default async function DashboardMissionsPage() {
       approved: "已批准",
       pending: "待審核",
       needsEdits: "需修改",
+      notPosted: "未發佈 Reel",
+      postedPending: "已發佈 Reel（同步審核中）",
     };
 
-  const statusLabel = (status?: string) => {
+  const statusLabel = (status?: string, reelUrl?: string) => {
     if (!status || locale === "en") return status;
+    if (status === "Pending") {
+      const isPlaceholder = typeof reelUrl === "string" && reelUrl.startsWith("pending://awaiting-collaborator/");
+      return isPlaceholder ? t.notPosted : t.postedPending;
+    }
     if (status === "Approved") return t.approved;
-    if (status === "Pending") return t.pending;
     if (status === "Needs edits") return t.needsEdits;
+    return status;
+  };
+
+  const statusLabelEn = (status?: string, reelUrl?: string) => {
+    if (!status) return status;
+    if (status === "Pending") {
+      const isPlaceholder = typeof reelUrl === "string" && reelUrl.startsWith("pending://awaiting-collaborator/");
+      return isPlaceholder ? t.notPosted : t.postedPending;
+    }
     return status;
   };
 
@@ -73,13 +89,17 @@ export default async function DashboardMissionsPage() {
           <div className="mt-6 space-y-5">
             {dashboard.activeMissions.map((mission) => {
               const totalPrize = getMissionTotalPrizeByDifficulty(mission.difficulty);
-              const submissionStatus = dashboard.missionStatusMap?.get(mission.slug);
+              const missionSubmission = dashboard.submissions.find((item) => item.missionSlug === mission.slug);
+              const submissionStatus = missionSubmission?.status ?? dashboard.missionStatusMap?.get(mission.slug);
+              const statusText = locale === "en"
+                ? statusLabelEn(submissionStatus, missionSubmission?.reelUrl)
+                : statusLabel(submissionStatus, missionSubmission?.reelUrl);
               return (
                 <div key={mission.slug} className="border-t border-white/10 pt-4 first:border-t-0 first:pt-0">
                   <p className="text-sm text-amber-200">{mission.brand}</p>
                   <h2 className="mt-2 text-xl font-semibold text-slate-100">{mission.title}</h2>
                   <p className="mt-2 text-sm text-slate-400">{t.due}: {mission.eta} · {t.reward}: HK${totalPrize.toLocaleString()}</p>
-                  {submissionStatus ? <p className="mt-1 text-xs text-cyan-200">{statusLabel(submissionStatus)}</p> : null}
+                  {statusText ? <p className="mt-1 text-xs text-cyan-200">{statusText}</p> : null}
                   <div className="mt-3 flex flex-wrap gap-3">
                     <Link href={`/missions/${mission.slug}`} className="tactical-link inline-flex min-h-11 items-center text-sm font-semibold">
                       {t.viewBrief} ›

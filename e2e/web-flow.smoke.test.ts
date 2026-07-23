@@ -158,6 +158,12 @@ smoke("web smoke flow: accept -> auto-submit -> approve -> redeem", async () => 
   if (acceptResponse.status === 200) {
     expect(acceptPayload?.ok).toBe(true);
     acceptedSubmissionId = typeof acceptPayload?.submissionId === "string" ? acceptPayload.submissionId : "";
+
+    // New flow allows accept-first before posting reel. In that case,
+    // optional smoke should skip settlement path instead of failing.
+    if (!acceptedSubmissionId && acceptPayload?.awaitingCollaborator === true) {
+      return;
+    }
   }
   if (acceptResponse.status === 400) {
     const errorText = typeof acceptPayload?.error === "string" ? acceptPayload.error : "";
@@ -218,7 +224,10 @@ smoke("web smoke flow: accept -> auto-submit -> approve -> redeem", async () => 
     expect(approvePayload?.ok).toBe(true);
   }
 
-  expect(acceptedSubmissionId.length, "Mission accept should return auto-created submissionId in sync-only flow.").toBeGreaterThan(0);
+  expect(
+    acceptedSubmissionId.length,
+    "Mission accept should return submissionId once collaborator reel is available and synced.",
+  ).toBeGreaterThan(0);
   const firstSubmissionId = acceptedSubmissionId;
   await approveSubmission(firstSubmissionId);
 
