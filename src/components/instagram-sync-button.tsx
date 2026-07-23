@@ -29,7 +29,11 @@ export function InstagramSyncButton({ label, syncingLabel, successLabel }: Insta
             method: "POST",
           });
 
-          const payload = (await response.json()) as { synced?: number; error?: string };
+          const payload = (await response.json()) as {
+            synced?: number;
+            autoSettled?: number;
+            error?: string;
+          };
 
           if (!response.ok) {
             setError(payload.error ?? "Sync failed.");
@@ -37,7 +41,10 @@ export function InstagramSyncButton({ label, syncingLabel, successLabel }: Insta
             return;
           }
 
-          setMessage(`${successLabel}: ${payload.synced ?? 0}`);
+          const syncedCount = payload.synced ?? 0;
+          const autoSettledCount = payload.autoSettled ?? 0;
+          const autoSettledText = autoSettledCount > 0 ? ` | auto completed: ${autoSettledCount}` : "";
+          setMessage(`${successLabel}: ${syncedCount}${autoSettledText}`);
           setLoading(false);
           router.refresh();
         }}

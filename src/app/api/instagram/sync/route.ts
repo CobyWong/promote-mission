@@ -6,17 +6,19 @@ import {
   hasMissionOneCollaborator,
   normalizeInstagramPermalink,
 } from "@/lib/instagram";
+import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type SubmissionRef = Pick<
   Database["public"]["Tables"]["submissions"]["Row"],
-  "id" | "reel_url"
+  "id" | "reel_url" | "status" | "checklist" | "submitted_at"
 >;
 
 export async function POST(request: Request) {
   const isZh = isZhRequest(request);
   const supabase = await createSupabaseServerClient();
+  const admin = createSupabaseAdminClient();
 
   if (!supabase) {
     return NextResponse.json({ error: isZh ? "Instagram 同步服務暫時不可用，請稍後再試。" : "Supabase is not configured." }, { status: 503 });
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
 
     const { data: submissionsData } = await supabase
       .from("submissions")
-      .select("id, reel_url")
+      .select("id, reel_url, status, checklist, submitted_at")
       .eq("user_id", user.id);
 
     const submissions = (submissionsData ?? []) as SubmissionRef[];
@@ -91,6 +93,88 @@ export async function POST(request: Request) {
       }
     }
 
+    let autoSettled = 0;
+
+    if (admin) {
+      const pendingAwaiting = submissions
+        .filter((item) => item.status === "Pending")
+        .filter((item) => {
+          const checklist = (item.checklist ?? null) as Record<string, unknown> | null;
+          return checklist?.awaitingCollaborator === true;
+        })
+        .sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime());
+
+      if (pendingAwaiting.length > 0) {
+        const usedNormalizedUrls = new Set(
+          submissions
+            .filter((item) => !item.reel_url.startsWith("pending://"))
+            .map((item) => normalizeInstagramPermalink(item.reel_url)),
+        );
+
+        const candidateReels: string[] = [];
+        const seenCandidate = new Set<string>();
+
+        for (const reel of reels) {
+          if (!hasMissionOneCollaborator(reel.caption)) {
+            continue;
+          }
+
+          const normalized = normalizeInstagramPermalink(reel.permalink);
+          if (seenCandidate.has(normalized) || usedNormalizedUrls.has(normalized)) {
+            continue;
+          }
+
+          seenCandidate.add(normalized);
+          candidateReels.push(reel.permalink);
+        }
+
+        for (const pending of pendingAwaiting) {
+          const reelUrl = candidateReels.shift();
+          if (!reelUrl) {
+            break;
+          }
+
+          const { error: updateError } = await admin
+            .from("submissions")
+            .update({
+              reel_url: reelUrl,
+              notes: isZh
+                ? "Instagram 同步已檢測到 @missionone_hk 協作者，系統自動完成提交。"
+                : "Instagram sync detected @missionone_hk collaborator and auto-completed submission.",
+              checklist: {
+                addedCollaborator: true,
+                autoDetectedByInstagramSync: true,
+                awaitingCollaborator: false,
+              },
+            })
+            .eq("id", pending.id)
+            .eq("user_id", user.id);
+
+          if (updateError) {
+            continue;
+          }
+
+          const { error: approveError } = await admin.rpc("approve_submission", {
+            submission_id_input: pending.id,
+            reviewer_id_input: null,
+            review_notes_input: isZh
+              ? "系統已根據 Instagram 同步協作者資料自動審核通過。"
+              : "Auto-approved from Instagram sync collaborator detection.",
+          });
+
+          if (approveError) {
+            continue;
+          }
+
+          await admin.rpc("settle_referral_reward", {
+            approved_submission_id_input: pending.id,
+          });
+
+          autoSettled += 1;
+        }
+      }
+    }
+
     const { error: updateError } = await supabase
       .from("instagram_connections")
       .update({
@@ -103,7 +187,7 @@ export async function POST(request: Request) {
       throw new Error(updateError.message);
     }
 
-    return NextResponse.json({ synced: rows.length }, { status: 200 });
+    return NextResponse.json({ synced: rows.length, autoSettled }, { status: 200 });
   } catch (error) {
     await supabase
       .from("instagram_connections")

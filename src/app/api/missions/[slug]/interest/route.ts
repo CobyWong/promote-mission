@@ -177,8 +177,8 @@ export async function POST(
         submissionId: existingSubmission.id,
         awaitingCollaborator: true,
         message: isZh
-          ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後再按一次接受任務完成提交。"
-          : "Mission accepted. Publish your Reel with @missionone_hk as collaborator, sync Instagram, then tap accept again to complete submission.",
+            ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後系統會自動完成提交。"
+            : "Mission accepted. Publish your Reel with @missionone_hk as collaborator and run Instagram sync. Submission will be completed automatically.",
       };
       await finalizeIdempotentOperation({
         storageKey: operation.storageKey,
@@ -374,8 +374,8 @@ export async function POST(
       submissionId: placeholderSubmission.id,
       awaitingCollaborator: true,
       message: isZh
-        ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後再按一次接受任務完成提交。"
-        : "Mission accepted. Publish your Reel with @missionone_hk as collaborator, sync Instagram, then tap accept again to complete submission.",
+        ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後系統會自動完成提交。"
+        : "Mission accepted. Publish your Reel with @missionone_hk as collaborator and run Instagram sync. Submission will be completed automatically.",
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
