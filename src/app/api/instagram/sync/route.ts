@@ -15,6 +15,11 @@ type SubmissionRef = Pick<
   "id" | "reel_url" | "status" | "checklist" | "submitted_at"
 >;
 
+type ProfileRef = Pick<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  "full_name" | "instagram_handle"
+>;
+
 export async function POST(request: Request) {
   const isZh = isZhRequest(request);
   const supabase = await createSupabaseServerClient();
@@ -49,6 +54,14 @@ export async function POST(request: Request) {
 
   try {
     const reels = await fetchRecentReelsInsights(connectionData.instagram_user_id, connectionData.access_token);
+
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("full_name, instagram_handle")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const profile = (profileData ?? null) as ProfileRef | null;
 
     const { data: submissionsData } = await supabase
       .from("submissions")
@@ -134,19 +147,32 @@ export async function POST(request: Request) {
             break;
           }
 
+          const submissionUpdate: Database["public"]["Tables"]["submissions"]["Update"] = {
+            reel_url: reelUrl,
+            notes: isZh
+              ? "Instagram 同步已檢測到 @missionone_hk 協作者，系統自動完成提交。"
+              : "Instagram sync detected @missionone_hk collaborator and auto-completed submission.",
+            checklist: {
+              addedCollaborator: true,
+              autoDetectedByInstagramSync: true,
+              awaitingCollaborator: false,
+            },
+          };
+
+          const normalizedHandle = profile?.instagram_handle?.trim() ?? "";
+          const normalizedName = profile?.full_name?.trim() ?? "";
+
+          if (normalizedHandle.length > 0) {
+            submissionUpdate.creator_handle = normalizedHandle;
+          }
+
+          if (normalizedName.length > 0) {
+            submissionUpdate.creator_name = normalizedName;
+          }
+
           const { error: updateError } = await admin
             .from("submissions")
-            .update({
-              reel_url: reelUrl,
-              notes: isZh
-                ? "Instagram 同步已檢測到 @missionone_hk 協作者，系統自動完成提交。"
-                : "Instagram sync detected @missionone_hk collaborator and auto-completed submission.",
-              checklist: {
-                addedCollaborator: true,
-                autoDetectedByInstagramSync: true,
-                awaitingCollaborator: false,
-              },
-            })
+            .update(submissionUpdate)
             .eq("id", pending.id)
             .eq("user_id", user.id);
 

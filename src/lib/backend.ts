@@ -226,14 +226,60 @@ async function getMissionRankingMap(missionSlugs: string[]) {
 
   const { data: submissionData } = await admin
     .from("submissions")
-    .select("id, mission_slug, creator_handle, reel_url, status, submitted_at")
+    .select("id, user_id, mission_slug, creator_handle, reel_url, status, submitted_at")
     .in("mission_slug", missionSlugs)
     .in("status", ["Pending", "Approved"]);
 
-  const submissions = (submissionData ?? []) as Array<Pick<SubmissionRow, "id" | "mission_slug" | "creator_handle" | "reel_url" | "status" | "submitted_at">>;
+  const submissions = (submissionData ?? []) as Array<Pick<SubmissionRow, "id" | "user_id" | "mission_slug" | "creator_handle" | "reel_url" | "status" | "submitted_at">>;
 
   if (submissions.length === 0) {
     return new Map<string, MissionRankingEntry[]>();
+  }
+
+  const missingHandleUserIds = Array.from(
+    new Set(
+      submissions
+        .filter((item) => !item.creator_handle?.trim())
+        .map((item) => item.user_id)
+        .filter((value): value is string => typeof value === "string" && value.length > 0),
+    ),
+  );
+
+  const profileHandleByUserId = new Map<string, string>();
+
+  if (missingHandleUserIds.length > 0) {
+    const { data: profileData } = await admin
+      .from("profiles")
+      .select("id, instagram_handle")
+      .in("id", missingHandleUserIds);
+
+    const profiles = (profileData ?? []) as Array<Pick<ProfileRow, "id" | "instagram_handle">>;
+
+    for (const profile of profiles) {
+      const handle = profile.instagram_handle?.trim();
+      if (handle) {
+        profileHandleByUserId.set(profile.id, handle);
+      }
+    }
+
+    const unresolvedUserIds = missingHandleUserIds.filter((id) => !profileHandleByUserId.has(id));
+
+    if (unresolvedUserIds.length > 0) {
+      const { data: connectionData } = await admin
+        .from("instagram_connections")
+        .select("user_id, instagram_username, status")
+        .in("user_id", unresolvedUserIds)
+        .eq("status", "active");
+
+      const connections = (connectionData ?? []) as Array<Pick<InstagramConnectionRow, "user_id" | "instagram_username" | "status">>;
+
+      for (const connection of connections) {
+        const handle = connection.instagram_username?.trim();
+        if (connection.user_id && handle) {
+          profileHandleByUserId.set(connection.user_id, handle);
+        }
+      }
+    }
   }
 
   const submissionIds = submissions.map((item) => item.id);
@@ -301,7 +347,7 @@ async function getMissionRankingMap(missionSlugs: string[]) {
           : insightCandidates[0];
 
         return {
-          handle: item.creator_handle?.trim() || "@creator",
+          handle: item.creator_handle?.trim() || profileHandleByUserId.get(item.user_id) || "@creator",
           reelUrl: item.reel_url,
           likes: selectedInsight?.likes ?? 0,
           submittedAt: item.submitted_at,
