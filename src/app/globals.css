@@ -27,10 +27,7 @@ html {
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at 8% -12%, rgba(11, 143, 148, 0.16), transparent 36%),
-    radial-gradient(circle at 92% 0%, rgba(255, 122, 26, 0.13), transparent 34%),
-    linear-gradient(180deg, #fbfdff 0%, #f4f8fc 45%, #eef4fa 100%);
+  background: var(--hud-bg);
   color: var(--hud-text);
   font-family: var(--font-sora), var(--font-noto-tc), "PingFang TC", "Heiti TC", sans-serif;
   line-height: 1.5;
@@ -54,6 +51,7 @@ a {
 }
 
 .tactical-section-kicker {
+  display: none;
   font-size: 0.75rem;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -332,10 +330,6 @@ a {
   .tactical-section-lead {
     font-size: 0.95rem;
     line-height: 1.55;
-  }
-
-  .tactical-section-kicker {
-    letter-spacing: 0.2em;
   }
 
   .text-6xl {
