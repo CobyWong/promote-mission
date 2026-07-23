@@ -148,5 +148,5 @@ export const creatorOnboardingSteps = [
   "註冊帳號並驗證 email / 手機",
   "連接 Instagram 帳號及 creator 類型",
   "填寫受眾 niche、followers、過往作品",
-  "開始接 mission 並提交 proof"
+  "開始接 mission，發佈 Reels 並完成 Instagram 同步"
 ];

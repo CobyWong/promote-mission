@@ -105,13 +105,6 @@ function getTips(pathname: string, locale: Locale) {
       ];
       return locale === "en" ? missionTips.map((t) => t.en) : missionTips.map((t) => t.zh);
     }
-    if (prefix === "/submit") {
-      const submitTips = [
-        { zh: "提交時請填寫 Reel 連結，並將 @missionone_hk 設為協作者。", en: "Submit with your Reel URL and add @missionone_hk as collaborator." },
-        { zh: "請再次確認品牌標註與 hashtag，可提升審核效率。", en: "Double-check brand tags and hashtags to speed up review." },
-      ];
-      return locale === "en" ? submitTips.map((t) => t.en) : submitTips.map((t) => t.zh);
-    }
     return locale === "en" ? tips.map((t) => t.en) : tips.map((t) => t.zh);
   }
 

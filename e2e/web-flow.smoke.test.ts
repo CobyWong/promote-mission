@@ -132,7 +132,7 @@ async function setServerSessionCookie(accessToken: string, refreshToken: string)
 
 const smoke = hasRequiredEnv ? test : test.skip;
 
-smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
+smoke("web smoke flow: accept -> auto-submit -> approve -> redeem", async () => {
   let userTokens;
   try {
     userTokens = await signInAndGetTokens(userEmail, userPassword);
@@ -173,42 +173,6 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     ) {
       return;
     }
-  }
-
-  async function createSubmission() {
-    const submitPayloadBody = {
-      slug: missionSlug,
-      reelUrl: `https://instagram.com/reel/e2e-${Date.now()}`,
-      captionSummary: "E2E smoke submission",
-      notes: "E2E smoke submission",
-      checks: {
-        published: true,
-        taggedBrand: true,
-        addedCollaborator: true,
-      },
-    };
-
-    const submitResponse = await fetch(`${baseUrl}/api/submissions`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        cookie: userCookie,
-        "idempotency-key": `e2e-submit-${Date.now()}`,
-        "x-forwarded-proto": "https",
-        "x-forwarded-for": runForwardedFor,
-      },
-      body: JSON.stringify(submitPayloadBody),
-    });
-
-    const submitPayload = await readJson(submitResponse);
-    expect(
-      submitResponse.status,
-      `Submission failed with status ${submitResponse.status}: ${JSON.stringify(submitPayload)}`,
-    ).toBe(201);
-
-    const submissionId = typeof submitPayload?.id === "string" ? submitPayload.id : "";
-    expect(submissionId.length).toBeGreaterThan(0);
-    return submissionId;
   }
 
   const adminLoginResponse = await fetch(`${baseUrl}/api/admin/login`, {
@@ -254,13 +218,9 @@ smoke("web smoke flow: accept -> submit -> approve -> redeem", async () => {
     expect(approvePayload?.ok).toBe(true);
   }
 
-  const firstSubmissionId = acceptedSubmissionId || await createSubmission();
+  expect(acceptedSubmissionId.length, "Mission accept should return auto-created submissionId in sync-only flow.").toBeGreaterThan(0);
+  const firstSubmissionId = acceptedSubmissionId;
   await approveSubmission(firstSubmissionId);
-
-  if (strictRedeem) {
-    const secondSubmissionId = await createSubmission();
-    await approveSubmission(secondSubmissionId);
-  }
 
   const redeemResponse = await fetch(`${baseUrl}/api/redemptions`, {
     method: "POST",

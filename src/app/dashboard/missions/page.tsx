@@ -84,7 +84,7 @@ export default async function DashboardMissionsPage() {
                     <Link href={`/missions/${mission.slug}`} className="tactical-link inline-flex min-h-11 items-center text-sm font-semibold">
                       {t.viewBrief} ›
                     </Link>
-                    <DashboardMissionActions missionSlug={mission.slug} eta={mission.eta} locale={locale} />
+                    <DashboardMissionActions missionSlug={mission.slug} locale={locale} />
                   </div>
                 </div>
               );
