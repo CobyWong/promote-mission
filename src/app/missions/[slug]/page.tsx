@@ -59,7 +59,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             ))}
           </div>
 
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
+          <div className="mt-10">
             <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <p className="text-sm text-slate-500">{locale === "en" ? "Reward" : "獎勵"}</p>
               <p className="mt-2 break-words text-lg font-semibold leading-relaxed text-cyan-700 sm:text-2xl">
