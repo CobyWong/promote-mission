@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { isZhRequest } from "@/lib/api-locale";
+import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import {
+  assertInstagramAccountIsPublic,
   fetchRecentReelsInsights,
   hasMissionOneCollaborator,
+  InstagramPrivateAccountError,
   normalizeInstagramPermalink,
 } from "@/lib/instagram";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -12,12 +15,17 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type SubmissionRef = Pick<
   Database["public"]["Tables"]["submissions"]["Row"],
-  "id" | "reel_url" | "status" | "checklist" | "submitted_at"
+  "id" | "reel_url" | "status" | "checklist" | "submitted_at" | "mission_slug"
 >;
 
 type ProfileRef = Pick<
   Database["public"]["Tables"]["profiles"]["Row"],
   "full_name" | "instagram_handle"
+>;
+
+type MissionTagRef = Pick<
+  Database["public"]["Tables"]["missions"]["Row"],
+  "slug" | "tags"
 >;
 
 export async function POST(request: Request) {
@@ -53,6 +61,7 @@ export async function POST(request: Request) {
   }
 
   try {
+    await assertInstagramAccountIsPublic(connectionData.instagram_user_id, connectionData.access_token);
     const reels = await fetchRecentReelsInsights(connectionData.instagram_user_id, connectionData.access_token);
 
     const { data: profileData } = await supabase
@@ -65,7 +74,7 @@ export async function POST(request: Request) {
 
     const { data: submissionsData } = await supabase
       .from("submissions")
-      .select("id, reel_url, status, checklist, submitted_at")
+      .select("id, reel_url, status, checklist, submitted_at, mission_slug")
       .eq("user_id", user.id);
 
     const submissions = (submissionsData ?? []) as SubmissionRef[];
@@ -118,37 +127,55 @@ export async function POST(request: Request) {
         .sort((a, b) => new Date(a.submitted_at).getTime() - new Date(b.submitted_at).getTime());
 
       if (pendingAwaiting.length > 0) {
+        const pendingMissionSlugs = Array.from(new Set(pendingAwaiting.map((item) => item.mission_slug)));
+        const { data: missionData } = await supabase
+          .from("missions")
+          .select("slug, tags")
+          .in("slug", pendingMissionSlugs);
+
+        const missionRows = (missionData ?? []) as MissionTagRef[];
+        const requiredTagByMissionSlug = new Map(
+          missionRows.map((item) => [item.slug, getRequiredMissionCaptionTag(item.tags)]),
+        );
+
         const usedNormalizedUrls = new Set(
           submissions
             .filter((item) => !item.reel_url.startsWith("pending://"))
             .map((item) => normalizeInstagramPermalink(item.reel_url)),
         );
 
-        const candidateReels: string[] = [];
-        const seenCandidate = new Set<string>();
+        const availableReels = reels
+          .filter((reel) => hasMissionOneCollaborator(reel.caption))
+          .map((reel) => ({
+            permalink: reel.permalink,
+            caption: reel.caption,
+            normalizedUrl: normalizeInstagramPermalink(reel.permalink),
+          }))
+          .filter((reel) => !usedNormalizedUrls.has(reel.normalizedUrl));
 
-        for (const reel of reels) {
-          if (!hasMissionOneCollaborator(reel.caption)) {
+        const usedCandidateUrls = new Set<string>();
+
+        const pendingOrdered = [...pendingAwaiting].sort((a, b) => {
+          const aHasRequiredTag = Boolean(requiredTagByMissionSlug.get(a.mission_slug));
+          const bHasRequiredTag = Boolean(requiredTagByMissionSlug.get(b.mission_slug));
+          return Number(bHasRequiredTag) - Number(aHasRequiredTag);
+        });
+
+        for (const pending of pendingOrdered) {
+          const requiredTag = requiredTagByMissionSlug.get(pending.mission_slug) ?? null;
+          const matchedReel = availableReels.find((reel) => (
+            !usedCandidateUrls.has(reel.normalizedUrl)
+            && captionHasMissionTag(reel.caption, requiredTag)
+          ));
+
+          if (!matchedReel) {
             continue;
           }
 
-          const normalized = normalizeInstagramPermalink(reel.permalink);
-          if (seenCandidate.has(normalized) || usedNormalizedUrls.has(normalized)) {
-            continue;
-          }
-
-          seenCandidate.add(normalized);
-          candidateReels.push(reel.permalink);
-        }
-
-        for (const pending of pendingAwaiting) {
-          const reelUrl = candidateReels.shift();
-          if (!reelUrl) {
-            break;
-          }
+          usedCandidateUrls.add(matchedReel.normalizedUrl);
 
           const submissionUpdate: Database["public"]["Tables"]["submissions"]["Update"] = {
-            reel_url: reelUrl,
+            reel_url: matchedReel.permalink,
             notes: isZh
               ? "Instagram 同步已檢測到 @missionone_hk 協作者，系統自動完成提交。"
               : "Instagram sync detected @missionone_hk collaborator and auto-completed submission.",
@@ -215,6 +242,24 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ synced: rows.length, autoSettled }, { status: 200 });
   } catch (error) {
+    if (error instanceof InstagramPrivateAccountError) {
+      await supabase
+        .from("instagram_connections")
+        .update({
+          last_error: error.message,
+        })
+        .eq("user_id", user.id);
+
+      return NextResponse.json(
+        {
+          error: isZh
+            ? "Instagram 帳號目前為私人帳號。請先切換為公開帳號，才可同步 Reels 的播放與讚好數據。"
+            : "Your Instagram account is private. Please switch it to public before syncing reel views/likes.",
+        },
+        { status: 409 },
+      );
+    }
+
     await supabase
       .from("instagram_connections")
       .update({

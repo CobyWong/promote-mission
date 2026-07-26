@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import type { Mission } from "@/lib/data";
 import type { Locale } from "@/lib/i18n";
+import { getRequiredMissionCaptionTag, normalizeCaptionTag } from "@/lib/mission-caption-tag";
 
 type BrandMissionManagerProps = {
   initialMissions: Mission[];
@@ -42,6 +43,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       requirementsPerLine: "Requirements (one per line)",
       deliverablesPerLine: "Deliverables (one per line)",
       tagsComma: "Tags (comma separated)",
+      requiredCaptionTag: "Required caption hashtag",
       productPhoto: "Product photo",
       productPhotoHint: "Upload JPG/PNG/WebP up to 5MB. This photo will be shown on mission cards.",
       uploadFailed: "Failed to upload mission image.",
@@ -92,6 +94,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       requirementsPerLine: "任務要求（每行一項）",
       deliverablesPerLine: "提交內容（每行一項）",
       tagsComma: "標籤（用逗號分隔）",
+      requiredCaptionTag: "Caption 指定標籤（Hashtag）",
       productPhoto: "產品相片",
       productPhotoHint: "請上傳 JPG/PNG/WebP，大小上限 5MB。此相片將顯示於任務卡片。",
       uploadFailed: "上傳任務相片失敗。",
@@ -149,6 +152,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
     requirements: "",
     deliverables: "",
     tags: "",
+    requiredCaptionTag: "",
     displayOrder: 0,
     status: "draft" as MissionLifecycleStatus,
     startsAt: "",
@@ -205,6 +209,14 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
     setError(null);
     setLoading(true);
 
+    const requiredCaptionTag = normalizeCaptionTag(form.requiredCaptionTag);
+    const contentTags = form.tags
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .filter((tag) => !tag.startsWith("#"));
+    const mergedTags = requiredCaptionTag ? [requiredCaptionTag, ...contentTags] : contentTags;
+
     const payload = {
       slug: form.slug,
       title: form.title,
@@ -219,7 +231,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       hook: form.hook,
       requirements: form.requirements.split("\n").map((item) => item.trim()).filter(Boolean),
       deliverables: form.deliverables.split("\n").map((item) => item.trim()).filter(Boolean),
-      tags: form.tags.split(",").map((item) => item.trim()).filter(Boolean),
+      tags: mergedTags,
       display_order: Number(form.displayOrder),
       status: form.status,
       starts_at: form.startsAt || null,
@@ -271,6 +283,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
       requirements: "",
       deliverables: "",
       tags: "",
+      requiredCaptionTag: "",
       displayOrder: 0,
       status: "draft",
       startsAt: "",
@@ -438,6 +451,16 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
           <input value={form.tags} onChange={(event) => setForm((current) => ({ ...current, tags: event.target.value }))} className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white" />
         </label>
 
+        <label className="mt-4 block text-sm text-slate-300">
+          {t.requiredCaptionTag}
+          <input
+            value={form.requiredCaptionTag}
+            onChange={(event) => setForm((current) => ({ ...current, requiredCaptionTag: event.target.value }))}
+            placeholder="#missionone_funny01"
+            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white"
+          />
+        </label>
+
         <div className="mt-6 flex flex-wrap gap-3">
           <button type="button" onClick={submitCreateOrUpdate} disabled={loading} className="rounded-full bg-cyan-400 px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400">
             {loading ? t.processing : editingSlug ? t.updateMission : t.createMissionBtn}
@@ -447,7 +470,7 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
               type="button"
               onClick={() => {
                 setEditingSlug(null);
-                setForm((current) => ({ ...current, slug: "", imageUrl: "" }));
+                setForm((current) => ({ ...current, slug: "", imageUrl: "", requiredCaptionTag: "" }));
                 setImageFile(null);
               }}
               className="rounded-full border border-white/20 px-5 py-3 font-semibold text-white"
@@ -516,7 +539,8 @@ export function BrandMissionManager({ initialMissions, locale }: BrandMissionMan
                       hook: mission.hook,
                       requirements: mission.requirements.join("\n"),
                       deliverables: mission.deliverables.join("\n"),
-                      tags: mission.tags.join(", "),
+                      tags: mission.tags.filter((item) => !item.trim().startsWith("#")).join(", "),
+                      requiredCaptionTag: getRequiredMissionCaptionTag(mission.tags) ?? "",
                       displayOrder: mission.displayOrder ?? 0,
                       status: mission.status ?? "draft",
                       startsAt: toDateTimeLocal(mission.startsAt),

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { isZhRequest } from "@/lib/api-locale";
+import { assertInstagramAccountIsPublic, InstagramPrivateAccountError } from "@/lib/instagram";
+import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -323,9 +325,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: isZh ? "請提供任務識別碼。" : "Mission slug is required." }, { status: 400 });
     }
 
+    const { data: connectionData, error: connectionError } = await admin
+      .from("instagram_connections")
+      .select("instagram_user_id, access_token, status")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (connectionError || !connectionData || connectionData.status !== "active") {
+      return NextResponse.json(
+        {
+          error: isZh
+            ? "請先連接 Instagram 公開帳號後再提交任務。"
+            : "Please connect an active public Instagram account before creating submissions.",
+        },
+        { status: 400 },
+      );
+    }
+
+    try {
+      await assertInstagramAccountIsPublic(connectionData.instagram_user_id, connectionData.access_token);
+    } catch (error) {
+      if (error instanceof InstagramPrivateAccountError) {
+        return NextResponse.json(
+          {
+            error: isZh
+              ? "Instagram 帳號目前為私人帳號。請先切換為公開帳號，才可追蹤 Reels 的播放與讚好數據。"
+              : "Your Instagram account is private. Please switch it to public to track reel views/likes.",
+          },
+          { status: 409 },
+        );
+      }
+
+      throw error;
+    }
+
     const { data: missionRow } = await admin
       .from("missions")
-      .select("slug, title, brand, reward_coins, difficulty")
+      .select("slug, title, brand, reward_coins, difficulty, tags")
       .eq("slug", slug)
       .eq("is_active", true)
       .maybeSingle();
@@ -337,6 +373,7 @@ export async function POST(request: Request) {
         brand: missionRow.brand,
         points: getMissionRewardCoins(missionRow.difficulty ?? "Easy"),
         difficulty: missionRow.difficulty,
+        tags: missionRow.tags ?? [],
       }
       : null;
 
@@ -371,6 +408,18 @@ export async function POST(request: Request) {
 
     if (!checks.addedCollaborator) {
       return NextResponse.json({ error: isZh ? "提交前請先把 @missionone.hk 加為協作者。" : "Please add @missionone.hk as collaborator before submission." }, { status: 400 });
+    }
+
+    const requiredCaptionTag = getRequiredMissionCaptionTag(mission.tags);
+    if (!captionHasMissionTag(captionSummary, requiredCaptionTag)) {
+      return NextResponse.json(
+        {
+          error: isZh
+            ? `此任務需要在 Reels caption 加上指定標籤 ${requiredCaptionTag}。`
+            : `This mission requires the caption tag ${requiredCaptionTag} in your Reel caption.`,
+        },
+        { status: 400 },
+      );
     }
 
     const { data: profile } = await admin

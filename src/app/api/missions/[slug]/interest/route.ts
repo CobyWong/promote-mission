@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
+import { assertInstagramAccountIsPublic, InstagramPrivateAccountError } from "@/lib/instagram";
+import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { isMissionOpenForApplications } from "@/lib/mission-lifecycle";
 import { getMissionRewardCoins } from "@/lib/mission-rules";
 import { createAppLog } from "@/lib/observability";
@@ -10,6 +12,15 @@ import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { hasSupabaseAdminConfig, hasSupabaseConfig } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+function getCaptionFromRawMetrics(rawMetrics: unknown) {
+  if (!rawMetrics || typeof rawMetrics !== "object") {
+    return null;
+  }
+
+  const caption = (rawMetrics as Record<string, unknown>).caption;
+  return typeof caption === "string" ? caption : null;
+}
 
 export async function POST(
   request: Request,
@@ -95,9 +106,51 @@ export async function POST(
     return NextResponse.json(errorBody, { status: 503 });
   }
 
+  const { data: connectionData, error: connectionError } = await admin
+    .from("instagram_connections")
+    .select("instagram_user_id, access_token, status")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (connectionError || !connectionData || connectionData.status !== "active") {
+    const errorBody = {
+      error: isZh
+        ? "請先連接 Instagram 公開帳號後再接受任務。"
+        : "Please connect an active public Instagram account before accepting missions.",
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 400,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 400 });
+  }
+
+  try {
+    await assertInstagramAccountIsPublic(connectionData.instagram_user_id, connectionData.access_token);
+  } catch (error) {
+    if (error instanceof InstagramPrivateAccountError) {
+      const errorBody = {
+        error: isZh
+          ? "Instagram 帳號目前為私人帳號。請先切換為公開帳號，才可接受任務與追蹤 Reels 表現。"
+          : "Your Instagram account is private. Switch it to public before accepting missions and tracking reel metrics.",
+      };
+      await finalizeIdempotentOperation({
+        storageKey: operation.storageKey,
+        ttlMs: operation.ttlMs,
+        status: 409,
+        body: errorBody,
+      });
+      return NextResponse.json(errorBody, { status: 409 });
+    }
+
+    throw error;
+  }
+
   const { data: mission } = await admin
     .from("missions")
-    .select("slug, title, brand, difficulty, current_participants, status, starts_at, ends_at")
+    .select("slug, title, brand, difficulty, current_participants, status, starts_at, ends_at, tags")
     .eq("slug", slug)
     .single();
 
@@ -140,6 +193,7 @@ export async function POST(
     .maybeSingle();
 
   if (existingSubmission) {
+    const requiredCaptionTag = getRequiredMissionCaptionTag(mission.tags);
     const checklist = (existingSubmission.checklist ?? null) as Record<string, unknown> | null;
     const awaitingCollaborator = existingSubmission.status === "Pending" && checklist?.awaitingCollaborator === true;
 
@@ -162,23 +216,28 @@ export async function POST(
 
     const { data: latestCollaboratorReel } = await admin
       .from("reel_insights")
-      .select("reel_url, metric_date, created_at")
+      .select("reel_url, metric_date, created_at, raw_metrics")
       .eq("user_id", user.id)
       .contains("raw_metrics", { hasMissionOneCollaborator: true })
       .order("metric_date", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(25);
 
-    if (!latestCollaboratorReel?.reel_url) {
+    const matchedReel = (latestCollaboratorReel ?? []).find((item) =>
+      captionHasMissionTag(getCaptionFromRawMetrics(item.raw_metrics), requiredCaptionTag),
+    );
+
+    if (!matchedReel?.reel_url) {
+      const captionTagHint = requiredCaptionTag ? (isZh ? `，並在 Caption 加上 ${requiredCaptionTag}` : ` and include ${requiredCaptionTag} in the caption`) : "";
       const successBody = {
         ok: true,
         count: mission.current_participants ?? 0,
         submissionId: existingSubmission.id,
         awaitingCollaborator: true,
+        requiredCaptionTag,
         message: isZh
-            ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後系統會自動完成提交。"
-            : "Mission accepted. Publish your Reel with @missionone_hk as collaborator and run Instagram sync. Submission will be completed automatically.",
+        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${captionTagHint}，完成 Instagram 同步後系統會自動完成提交。`
+        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${captionTagHint} and run Instagram sync. Submission will be completed automatically.`,
       };
       await finalizeIdempotentOperation({
         storageKey: operation.storageKey,
@@ -193,7 +252,7 @@ export async function POST(
     const { error: updateSubmissionError } = await admin
       .from("submissions")
       .update({
-        reel_url: latestCollaboratorReel.reel_url,
+        reel_url: matchedReel.reel_url,
         notes: isZh
           ? "系統已自動檢測包含 @missionone_hk 協作者的 Reels，無需手動提交 proof。"
           : "Auto-detected Reel with @missionone_hk collaborator. Manual proof submission is not required.",
@@ -280,17 +339,22 @@ export async function POST(
     return NextResponse.json(successBody);
   }
 
+  const requiredCaptionTag = getRequiredMissionCaptionTag(mission.tags);
+
   const { data: latestCollaboratorReel } = await admin
     .from("reel_insights")
-    .select("reel_url, metric_date, created_at")
+    .select("reel_url, metric_date, created_at, raw_metrics")
     .eq("user_id", user.id)
     .contains("raw_metrics", { hasMissionOneCollaborator: true })
     .order("metric_date", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .limit(25);
 
-  if (!latestCollaboratorReel?.reel_url) {
+  const matchedReel = (latestCollaboratorReel ?? []).find((item) =>
+    captionHasMissionTag(getCaptionFromRawMetrics(item.raw_metrics), requiredCaptionTag),
+  );
+
+  if (!matchedReel?.reel_url) {
     const { data: placeholderSubmission, error: placeholderError } = await admin
       .from("submissions")
       .insert({
@@ -373,9 +437,10 @@ export async function POST(
       count: nextCount,
       submissionId: placeholderSubmission.id,
       awaitingCollaborator: true,
+      requiredCaptionTag,
       message: isZh
-        ? "已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，完成 Instagram 同步後系統會自動完成提交。"
-        : "Mission accepted. Publish your Reel with @missionone_hk as collaborator and run Instagram sync. Submission will be completed automatically.",
+        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${requiredCaptionTag ? `，並在 Caption 加上 ${requiredCaptionTag}` : ""}，完成 Instagram 同步後系統會自動完成提交。`
+        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${requiredCaptionTag ? ` and include ${requiredCaptionTag} in the caption` : ""}, then run Instagram sync. Submission will be completed automatically.`,
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
@@ -401,7 +466,7 @@ export async function POST(
       mission_title: mission.title,
       mission_brand: mission.brand,
       reward_coins: getMissionRewardCoins(mission.difficulty ?? "Easy"),
-      reel_url: latestCollaboratorReel.reel_url,
+      reel_url: matchedReel.reel_url,
       caption_summary: null,
       notes: isZh
         ? "系統已自動檢測包含 @missionone_hk 協作者的 Reels，無需手動提交 proof。"

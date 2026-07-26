@@ -25,6 +25,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
   const [error, setError] = useState<string | null>(null);
   const [autoSubmissionReady, setAutoSubmissionReady] = useState(false);
   const [awaitingCollaborator, setAwaitingCollaborator] = useState(false);
+  const [requiredCaptionTag, setRequiredCaptionTag] = useState<string | null>(null);
 
   const isLocked = (minParticipants ?? 0) > 0 && displayCount < (minParticipants ?? 0);
   const isOpenForAcceptance = lifecyclePhase === "live";
@@ -34,6 +35,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       title: "Apply Now",
       desc: "Accept this mission first. The countdown will start after acceptance.",
       needIg: "Requires linked Instagram account",
+      publicIg: "Instagram account must be public for view/like tracking",
       styleFit: "Content style matching required",
       dailyCap: "Platform can set daily order limits",
       collaborator: "Add @missionone_hk as collaborator. No manual proof submission is needed.",
@@ -56,6 +58,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       title: "立即申請",
       desc: "請先接受任務；接受後將即時開始倒數。",
       needIg: "需要綁定 Instagram 帳號",
+      publicIg: "需使用公開 Instagram 帳號，才可追蹤播放與讚好",
       styleFit: "需要過往內容風格配對",
       dailyCap: "平台可設定每日接單上限",
       collaborator: "只需將 @missionone_hk 設為協作者，無需手動提交 proof。",
@@ -91,7 +94,13 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
 
     try {
       const response = await fetch(`/api/missions/${missionSlug}/interest`, { method: "POST" });
-      const result = (await response.json().catch(() => null)) as { error?: string; count?: number; autoDetected?: boolean; awaitingCollaborator?: boolean } | null;
+      const result = (await response.json().catch(() => null)) as {
+        error?: string;
+        count?: number;
+        autoDetected?: boolean;
+        awaitingCollaborator?: boolean;
+        requiredCaptionTag?: string | null;
+      } | null;
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -111,6 +120,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       }
       setAutoSubmissionReady(Boolean(result?.autoDetected));
       setAwaitingCollaborator(Boolean(result?.awaitingCollaborator));
+      setRequiredCaptionTag(typeof result?.requiredCaptionTag === "string" ? result.requiredCaptionTag : null);
     } catch {
       setError(locale === "en" ? "Unable to accept mission right now." : "目前無法接受任務，請稍後再試。");
     } finally {
@@ -190,7 +200,14 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
       </button>
       {error ? <p className="text-sm text-rose-700">{error}</p> : null}
       {autoSubmissionReady ? <p className="text-sm text-emerald-700">{labels.acceptedHint}</p> : null}
-      {awaitingCollaborator ? <p className="text-sm text-amber-700">{labels.awaitingHint}</p> : null}
+      {awaitingCollaborator ? (
+        <p className="text-sm text-amber-700">
+          {labels.awaitingHint}
+          {requiredCaptionTag
+            ? (locale === "en" ? ` Required caption tag: ${requiredCaptionTag}.` : ` 必須在 Caption 加上標籤：${requiredCaptionTag}。`)
+            : ""}
+        </p>
+      ) : null}
     </div>
   );
 }

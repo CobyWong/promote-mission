@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { MissionAcceptCard } from "@/components/mission-accept-card";
 import { getMissionBySlug, getMissionCenterData } from "@/lib/backend";
 import { getCurrentLocale } from "@/lib/i18n";
+import { getRequiredMissionCaptionTagFromMission } from "@/lib/mission-caption-tag";
 import { getMissionRequiredLevel, getRankingRewardsByDifficulty } from "@/lib/mission-rules";
 
 export default async function MissionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -20,6 +21,19 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
   const missionCenterData = await getMissionCenterData();
   const userLevel = missionCenterData.userLevel ?? 1;
   const isLevelLocked = userLevel < requiredLevel;
+  const requiredCaptionTag = getRequiredMissionCaptionTagFromMission(mission);
+  const missionRequirements = [
+    locale === "en" ? "Video length must be longer than 60 seconds" : "影片長度需超過 60 秒",
+    locale === "en" ? "Instagram account must be public" : "Instagram 帳號必須為公開帳號",
+    ...(requiredCaptionTag
+      ? [
+        locale === "en"
+          ? `Caption must include ${requiredCaptionTag}`
+          : `Caption 必須包含 ${requiredCaptionTag}`,
+      ]
+      : []),
+    ...mission.requirements,
+  ];
   const deadlineLabel = mission.endsAt
     ? new Intl.DateTimeFormat(locale === "en" ? "en-US" : "zh-HK", {
       year: "numeric",
@@ -104,7 +118,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
             <ul className="mt-5 space-y-3 text-slate-700">
-              {[(locale === "en" ? "Video length must be longer than 60 seconds" : "影片長度需超過 60 秒")].map((item) => (
+              {missionRequirements.map((item) => (
                 <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">• {item}</li>
               ))}
             </ul>
@@ -116,12 +130,12 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               {(locale === "en"
                 ? [
                   `Apply before deadline (${deadlineLabel ?? "mission deadline"})`,
-                  "Publish IG Reels and add @missionone_hk as collaborator, then sync Instagram. No manual proof submission is needed.",
+                  `Publish IG Reels from a public Instagram account, add @missionone_hk as collaborator${requiredCaptionTag ? `, include ${requiredCaptionTag} in caption` : ""}, then sync Instagram. No manual proof submission is needed.`,
                   `After deadline, ranking is fixed by Likes and top 3 share HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`,
                 ]
                 : [
                   `請於截止時間（${deadlineLabel ?? "任務截止"}）前申請`,
-                  "公開發佈 Instagram Reels，並將 @missionone_hk 設為協作者，之後同步 Instagram，無需手動提交 proof",
+                  `使用公開 Instagram 帳號發佈 Reels，並將 @missionone_hk 設為協作者${requiredCaptionTag ? `，Caption 加上 ${requiredCaptionTag}` : ""}，之後同步 Instagram，無需手動提交 proof`,
                   `截止後排名按 Likes 鎖定，前 3 名瓜分 HK$${rewards.totalPrize.toLocaleString()}（60% / 30% / 10%）`,
                 ]
               ).map((step, index) => (

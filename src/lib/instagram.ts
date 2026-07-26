@@ -14,6 +14,19 @@ export type InstagramReelInsight = {
   metrics: Record<string, number>;
 };
 
+export class InstagramPrivateAccountError extends Error {
+  constructor(message = "Instagram account is private. Please switch to a public account to sync reel metrics.") {
+    super(message);
+    this.name = "InstagramPrivateAccountError";
+  }
+}
+
+export type InstagramAccountProfile = {
+  username: string | null;
+  accountType: string | null;
+  isPrivate: boolean | null;
+};
+
 const MISSION_ONE_COLLAB_HANDLE = "missionone_hk";
 
 export function hasMissionOneCollaborator(caption?: string | null) {
@@ -207,6 +220,56 @@ export async function fetchRecentReelsInsights(instagramUserId: string, accessTo
       };
     }),
   );
+}
+
+export async function fetchInstagramAccountProfile(instagramUserId: string, accessToken: string): Promise<InstagramAccountProfile> {
+  let payload: {
+    username?: string;
+    account_type?: string;
+    is_private?: boolean;
+  };
+
+  try {
+    const params = new URLSearchParams({
+      fields: "id,username,account_type,is_private",
+      access_token: accessToken,
+    });
+
+    payload = await graphFetch<{
+      username?: string;
+      account_type?: string;
+      is_private?: boolean;
+    }>(`${graphBaseUrl}/${instagramUserId}?${params.toString()}`);
+  } catch (error) {
+    if (!(error instanceof Error) || !error.message.toLowerCase().includes("is_private")) {
+      throw error;
+    }
+
+    const fallbackParams = new URLSearchParams({
+      fields: "id,username,account_type",
+      access_token: accessToken,
+    });
+
+    payload = await graphFetch<{
+      username?: string;
+      account_type?: string;
+    }>(`${graphBaseUrl}/${instagramUserId}?${fallbackParams.toString()}`);
+  }
+
+  return {
+    username: payload.username ?? null,
+    accountType: payload.account_type ?? null,
+    isPrivate: typeof payload.is_private === "boolean" ? payload.is_private : null,
+  };
+}
+
+export async function assertInstagramAccountIsPublic(instagramUserId: string, accessToken: string) {
+  const profile = await fetchInstagramAccountProfile(instagramUserId, accessToken);
+  if (profile.isPrivate === true) {
+    throw new InstagramPrivateAccountError();
+  }
+
+  return profile;
 }
 
 export function normalizeInstagramPermalink(url: string) {
