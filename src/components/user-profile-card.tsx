@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Locale } from "@/lib/i18n";
@@ -16,6 +16,8 @@ type UserProfileCardProps = {
   canEdit?: boolean;
   startEditing?: boolean;
 };
+
+type InstagramVisibility = "public" | "private" | "unknown" | "not_connected";
 
 export function UserProfileCard({
   locale,
@@ -33,6 +35,10 @@ export function UserProfileCard({
       subtitle: "Set up your creator profile like account center.",
       name: "Full name",
       handle: "Instagram handle",
+      visibilityPublic: "Public",
+      visibilityPrivate: "Private",
+      visibilityUnknown: "Unknown",
+      visibilityNotConnected: "Not connected",
       followers: "Followers range",
       save: "Save profile",
       saving: "Saving...",
@@ -48,6 +54,10 @@ export function UserProfileCard({
       subtitle: "建立並管理創作者個人檔案。",
       name: "姓名",
       handle: "Instagram 帳號",
+      visibilityPublic: "公開",
+      visibilityPrivate: "私人",
+      visibilityUnknown: "未知",
+      visibilityNotConnected: "未連接",
       followers: "追蹤數區間",
       save: "儲存個人檔案",
       saving: "儲存中...",
@@ -66,6 +76,41 @@ export function UserProfileCard({
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<InstagramVisibility>("unknown");
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadVisibility() {
+      const response = await fetch("/api/instagram/account-visibility", {
+        method: "GET",
+      });
+
+      const payload = (await response.json().catch(() => null)) as { visibility?: InstagramVisibility } | null;
+      if (!active) {
+        return;
+      }
+
+      const nextVisibility = payload?.visibility;
+      if (nextVisibility === "public" || nextVisibility === "private" || nextVisibility === "unknown" || nextVisibility === "not_connected") {
+        setVisibility(nextVisibility);
+      }
+    }
+
+    void loadVisibility();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const visibilityLabel = visibility === "public"
+    ? t.visibilityPublic
+    : visibility === "private"
+      ? t.visibilityPrivate
+      : visibility === "not_connected"
+        ? t.visibilityNotConnected
+        : t.visibilityUnknown;
 
   const initials = useMemo(() => {
     const trimmed = (name || "").trim();
@@ -166,6 +211,7 @@ export function UserProfileCard({
           <div className="min-w-0 flex-1">
             <p className="truncate text-xl font-semibold text-white">{name || "-"}</p>
             <p className="truncate text-slate-300">{email || t.noEmail}</p>
+            <p className="mt-1 text-xs text-slate-400">{t.handle}: {visibilityLabel}</p>
           </div>
           <div className="rounded-2xl bg-white/10 px-3 py-2 text-sm text-slate-200">{handle ? `@${handle}` : "@-"}</div>
         </div>
@@ -184,7 +230,7 @@ export function UserProfileCard({
           </label>
 
           <label className="text-sm text-slate-300">
-            {t.handle}
+            {t.handle} ({visibilityLabel})
             <input
               value={handle}
               onChange={(event) => setHandle(event.target.value.replace(/^@/, ""))}
