@@ -74,7 +74,6 @@ export async function Header() {
   const t = linkLabels[locale];
 
   const textColor = theme === "dark" ? "text-slate-900" : "text-slate-900";
-  const numberFormat = new Intl.NumberFormat(locale === "en" ? "en-US" : "zh-HK");
 
   const navLinks = [
     ...userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => ({
@@ -106,15 +105,12 @@ export async function Header() {
 
         {!isAdmin && viewerLevel ? (
           <div className="ml-4 hidden min-w-[300px] flex-col md:flex">
-            <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+            <div className="flex items-center justify-between text-sm font-bold text-slate-700">
               <span className="font-black tracking-wide text-cyan-700">LV.{viewerLevel.userLevel}</span>
-              <span className="text-slate-500">•</span>
               <span className="text-slate-600">
                 {viewerLevel.levelProgress.isMaxLevel
                   ? (locale === "en" ? "MAX" : "已滿級")
-                  : (locale === "en"
-                    ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP to next`
-                    : `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP`)}
+                  : `EXP (${viewerLevel.levelProgress.expToNextLevel}/${viewerLevel.levelProgress.expForNextLevel})`}
               </span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
