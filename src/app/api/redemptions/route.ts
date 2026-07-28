@@ -6,6 +6,7 @@ import { evaluateRateLimit, getClientFingerprint, getRetryAfterSeconds } from "@
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getRewardRequiredLevel, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { getCreatorExpFromReelInsights } from "@/lib/creator-exp";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
@@ -94,12 +95,11 @@ export async function POST(request: Request) {
   }
 
   const requiredLevel = getRewardRequiredLevel(rewardSlug);
-  const { data: approvedSubmissions } = await supabase
-    .from("submissions")
-    .select("reward_coins")
-    .eq("user_id", user.id)
-    .eq("status", "Approved");
-  const approvedExp = (approvedSubmissions ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const { data: reelInsights } = await supabase
+    .from("reel_insights")
+    .select("media_id, reel_url, plays, likes, metric_date, created_at")
+    .eq("user_id", user.id);
+  const approvedExp = getCreatorExpFromReelInsights(reelInsights ?? []);
   const userLevel = getCreatorLevelFromTotalExp(approvedExp);
 
   if (userLevel < requiredLevel) {

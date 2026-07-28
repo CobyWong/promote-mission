@@ -4,6 +4,7 @@ import { isZhRequest } from "@/lib/api-locale";
 import { assertInstagramAccountIsPublic, InstagramPrivateAccountError } from "@/lib/instagram";
 import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
+import { getCreatorExpFromReelInsights } from "@/lib/creator-exp";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 import { hasSupabaseAdminConfig } from "@/lib/supabase/env";
@@ -381,13 +382,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: isZh ? "找不到指定任務。" : "Mission not found." }, { status: 404 });
     }
 
-    const { data: approvedSubmissions } = await admin
-      .from("submissions")
-      .select("reward_coins")
-      .eq("user_id", user.id)
-      .eq("status", "Approved");
+    const { data: reelInsights } = await admin
+      .from("reel_insights")
+      .select("media_id, reel_url, plays, likes, metric_date, created_at")
+      .eq("user_id", user.id);
 
-    const approvedExp = (approvedSubmissions ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+    const approvedExp = getCreatorExpFromReelInsights(reelInsights ?? []);
     const creatorLevel = getCreatorLevelFromTotalExp(approvedExp);
     const missionRequiredLevel = getMissionRequiredLevel(mission.difficulty ?? "Easy");
 

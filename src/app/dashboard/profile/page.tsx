@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { UserProfileCard } from "@/components/user-profile-card";
-import { getDashboardData, getRewardsPageData } from "@/lib/backend";
+import { getCurrentViewerLevelProgress, getDashboardData, getRewardsPageData } from "@/lib/backend";
 import { getGamePassLevelRewardCoins } from "@/lib/game-pass";
 import { getCurrentLocale } from "@/lib/i18n";
 import { getLevelProgressFromTotalExp, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
@@ -11,7 +11,11 @@ export default async function DashboardProfilePage({ searchParams }: { searchPar
   const resolvedSearchParams = await searchParams;
   const startEditing = ["1", "true", "yes"].includes((resolvedSearchParams.edit ?? "").toLowerCase());
   const locale = await getCurrentLocale();
-  const [dashboard, rewardsPageData] = await Promise.all([getDashboardData(), getRewardsPageData()]);
+  const [dashboard, rewardsPageData, viewerLevelProgress] = await Promise.all([
+    getDashboardData(),
+    getRewardsPageData(),
+    getCurrentViewerLevelProgress(),
+  ]);
 
   if (dashboard.mode === "unauthenticated") {
     redirect("/login?next=/dashboard/profile");
@@ -75,10 +79,7 @@ export default async function DashboardProfilePage({ searchParams }: { searchPar
     return "border-amber-300/40 bg-amber-300/12 text-amber-200";
   };
 
-  const approvedExp = dashboard.submissions
-    .filter((item) => item.status === "Approved")
-    .reduce((sum, item) => sum + Math.max(item.coins ?? 0, 0), 0);
-  const levelProgress = getLevelProgressFromTotalExp(approvedExp);
+  const levelProgress = viewerLevelProgress?.levelProgress ?? getLevelProgressFromTotalExp(0);
   const nextLevelCoins = levelProgress.isMaxLevel ? 0 : getGamePassLevelRewardCoins(levelProgress.level + 1);
   return (
     <section className="section-shell py-12 sm:py-16">

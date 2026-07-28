@@ -13,6 +13,7 @@ import { getAdminEmails, getBrandEmails, hasSupabaseAdminConfig, hasSupabaseConf
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCreatorLevelFromTotalExp, getLevelProgressFromTotalExp, getMissionRewardCoins, getMissionTotalPrizeByDifficulty, getRankingRewardByPosition, getRewardRequiredLevel } from "@/lib/mission-rules";
 import { getRewardRequiredCoins } from "@/lib/reward-pricing";
+import { getCreatorExpFromReelInsights } from "@/lib/creator-exp";
 
 const REDEMPTION_RETENTION_DAYS = 30;
 
@@ -608,14 +609,12 @@ export const getCurrentViewerLevelProgress = cache(async () => {
     return null;
   }
 
-  const { data: submissions } = await supabase
-    .from("submissions")
-    .select("status, reward_coins")
+  const { data: reelInsights } = await supabase
+    .from("reel_insights")
+    .select("media_id, reel_url, plays, likes, metric_date, created_at")
     .eq("user_id", user.id);
 
-  const approvedExp = (submissions ?? [])
-    .filter((item) => item.status === "Approved")
-    .reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const approvedExp = getCreatorExpFromReelInsights(reelInsights ?? []);
 
   return {
     userLevel: getCreatorLevelFromTotalExp(approvedExp),
@@ -702,10 +701,16 @@ export async function getMissionCenterData() {
     };
   }
 
-  const { data: submissions } = await supabase
-    .from("submissions")
-    .select("mission_slug, status, reward_coins")
-    .eq("user_id", user.id);
+  const [{ data: submissions }, { data: reelInsights }] = await Promise.all([
+    supabase
+      .from("submissions")
+      .select("mission_slug, status")
+      .eq("user_id", user.id),
+    supabase
+      .from("reel_insights")
+      .select("media_id, reel_url, plays, likes, metric_date, created_at")
+      .eq("user_id", user.id),
+  ]);
 
   const completedMissionSlugs = new Set(
     (submissions ?? [])
@@ -714,9 +719,7 @@ export async function getMissionCenterData() {
       .filter((slug): slug is string => typeof slug === "string" && slug.length > 0),
   );
   const approvedMissionCount = completedMissionSlugs.size;
-  const approvedExp = (submissions ?? [])
-    .filter((item) => item.status === "Approved")
-    .reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const approvedExp = getCreatorExpFromReelInsights(reelInsights ?? []);
   const userLevel = getCreatorLevelFromTotalExp(approvedExp);
   const levelProgress = getLevelProgressFromTotalExp(approvedExp);
 
@@ -837,15 +840,15 @@ export async function getRewardsPageData() {
     };
   }
 
-  const [{ data: transactions }, { data: redemptions }, { data: approvedSubmissions }] = await Promise.all([
+  const [{ data: transactions }, { data: redemptions }, { data: reelInsights }] = await Promise.all([
     supabase.from("coin_transactions").select("*").eq("user_id", user.id),
     supabase.from("reward_redemptions").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(10),
-    supabase.from("submissions").select("reward_coins").eq("user_id", user.id).eq("status", "Approved"),
+    supabase.from("reel_insights").select("media_id, reel_url, plays, likes, metric_date, created_at").eq("user_id", user.id),
   ]);
 
   const transactionRows = (transactions ?? []) as TransactionRow[];
   const redemptionRows = (redemptions ?? []) as RewardRedemptionRow[];
-  const approvedExp = (approvedSubmissions ?? []).reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+  const approvedExp = getCreatorExpFromReelInsights(reelInsights ?? []);
   const userLevel = getCreatorLevelFromTotalExp(approvedExp);
 
   return {
