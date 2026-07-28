@@ -105,17 +105,25 @@ export async function Header() {
         </Link>
 
         {!isAdmin && viewerLevel ? (
-          <div className="ml-4 hidden items-center gap-2 text-sm font-semibold text-slate-700 md:flex">
-            <span>{locale === "en" ? "Creator level" : "創作者等級"}</span>
-            <span className="text-cyan-700">Lv.{viewerLevel.userLevel}</span>
-            <span className="text-slate-500">•</span>
-            <span className="text-slate-600">
-              {viewerLevel.levelProgress.isMaxLevel
-                ? (locale === "en" ? "MAX" : "已滿級")
-                : (locale === "en"
-                  ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} to next`
-                  : `尚差 ${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} 升級`)}
-            </span>
+          <div className="ml-4 hidden min-w-[280px] flex-col md:flex">
+            <div className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+              <span>{locale === "en" ? "Creator level" : "創作者等級"}</span>
+              <span className="text-cyan-700">Lv.{viewerLevel.userLevel}</span>
+              <span className="text-slate-500">•</span>
+              <span className="text-slate-600">
+                {viewerLevel.levelProgress.isMaxLevel
+                  ? (locale === "en" ? "MAX" : "已滿級")
+                  : (locale === "en"
+                    ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} to next`
+                    : `尚差 ${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} 升級`)}
+              </span>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500"
+                style={{ width: `${Math.max(0, Math.min(100, viewerLevel.levelProgress.progressPercent))}%` }}
+              />
+            </div>
           </div>
         ) : null}
 
