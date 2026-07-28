@@ -32,6 +32,7 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 	- `META_APP_ID`
 	- `META_APP_SECRET`
 	- `INSTAGRAM_REDIRECT_URI` (default: `https://missiononehk.vercel.app/api/instagram/callback`)
+	- `INSTAGRAM_WEBHOOK_VERIFY_TOKEN` (optional, only needed if enabling Meta Webhooks verification)
 	- `ERROR_MONITOR_WEBHOOK_URL` (optional, webhook endpoint for API error forwarding)
 	- `RATE_LIMIT_SALT` (required for stable, hashed rate-limit keys)
 	- `CLEANUP_CRON_TOKEN` (required, protects scheduled cleanup endpoint)
