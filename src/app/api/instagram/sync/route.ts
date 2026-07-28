@@ -207,6 +207,13 @@ export async function POST(request: Request) {
             continue;
           }
 
+          await admin
+            .from("reel_insights")
+            .update({ submission_id: pending.id })
+            .eq("user_id", user.id)
+            .eq("reel_url", matchedReel.permalink)
+            .is("submission_id", null);
+
           const { error: approveError } = await admin.rpc("approve_submission", {
             submission_id_input: pending.id,
             reviewer_id_input: null,

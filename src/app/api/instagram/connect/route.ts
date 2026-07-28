@@ -6,7 +6,21 @@ import { isZhRequest } from "@/lib/api-locale";
 import { buildInstagramOAuthUrl, getMissingInstagramConfig, hasInstagramConfig } from "@/lib/instagram";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+function sanitizeNextPath(raw: string | null, fallback = "/dashboard") {
+  if (!raw) {
+    return fallback;
+  }
+
+  if (!raw.startsWith("/") || raw.startsWith("//")) {
+    return fallback;
+  }
+
+  return raw;
+}
+
 export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  const nextPath = sanitizeNextPath(requestUrl.searchParams.get("next"), "/dashboard");
   const isZh = isZhRequest(request);
   if (!hasInstagramConfig()) {
     return NextResponse.json(
@@ -29,14 +43,23 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
+    const reconnectPath = `/api/instagram/connect?next=${encodeURIComponent(nextPath)}`;
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", "/dashboard");
+    loginUrl.searchParams.set("next", reconnectPath);
     return NextResponse.redirect(loginUrl);
   }
 
   const state = randomUUID();
   const cookieStore = await cookies();
   cookieStore.set("ig_oauth_state", state, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: 60 * 10,
+    path: "/",
+  });
+
+  cookieStore.set("ig_oauth_next", nextPath, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

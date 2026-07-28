@@ -752,7 +752,13 @@ export async function getMissionBySlug(slug: string) {
     return null;
   }
 
-  return toMission(missionRow);
+  const mission = toMission(missionRow);
+  const rankingMap = await getMissionRankingMap([mission.slug]);
+
+  return {
+    ...mission,
+    rankings: rankingMap.get(mission.slug) ?? [],
+  };
 }
 
 export async function getRewardsCatalog() {

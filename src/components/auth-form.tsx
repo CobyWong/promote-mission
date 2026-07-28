@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 import type { Locale } from "@/lib/i18n";
 import { getSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -39,8 +40,24 @@ function EyeClosedIcon() {
   );
 }
 
+function sanitizeNextPath(raw: string | null | undefined, fallback = "/dashboard") {
+  if (!raw) {
+    return fallback;
+  }
+
+  if (!raw.startsWith("/") || raw.startsWith("//")) {
+    return fallback;
+  }
+
+  return raw;
+}
+
 export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const isRegister = mode === "register";
+  const searchParams = useSearchParams();
+  const loginNextPath = sanitizeNextPath(searchParams.get("next"), "/dashboard");
+  const registerPostConnectPath = "/dashboard?editProfile=1";
+  const oauthConnectPath = `/api/instagram/connect?next=${encodeURIComponent(registerPostConnectPath)}`;
   const [loading, setLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -329,11 +346,11 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         }
 
         if (data.session) {
-          window.location.assign("/api/auth/redirect?next=%2Fdashboard%3FeditProfile%3D1");
+          window.location.assign(oauthConnectPath);
           return;
         }
 
-        window.location.assign("/login?registered=1");
+        window.location.assign(`/login?registered=1&next=${encodeURIComponent(oauthConnectPath)}`);
 
         return;
       }
@@ -409,7 +426,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
         return;
       }
 
-      window.location.assign("/api/auth/redirect?next=%2Fdashboard");
+      window.location.assign(`/api/auth/redirect?next=${encodeURIComponent(loginNextPath)}`);
     } catch {
       setError(t.networkError);
     } finally {

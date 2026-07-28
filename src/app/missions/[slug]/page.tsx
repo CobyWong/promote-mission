@@ -52,6 +52,8 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
       minute: "2-digit",
     }).format(new Date(mission.rankingConfirmationEndsAt))
     : null;
+  const rankingEntries = mission.rankings?.slice(0, 3) ?? [];
+  const likesNumberFormat = new Intl.NumberFormat(locale === "en" ? "en-US" : "zh-HK");
 
   return (
     <section className="section-shell py-12 sm:py-16">
@@ -122,6 +124,36 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
                 <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">• {item}</li>
               ))}
             </ul>
+          </div>
+
+          <div className="glass-panel p-5 sm:p-8">
+            <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Mission Ranking (Likes)" : "任務排名（Likes）"}</h2>
+            {rankingEntries.length > 0 ? (
+              <div className="mt-5 space-y-3">
+                {rankingEntries.map((entry) => (
+                  <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-100 text-xs font-bold text-cyan-700">
+                        {entry.rank}
+                      </span>
+                      <a
+                        href={entry.reelUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="break-all text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:text-cyan-700"
+                      >
+                        {entry.handle}
+                      </a>
+                    </div>
+                    <span className="text-sm font-semibold text-slate-700">{likesNumberFormat.format(entry.likes)} Likes</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                {locale === "en" ? "No ranking records yet." : "目前尚無排名紀錄。"}
+              </p>
+            )}
           </div>
 
           <div className="glass-panel p-5 sm:p-8">

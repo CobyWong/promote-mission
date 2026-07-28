@@ -9,38 +9,52 @@ import {
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+function sanitizeNextPath(raw: string | null | undefined, fallback = "/dashboard") {
+  if (!raw) {
+    return fallback;
+  }
+
+  if (!raw.startsWith("/") || raw.startsWith("//")) {
+    return fallback;
+  }
+
+  return raw;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
   const oauthError = url.searchParams.get("error_reason") ?? url.searchParams.get("error_description");
 
-  const dashboardUrl = new URL("/dashboard", request.url);
+  const cookieStore = await cookies();
+  const nextFromCookie = sanitizeNextPath(cookieStore.get("ig_oauth_next")?.value, "/dashboard");
+  const returnUrl = new URL(nextFromCookie, request.url);
 
   if (!hasInstagramConfig()) {
-    dashboardUrl.searchParams.set("ig", "not-configured");
-    return NextResponse.redirect(dashboardUrl);
+    returnUrl.searchParams.set("ig", "not-configured");
+    return NextResponse.redirect(returnUrl);
   }
 
-  const cookieStore = await cookies();
   const stateFromCookie = cookieStore.get("ig_oauth_state")?.value;
   cookieStore.delete("ig_oauth_state");
+  cookieStore.delete("ig_oauth_next");
 
   if (oauthError) {
-    dashboardUrl.searchParams.set("ig", "denied");
-    return NextResponse.redirect(dashboardUrl);
+    returnUrl.searchParams.set("ig", "denied");
+    return NextResponse.redirect(returnUrl);
   }
 
   if (!code || !state || state !== stateFromCookie) {
-    dashboardUrl.searchParams.set("ig", "state-mismatch");
-    return NextResponse.redirect(dashboardUrl);
+    returnUrl.searchParams.set("ig", "state-mismatch");
+    return NextResponse.redirect(returnUrl);
   }
 
   const supabase = await createSupabaseServerClient();
 
   if (!supabase) {
-    dashboardUrl.searchParams.set("ig", "supabase-missing");
-    return NextResponse.redirect(dashboardUrl);
+    returnUrl.searchParams.set("ig", "supabase-missing");
+    return NextResponse.redirect(returnUrl);
   }
 
   const {
@@ -49,7 +63,7 @@ export async function GET(request: Request) {
 
   if (!user) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("next", "/dashboard");
+    loginUrl.searchParams.set("next", nextFromCookie);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -78,11 +92,11 @@ export async function GET(request: Request) {
       throw new Error(error.message);
     }
 
-    dashboardUrl.searchParams.set("ig", "connected");
-    return NextResponse.redirect(dashboardUrl);
+    returnUrl.searchParams.set("ig", "connected");
+    return NextResponse.redirect(returnUrl);
   } catch (error) {
-    dashboardUrl.searchParams.set("ig", "failed");
-    dashboardUrl.searchParams.set("ig_message", error instanceof Error ? error.message : "Failed to connect Instagram account.");
-    return NextResponse.redirect(dashboardUrl);
+    returnUrl.searchParams.set("ig", "failed");
+    returnUrl.searchParams.set("ig_message", error instanceof Error ? error.message : "Failed to connect Instagram account.");
+    return NextResponse.redirect(returnUrl);
   }
 }
