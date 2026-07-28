@@ -107,17 +107,14 @@ export async function Header() {
         {!isAdmin && viewerLevel ? (
           <div className="ml-4 hidden min-w-[300px] flex-col md:flex">
             <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-              <span className="inline-flex h-5 w-5 items-center justify-center rounded bg-amber-100 text-[11px] text-amber-700">★</span>
-              <span className="rounded border border-cyan-300 bg-cyan-50 px-2 py-0.5 font-black tracking-wide text-cyan-700">
-                LV.{viewerLevel.userLevel}
-              </span>
+              <span className="font-black tracking-wide text-cyan-700">LV.{viewerLevel.userLevel}</span>
               <span className="text-slate-500">•</span>
               <span className="text-slate-600">
                 {viewerLevel.levelProgress.isMaxLevel
                   ? (locale === "en" ? "MAX" : "已滿級")
                   : (locale === "en"
-                    ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} XP to next`
-                    : `尚差 ${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} XP`)}
+                    ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP to next`
+                    : `尚差 ${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP`)}
               </span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
