@@ -114,7 +114,7 @@ export async function Header() {
                   ? (locale === "en" ? "MAX" : "已滿級")
                   : (locale === "en"
                     ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP to next`
-                    : `尚差 ${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP`)}
+                    : `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)}/${numberFormat.format(viewerLevel.levelProgress.expForNextLevel)} XP`)}
               </span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
