@@ -5,7 +5,7 @@ import { getCurrentLocale, type Locale } from "@/lib/i18n";
 import { getCurrentTheme } from "@/lib/theme";
 import { isAdminEmail } from "@/lib/supabase/env";
 import { hasAdminSession } from "@/lib/admin-session";
-import { getCurrentViewer } from "@/lib/backend";
+import { getCurrentViewer, getCurrentViewerLevelProgress } from "@/lib/backend";
 import { HeaderMainNav } from "@/components/header-main-nav";
 import { HeaderNotificationCenter } from "@/components/header-notification-center";
 import { HeaderSideMenu } from "@/components/header-side-menu";
@@ -62,7 +62,11 @@ const adminLinks = [
 export async function Header() {
   const locale = await getCurrentLocale();
   const theme = await getCurrentTheme();
-  const [adminSession, viewer] = await Promise.all([hasAdminSession(), getCurrentViewer()]);
+  const [adminSession, viewer, viewerLevel] = await Promise.all([
+    hasAdminSession(),
+    getCurrentViewer(),
+    getCurrentViewerLevelProgress(),
+  ]);
   const user = viewer.user;
   const isAdmin = adminSession || Boolean(user && isAdminEmail(user.email));
   const isAuthenticated = adminSession || Boolean(user);
@@ -70,6 +74,7 @@ export async function Header() {
   const t = linkLabels[locale];
 
   const textColor = theme === "dark" ? "text-slate-900" : "text-slate-900";
+  const numberFormat = new Intl.NumberFormat(locale === "en" ? "en-US" : "zh-HK");
 
   const navLinks = [
     ...userLinks.filter((link) => !(isAdmin && link.key === "dashboard")).map((link) => ({
@@ -101,6 +106,34 @@ export async function Header() {
 
         {isAuthenticated ? (
           <div className="ml-auto flex items-center gap-3">
+            {!isAdmin && viewerLevel ? (
+              <div className="hidden min-w-[220px] rounded-xl border border-cyan-200 bg-white/95 px-3 py-2 lg:block">
+                <div className="flex items-center justify-between text-xs font-semibold text-slate-600">
+                  <span>{locale === "en" ? "Creator level" : "創作者等級"}</span>
+                  <span className="text-cyan-700">Lv.{viewerLevel.userLevel}</span>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500"
+                    style={{ width: `${Math.max(0, Math.min(100, viewerLevel.levelProgress.progressPercent))}%` }}
+                  />
+                </div>
+                <p className="mt-1 text-[11px] text-slate-600">
+                  {viewerLevel.levelProgress.isMaxLevel
+                    ? (locale === "en" ? "MAX" : "已滿級")
+                    : (locale === "en"
+                      ? `${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} to next`
+                      : `尚差 ${numberFormat.format(viewerLevel.levelProgress.expToNextLevel)} 升級`)}
+                </p>
+              </div>
+            ) : null}
+
+            {!isAdmin && viewerLevel ? (
+              <div className="rounded-lg border border-cyan-200 bg-cyan-50 px-2 py-1 text-xs font-bold text-cyan-800 lg:hidden">
+                Lv.{viewerLevel.userLevel}
+              </div>
+            ) : null}
+
             <HeaderMainNav links={navLinks} />
             <div className="hidden md:block">
               <HeaderNotificationCenter locale={locale} theme={theme} />

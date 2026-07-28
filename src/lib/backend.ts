@@ -590,6 +590,40 @@ export const getCurrentViewer = cache(async () => {
   return { configured: true as const, user };
 });
 
+export const getCurrentViewerLevelProgress = cache(async () => {
+  if (!hasSupabaseConfig()) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data: submissions } = await supabase
+    .from("submissions")
+    .select("status, reward_coins")
+    .eq("user_id", user.id);
+
+  const approvedExp = (submissions ?? [])
+    .filter((item) => item.status === "Approved")
+    .reduce((sum, item) => sum + Math.max(item.reward_coins ?? 0, 0), 0);
+
+  return {
+    userLevel: getCreatorLevelFromTotalExp(approvedExp),
+    approvedExp,
+    levelProgress: getLevelProgressFromTotalExp(approvedExp),
+  };
+});
+
 export async function getMissionCatalog() {
   if (!hasSupabaseConfig()) {
     return { mode: "unavailable" as const, missions: [] as Mission[] };
