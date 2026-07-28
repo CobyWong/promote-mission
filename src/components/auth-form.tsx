@@ -92,6 +92,9 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       needInstagram: "Please provide your Instagram username.",
       needAudience: "Please select gender, age group, and follower band.",
       needTerms: "Please agree to the service terms.",
+      invalidReferral: "Referral code is invalid. Please check and try again.",
+      selfReferral: "You cannot use your own referral code.",
+      referralCheckFailed: "Unable to verify referral code right now. Please try again.",
       forgotPassword: "Forgot password?",
       forgotEmailRequired: "Please enter your email first.",
       forgotSent: "Password reset email sent. Please check your inbox.",
@@ -127,6 +130,9 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       needInstagram: "請填寫 Instagram 用戶名稱。",
       needAudience: "請選擇性別、年齡組別及追蹤數區間。",
       needTerms: "請先同意服務條款及私隱政策。",
+      invalidReferral: "推薦碼無效，請確認後再試。",
+      selfReferral: "不可使用自己的推薦碼。",
+      referralCheckFailed: "暫時無法驗證推薦碼，請稍後再試。",
       forgotPassword: "忘記密碼？",
       forgotEmailRequired: "請先輸入電郵地址。",
       forgotSent: "已發送重設密碼電郵，請檢查收件箱。",
@@ -187,6 +193,24 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
     setError(null);
     setShowTermsConsentError(false);
     setRegisterStep((step) => Math.max(step - 1, 1));
+  }
+
+  function mapSignUpErrorMessage(rawMessage: string, hasReferralCode: boolean) {
+    const normalized = rawMessage.toLowerCase();
+
+    if (
+      normalized.includes("22023")
+      || normalized.includes("invalid referral code")
+      || normalized.includes("database error saving new user")
+    ) {
+      return hasReferralCode ? t.invalidReferral : rawMessage;
+    }
+
+    if (normalized.includes("own referral code") || normalized.includes("self referral")) {
+      return t.selfReferral;
+    }
+
+    return rawMessage;
   }
 
   async function handleForgotPassword() {
@@ -255,6 +279,25 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
         const normalizedHandle = getHandleFromInput(instagramHandle);
         const derivedFollowers = followersRange || "-";
+        const normalizedReferralCode = referralCode.trim().toUpperCase();
+
+        if (normalizedReferralCode) {
+          const validationResponse = await fetch(`/api/referrals/validate-code?code=${encodeURIComponent(normalizedReferralCode)}`, {
+            method: "GET",
+          });
+
+          const validationPayload = (await validationResponse.json().catch(() => null)) as { valid?: boolean; error?: string } | null;
+
+          if (!validationResponse.ok) {
+            setError(validationPayload?.error ?? t.referralCheckFailed);
+            return;
+          }
+
+          if (!validationPayload?.valid) {
+            setError(t.invalidReferral);
+            return;
+          }
+        }
 
         const { data, error: signUpError } = await supabase.auth.signUp({
           email,
@@ -275,13 +318,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
               gender,
               age_group: ageGroup,
               account_type: "creator",
-              referral_code: referralCode || null,
+              referral_code: normalizedReferralCode || null,
             },
           },
         });
 
         if (signUpError) {
-          setError(signUpError.message);
+          setError(mapSignUpErrorMessage(signUpError.message, Boolean(normalizedReferralCode)));
           return;
         }
 

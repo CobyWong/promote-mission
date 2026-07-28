@@ -443,11 +443,19 @@ begin
     where upper(rp.referral_code) = upper(used_referral_code)
     limit 1;
 
-    if inviter_id is not null and inviter_id <> new.id then
-      insert into public.referrals (inviter_user_id, invited_user_id, referral_code_used)
-      values (inviter_id, new.id, upper(used_referral_code))
-      on conflict (invited_user_id) do nothing;
+    if inviter_id is null then
+      raise exception 'Invalid referral code: %', upper(used_referral_code)
+        using errcode = '22023';
     end if;
+
+    if inviter_id = new.id then
+      raise exception 'You cannot use your own referral code.'
+        using errcode = '22023';
+    end if;
+
+    insert into public.referrals (inviter_user_id, invited_user_id, referral_code_used)
+    values (inviter_id, new.id, upper(used_referral_code))
+    on conflict (invited_user_id) do nothing;
   end if;
 
   return new;
