@@ -110,7 +110,7 @@ export async function Header() {
               <span className="text-slate-600">
                 {viewerLevel.levelProgress.isMaxLevel
                   ? (locale === "en" ? "MAX" : "已滿級")
-                  : `${viewerLevel.levelProgress.expToNextLevel}/${viewerLevel.levelProgress.expForNextLevel}`}
+                  : `${viewerLevel.levelProgress.expIntoLevel}/${viewerLevel.levelProgress.expForNextLevel}`}
               </span>
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
