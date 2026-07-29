@@ -93,6 +93,7 @@ export async function PATCH(
     notFound: isZh ? "找不到提交紀錄。" : "Submission not found.",
     invalidStatus: isZh ? "提交狀態無效。" : "Invalid submission status.",
     invalidDueTime: isZh ? "審核期限格式無效。" : "Invalid review due time.",
+    invalidPayload: isZh ? "請求內容格式無效。" : "Invalid payload.",
     updateFailed: isZh ? "更新提交資料失敗，請稍後再試。" : "Unable to update submission. Please try again.",
   };
 
@@ -147,7 +148,11 @@ export async function PATCH(
     return NextResponse.json({ error: t.notFound }, { status: 404 });
   }
 
-  const body = await request.json();
+  const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: t.invalidPayload }, { status: 400 });
+  }
+
   const hasStatus = typeof body.status === "string";
   const status = (hasStatus ? String(body.status) : undefined) as SubmissionStatus | undefined;
   const notes = typeof body.notes === "string" ? (String(body.notes) || null) : undefined;

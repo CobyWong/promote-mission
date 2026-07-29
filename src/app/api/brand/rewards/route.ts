@@ -75,7 +75,10 @@ export async function POST(request: Request) {
     return access.error;
   }
 
-  const body = (await request.json()) as Partial<Database["public"]["Tables"]["rewards_catalog"]["Insert"]>;
+  const body = (await request.json().catch(() => null)) as Partial<Database["public"]["Tables"]["rewards_catalog"]["Insert"]> | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: isZh ? "請求內容格式無效。" : "Invalid payload." }, { status: 400 });
+  }
 
   if (!body.slug || !body.name) {
     return NextResponse.json({ error: isZh ? "請填寫必要欄位：slug、name。" : "slug/name are required." }, { status: 400 });

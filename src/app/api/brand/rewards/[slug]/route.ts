@@ -44,7 +44,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
   }
 
   const { slug } = await context.params;
-  const body = (await request.json()) as Partial<Database["public"]["Tables"]["rewards_catalog"]["Update"]>;
+  const body = (await request.json().catch(() => null)) as Partial<Database["public"]["Tables"]["rewards_catalog"]["Update"]> | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: isZh ? "請求內容格式無效。" : "Invalid payload." }, { status: 400 });
+  }
   const computedCost = getRewardRequiredCoins({
     name: typeof body.name === "string" ? body.name : undefined,
     slug,
