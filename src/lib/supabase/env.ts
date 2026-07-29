@@ -64,7 +64,7 @@ export function isBrandOrAdminEmail(email?: string | null) {
 }
 
 export function getSupportEmail() {
-  return supportEmail?.trim() || "support@promotemission.com";
+  return supportEmail?.trim() || "missiononehk1@gmail.com";
 }
 
 export function getSupportWhatsappUrl() {

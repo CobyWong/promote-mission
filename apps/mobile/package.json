@@ -11,6 +11,7 @@
     "expo-file-system": "^57.0.0",
     "expo-status-bar": "~57.0.0",
     "expo-task-manager": "^57.0.2",
+    "expo-updates": "~57.0.10",
     "react": "19.2.3",
     "react-native": "0.86.0",
     "react-native-url-polyfill": "^3.0.0"
@@ -24,7 +25,14 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preflight": "node ../../scripts/mobile-release-preflight.mjs",
+    "build:preview:ios": "npx eas build --platform ios --profile preview",
+    "build:preview:android": "npx eas build --platform android --profile preview",
+    "build:production:ios": "npx eas build --platform ios --profile production",
+    "build:production:android": "npx eas build --platform android --profile production",
+    "submit:production:ios": "npx eas submit --platform ios --profile production",
+    "submit:production:android": "npx eas submit --platform android --profile production"
   },
   "private": true
 }

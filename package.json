@@ -23,7 +23,14 @@
     "mobile:start": "npm --prefix apps/mobile run start",
     "mobile:ios": "npm --prefix apps/mobile run ios",
     "mobile:android": "npm --prefix apps/mobile run android",
-    "mobile:web": "npm --prefix apps/mobile run web"
+    "mobile:web": "npm --prefix apps/mobile run web",
+    "mobile:preflight": "node scripts/mobile-release-preflight.mjs",
+    "mobile:build:preview:ios": "npm --prefix apps/mobile run build:preview:ios",
+    "mobile:build:preview:android": "npm --prefix apps/mobile run build:preview:android",
+    "mobile:build:production:ios": "npm --prefix apps/mobile run build:production:ios",
+    "mobile:build:production:android": "npm --prefix apps/mobile run build:production:android",
+    "mobile:submit:production:ios": "npm --prefix apps/mobile run submit:production:ios",
+    "mobile:submit:production:android": "npm --prefix apps/mobile run submit:production:android"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

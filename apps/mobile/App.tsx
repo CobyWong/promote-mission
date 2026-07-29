@@ -2446,7 +2446,9 @@ function AppContent() {
           </Pressable>
         ) : null}
 
-        <Text style={styles.footer}>API base URL: {API_BASE_URL}</Text>
+        {mobileConfig.appEnvironment !== "production" ? (
+          <Text style={styles.footer}>API base URL: {API_BASE_URL}</Text>
+        ) : null}
         <Text style={styles.footer}>Environment: {mobileConfig.appEnvironment}</Text>
       </ScrollView>
     </SafeAreaView>

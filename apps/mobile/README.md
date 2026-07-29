@@ -69,6 +69,25 @@ Or from this folder:
 npm run start
 ```
 
+## Release Commands
+
+From repo root:
+
+```bash
+npm run mobile:preflight
+npm run mobile:build:preview:ios
+npm run mobile:build:preview:android
+npm run mobile:build:production:ios
+npm run mobile:build:production:android
+```
+
+Submit production builds:
+
+```bash
+npm run mobile:submit:production:ios
+npm run mobile:submit:production:android
+```
+
 ## Current Phase 5 scope (batch 1)
 
 - Supabase sign in/sign out on mobile
