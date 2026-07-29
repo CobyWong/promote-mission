@@ -107,11 +107,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       privacyLink: "Privacy Policy",
       needBasic: "Please complete name, email, and password.",
       needInstagram: "Please provide your Instagram username.",
+      invalidInstagram: "This Instagram account was not found. Please check your username.",
       needAudience: "Please select gender, age group, and follower band.",
       needTerms: "Please agree to the service terms.",
       invalidReferral: "Referral code is invalid. Please check and try again.",
       selfReferral: "You cannot use your own referral code.",
       referralCheckFailed: "Unable to verify referral code right now. Please try again.",
+      instagramCheckFailed: "Unable to verify Instagram account right now. Please try again.",
       forgotPassword: "Forgot password?",
       forgotEmailRequired: "Please enter your email first.",
       forgotSent: "Password reset email sent. Please check your inbox.",
@@ -145,11 +147,13 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       privacyLink: "私隱政策",
       needBasic: "請先填妥名稱、電郵及密碼。",
       needInstagram: "請填寫 Instagram 用戶名稱。",
+      invalidInstagram: "找不到此 Instagram 帳號，請確認用戶名稱。",
       needAudience: "請選擇性別、年齡組別及追蹤數區間。",
       needTerms: "請先同意服務條款及私隱政策。",
       invalidReferral: "推薦碼無效，請確認後再試。",
       selfReferral: "不可使用自己的推薦碼。",
       referralCheckFailed: "暫時無法驗證推薦碼，請稍後再試。",
+      instagramCheckFailed: "暫時無法驗證 Instagram 帳號，請稍後再試。",
       forgotPassword: "忘記密碼？",
       forgotEmailRequired: "請先輸入電郵地址。",
       forgotSent: "已發送重設密碼電郵，請檢查收件箱。",
@@ -314,6 +318,22 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
             setError(t.invalidReferral);
             return;
           }
+        }
+
+        const igValidationResponse = await fetch(`/api/instagram/validate-handle?handle=${encodeURIComponent(normalizedHandle)}`, {
+          method: "GET",
+        });
+
+        const igValidationPayload = (await igValidationResponse.json().catch(() => null)) as { valid?: boolean; error?: string } | null;
+
+        if (!igValidationResponse.ok) {
+          setError(igValidationPayload?.error ?? t.instagramCheckFailed);
+          return;
+        }
+
+        if (!igValidationPayload?.valid) {
+          setError(t.invalidInstagram);
+          return;
         }
 
         const { data, error: signUpError } = await supabase.auth.signUp({
