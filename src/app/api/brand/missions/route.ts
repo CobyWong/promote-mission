@@ -64,6 +64,24 @@ function toIsoOrNull(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
+function parseNonNegativeInteger(value: unknown, fallback: number) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  const parsed = typeof value === "number"
+    ? value
+    : typeof value === "string"
+      ? Number(value.trim())
+      : Number.NaN;
+
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export async function GET(request: Request) {
   const isZh = isZhRequest(request);
   const access = await assertBrandAccess(request);
@@ -131,6 +149,20 @@ export async function POST(request: Request) {
   }
 
   const difficulty = normalizeDifficultyLabel(body.difficulty);
+  const displayOrder = parseNonNegativeInteger(body.display_order, 0);
+  const minParticipants = parseNonNegativeInteger(body.min_participants, 0);
+  const currentParticipants = parseNonNegativeInteger(body.current_participants, 0);
+
+  if (displayOrder === null || minParticipants === null || currentParticipants === null) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? "display_order、min_participants、current_participants 必須為非負整數。"
+          : "display_order, min_participants, and current_participants must be non-negative integers.",
+      },
+      { status: 400 },
+    );
+  }
 
   const payload: Database["public"]["Tables"]["missions"]["Insert"] = {
     slug: body.slug,
@@ -152,9 +184,9 @@ export async function POST(request: Request) {
     ends_at: toIsoOrNull(body.ends_at),
     archived_at: null,
     is_active: normalizeLifecycleStatus(body.status) === "active",
-    display_order: Number(body.display_order ?? 0),
-    min_participants: Number(body.min_participants ?? 0),
-    current_participants: Number(body.current_participants ?? 0),
+    display_order: displayOrder,
+    min_participants: minParticipants,
+    current_participants: currentParticipants,
   };
 
   if (!payload.ends_at) {

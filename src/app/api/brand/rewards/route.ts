@@ -31,6 +31,24 @@ async function assertBrandAccess(request: Request) {
   return { admin };
 }
 
+function parseNonNegativeInteger(value: unknown, fallback: number | null = null) {
+  if (value === undefined || value === null || value === "") {
+    return fallback;
+  }
+
+  const parsed = typeof value === "number"
+    ? value
+    : typeof value === "string"
+      ? Number(value.trim())
+      : Number.NaN;
+
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+    return null;
+  }
+
+  return parsed;
+}
+
 export async function GET(request: Request) {
   const isZh = isZhRequest(request);
   const access = await assertBrandAccess(request);
@@ -84,20 +102,48 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: isZh ? "請填寫必要欄位：slug、name。" : "slug/name are required." }, { status: 400 });
   }
 
+  const fallbackCost = parseNonNegativeInteger(body.cost, 0);
+  const displayOrder = parseNonNegativeInteger(body.display_order, 0);
+  const stock = body.stock === null ? null : parseNonNegativeInteger(body.stock, null);
+
+  if (fallbackCost === null || displayOrder === null || (body.stock !== undefined && stock === null)) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? "cost、display_order、stock 必須為非負整數。"
+          : "cost, display_order, and stock must be non-negative integers.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const computedCost = getRewardRequiredCoins({
+    name: body.name,
+    slug: body.slug,
+    fallbackCost,
+  }) ?? fallbackCost;
+
+  if (!Number.isFinite(computedCost) || !Number.isInteger(computedCost) || computedCost < 0) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? "reward cost 計算結果無效，請檢查輸入資料。"
+          : "Computed reward cost is invalid. Please verify input values.",
+      },
+      { status: 400 },
+    );
+  }
+
   const payload: Database["public"]["Tables"]["rewards_catalog"]["Insert"] = {
     slug: body.slug,
     name: body.name,
-    cost: getRewardRequiredCoins({
-      name: body.name,
-      slug: body.slug,
-      fallbackCost: Number(body.cost ?? 0),
-    }) ?? Number(body.cost ?? 0),
+    cost: computedCost,
     badge: typeof body.badge === "string" ? body.badge : null,
     description: String(body.description ?? ""),
     fulfillment_eta: String(body.fulfillment_eta ?? "1-3 個工作天"),
-    stock: typeof body.stock === "number" ? body.stock : null,
+    stock,
     is_active: body.is_active ?? true,
-    display_order: Number(body.display_order ?? 0),
+    display_order: displayOrder,
   };
 
   const { data, error } = await access.admin.from("rewards_catalog").insert(payload).select("slug").single();

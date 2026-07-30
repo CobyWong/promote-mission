@@ -18,6 +18,7 @@ export async function POST(request: Request) {
     rateLimited: isZh ? "兌換嘗試過於頻繁，請稍後再試。" : "Too many redemption attempts. Please try again shortly.",
     serviceUnavailable: isZh ? "兌換服務暫時不可用，請稍後再試。" : "Supabase is not configured.",
     authRequired: isZh ? "請先登入後再兌換獎賞。" : "Please log in before redeeming rewards.",
+    invalidPayload: isZh ? "請求內容格式無效。" : "Invalid payload.",
     rewardSlugRequired: isZh ? "請提供獎賞識別碼。" : "Reward slug is required.",
     levelRequired: (requiredLevel: number, userLevel: number) => isZh
       ? `此獎賞需達 Lv.${requiredLevel} 方可兌換；你目前等級為 Lv.${userLevel}/${MAX_CREATOR_LEVEL}。`
@@ -87,7 +88,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: t.authRequired }, { status: 401 });
   }
 
-  const body = (await request.json()) as { rewardSlug?: string };
+  const body = (await request.json().catch(() => null)) as { rewardSlug?: string } | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: t.invalidPayload }, { status: 400 });
+  }
+
   const rewardSlug = String(body.rewardSlug ?? "").trim();
 
   if (!rewardSlug) {

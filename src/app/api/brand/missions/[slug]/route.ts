@@ -80,6 +80,24 @@ function toIsoOrUndefined(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? undefined : parsed.toISOString();
 }
 
+function parseOptionalNonNegativeInteger(value: unknown) {
+  if (value === undefined) {
+    return { provided: false, value: undefined as number | undefined };
+  }
+
+  const parsed = typeof value === "number"
+    ? value
+    : typeof value === "string"
+      ? Number(value.trim())
+      : Number.NaN;
+
+  if (!Number.isFinite(parsed) || !Number.isInteger(parsed) || parsed < 0) {
+    return { provided: true, value: null as number | null };
+  }
+
+  return { provided: true, value: parsed };
+}
+
 export async function PATCH(request: Request, context: { params: Promise<{ slug: string }> }) {
   const isZh = isZhRequest(request);
   if (!isSameOriginMutationRequest(request)) {
@@ -97,6 +115,22 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
   if (!body || typeof body !== "object" || Array.isArray(body)) {
     return NextResponse.json({ error: isZh ? "請求內容格式無效。" : "Invalid payload." }, { status: 400 });
   }
+
+  const displayOrder = parseOptionalNonNegativeInteger(body.display_order);
+  const minParticipants = parseOptionalNonNegativeInteger(body.min_participants);
+  const currentParticipants = parseOptionalNonNegativeInteger(body.current_participants);
+
+  if (displayOrder.value === null || minParticipants.value === null || currentParticipants.value === null) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? "display_order、min_participants、current_participants 必須為非負整數。"
+          : "display_order, min_participants, and current_participants must be non-negative integers.",
+      },
+      { status: 400 },
+    );
+  }
+
   const normalizedDifficulty = normalizeDifficultyLabel(body.difficulty);
 
   const { data: existingMission } = await access.admin
@@ -134,9 +168,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
         : normalizeLifecycleStatus(body.status)
           ? false
           : undefined,
-    display_order: typeof body.display_order === "number" ? body.display_order : undefined,
-    min_participants: typeof body.min_participants === "number" ? body.min_participants : undefined,
-    current_participants: typeof body.current_participants === "number" ? body.current_participants : undefined,
+    display_order: displayOrder.value,
+    min_participants: minParticipants.value,
+    current_participants: currentParticipants.value,
   };
 
   const nextEndsAt = payload.ends_at === undefined ? existingMission.ends_at : payload.ends_at;

@@ -35,7 +35,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: isZh ? "管理員登入功能尚未完成設定。" : "Admin login is not configured." }, { status: 503 });
     }
 
-    const body = (await request.json()) as { email?: string; password?: string };
+    const body = (await request.json().catch(() => null)) as { email?: string; password?: string } | null;
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      await logApiEvent({
+        level: "warn",
+        route: "/api/admin/login",
+        event: "admin.login.invalid_payload",
+        request,
+        requestId,
+        message: "Invalid payload.",
+      });
+      return NextResponse.json({ error: isZh ? "請求內容格式無效。" : "Invalid payload." }, { status: 400 });
+    }
+
     const email = String(body.email ?? "");
     const password = String(body.password ?? "");
 

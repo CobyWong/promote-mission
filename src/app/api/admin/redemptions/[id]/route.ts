@@ -20,6 +20,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
     forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
     notFound: isZh ? "找不到兌換申請紀錄。" : "Redemption not found.",
+    invalidPayload: isZh ? "請求內容格式無效。" : "Invalid payload.",
     invalidStatus: isZh ? "兌換狀態無效。" : "Invalid redemption status.",
     updateFailed: isZh ? "更新兌換狀態失敗，請稍後再試。" : "Unable to update redemption. Please try again.",
   };
@@ -75,7 +76,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ error: t.notFound }, { status: 404 });
   }
 
-  const body = (await request.json()) as { status?: string; notes?: string };
+  const body = (await request.json().catch(() => null)) as { status?: string; notes?: string } | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: t.invalidPayload }, { status: 400 });
+  }
+
   const status = String(body.status ?? "Pending") as RewardRedemptionStatus;
   const notes = String(body.notes ?? "") || null;
 

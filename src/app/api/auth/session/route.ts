@@ -47,7 +47,19 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as { access_token?: string; refresh_token?: string };
+    const body = (await request.json().catch(() => null)) as { access_token?: string; refresh_token?: string } | null;
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      await logApiEvent({
+        level: "warn",
+        route: "/api/auth/session",
+        event: "auth.session.invalid_payload",
+        request,
+        requestId,
+        message: "Invalid payload.",
+      });
+      return NextResponse.json({ error: isZh ? "請求內容格式無效。" : "Invalid payload." }, { status: 400 });
+    }
+
     const accessToken = String(body.access_token ?? "");
     const refreshToken = String(body.refresh_token ?? "");
     const forwardedProto = request.headers.get("x-forwarded-proto") ?? "";

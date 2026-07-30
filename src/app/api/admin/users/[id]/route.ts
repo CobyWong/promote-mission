@@ -48,6 +48,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     csrfFailed: isZh ? "來源驗證失敗，請重新整理後再試。" : "Request origin verification failed.",
     serviceUnavailable: isZh ? "管理服務暫時不可用，請稍後再試。" : "Supabase admin mode is not configured.",
     forbidden: isZh ? "你目前沒有管理員權限。" : "Admin access required.",
+    invalidPayload: isZh ? "請求內容格式無效。" : "Invalid payload.",
     profileUpdateFailed: isZh ? "更新用戶資料失敗，請稍後再試。" : "Failed to update user profile.",
     authMetadataFailed: isZh ? "更新帳號資料失敗，請稍後再試。" : "Failed to update auth metadata.",
     deleteSelfForbidden: isZh ? "不可刪除目前登入的管理員帳號。" : "You cannot delete your own admin account.",
@@ -68,7 +69,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     return NextResponse.json({ error: status === 503 ? t.serviceUnavailable : t.forbidden }, { status });
   }
 
-  const body = (await request.json()) as ProfileUpdatePayload;
+  const body = (await request.json().catch(() => null)) as ProfileUpdatePayload | null;
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return NextResponse.json({ error: t.invalidPayload }, { status: 400 });
+  }
 
   const fullName = toNullableString(body.full_name);
   const instagramHandleRaw = toNullableString(body.instagram_handle);
