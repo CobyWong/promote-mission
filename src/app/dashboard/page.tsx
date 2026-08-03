@@ -95,11 +95,7 @@ export default async function DashboardPage() {
     return (
       <section className="section-shell py-12 sm:py-16">
         <div className="tactical-card mx-auto max-w-3xl p-8 text-center">
-          <p className="tactical-section-kicker">{t.profileCenter}</p>
           <h1 className="tactical-section-title">{t.unavailableTitle}</h1>
-          <p className="tactical-section-lead mx-auto">
-            {t.unavailableDesc}
-          </p>
         </div>
       </section>
     );
@@ -109,11 +105,7 @@ export default async function DashboardPage() {
     return (
       <section className="section-shell py-12 sm:py-16">
         <div className="tactical-card mx-auto max-w-3xl p-8 text-center">
-          <p className="tactical-section-kicker">{t.profileCenter}</p>
           <h1 className="tactical-section-title">{t.unauthTitle}</h1>
-          <p className="tactical-section-lead mx-auto">
-            {t.unauthDesc}
-          </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href="/login" className="tactical-btn-primary px-6 py-3">
               {t.goLogin}
@@ -131,11 +123,7 @@ export default async function DashboardPage() {
     <section className="section-shell py-12 sm:py-16">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="tactical-section-kicker">{t.profileCenter}</p>
           <h1 className="tactical-section-title">{t.title}</h1>
-          <p className="tactical-section-lead">
-            {t.subtitle}
-          </p>
         </div>
       </div>
 

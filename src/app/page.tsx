@@ -103,17 +103,9 @@ export default async function Home() {
           <div className="pointer-events-none absolute -left-16 -top-16 h-52 w-52 rounded-full bg-cyan-500/10 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -right-12 h-56 w-56 rounded-full bg-orange-400/15 blur-3xl" />
 
-          <span className="inline-flex rounded-full border border-cyan-500/35 bg-cyan-500/10 px-4 py-2 text-sm font-semibold text-cyan-700">
-            {t.badge}
-          </span>
-
-          <h1 className="mt-6 text-3xl font-semibold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
+          <h1 className="text-3xl font-semibold leading-tight text-slate-900 sm:text-5xl lg:text-6xl">
             {t.title}
           </h1>
-
-          <p className="mx-auto mt-6 max-w-3xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-            {t.desc}
-          </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link href="/missions" className="rounded-full bg-cyan-500 px-6 py-3 text-center font-semibold text-white transition hover:bg-cyan-600">

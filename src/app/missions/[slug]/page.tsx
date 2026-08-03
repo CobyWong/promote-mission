@@ -63,9 +63,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="glass-panel p-5 sm:p-8">
-          <p className="text-sm uppercase tracking-[0.3em] text-cyan-700">{mission.brand}</p>
-          <h1 className="mt-3 break-words text-3xl font-semibold text-slate-900 sm:text-4xl">{mission.title}</h1>
-          <p className="mt-5 text-base leading-7 text-slate-700 sm:mt-6 sm:text-lg sm:leading-8">{mission.description}</p>
+          <h1 className="break-words text-3xl font-semibold text-slate-900 sm:text-4xl">{mission.title}</h1>
 
           <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-700">
             {mission.tags.map((tag) => (

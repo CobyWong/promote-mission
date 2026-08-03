@@ -7,7 +7,6 @@ export default async function PrivacyPage() {
   return (
     <section className="section-shell py-10 sm:py-12">
       <div className="mx-auto max-w-4xl space-y-6">
-        <p className="tactical-section-kicker">{isEn ? "Legal" : "法律"}</p>
         <h1 className="tactical-section-title">{isEn ? "Privacy Policy" : "私隱政策"}</h1>
 
         <div className="glass-panel space-y-5 p-6 text-sm leading-7 text-slate-300 sm:p-8">

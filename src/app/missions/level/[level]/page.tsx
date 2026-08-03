@@ -43,13 +43,7 @@ export default async function MissionLevelPage({ params }: { params: Promise<{ l
     <section className="section-shell py-10 sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="tactical-section-kicker">{locale === "en" ? "Mission Zone" : "任務分區"}</p>
           <h1 className="tactical-section-title">{getSectionLabel(selectedLevel, locale)}</h1>
-          <p className="tactical-section-lead">
-            {locale === "en"
-              ? "Choose missions in this difficulty zone and start creating."
-              : "請選擇此難度分區任務並開始創作。"}
-          </p>
           {isLocked ? (
             <p className="mt-3 inline-flex rounded-full border border-amber-300/45 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-200">
               {locale === "en"

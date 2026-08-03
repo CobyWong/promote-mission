@@ -53,11 +53,7 @@ export default function ReferralLeaderboardPage() {
   return (
     <section className="section-shell py-12 sm:py-16">
       <div className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Referrals</p>
-        <h1 className="mt-3 text-3xl font-semibold text-white sm:text-4xl">Season Leaderboard</h1>
-        <p className="mt-4 text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
-          Top creators by rewarded referrals this season.
-        </p>
+        <h1 className="text-3xl font-semibold text-white sm:text-4xl">Season Leaderboard</h1>
       </div>
 
       <div className="glass-panel mt-10 p-6">

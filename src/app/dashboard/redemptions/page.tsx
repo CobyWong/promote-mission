@@ -62,7 +62,6 @@ export default async function DashboardRedemptionsPage() {
 
       <div className="tactical-card mt-6 p-6 sm:p-8">
         <h1 className="text-3xl font-semibold text-slate-100">{t.title}</h1>
-        <p className="mt-2 text-sm text-slate-300">{t.subtitle}</p>
 
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
           <p className="text-xs uppercase tracking-[0.14em] text-slate-400">{t.balance}</p>

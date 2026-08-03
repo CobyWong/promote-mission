@@ -26,9 +26,7 @@ export default async function BrandRewardsPage() {
   return (
     <section className="section-shell py-12 sm:py-16">
       <div className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">Brand Console</p>
-        <h1 className="mt-3 text-4xl font-semibold text-white">{t.title}</h1>
-        <p className="mt-4 text-lg leading-8 text-slate-300">{t.desc}</p>
+        <h1 className="text-4xl font-semibold text-white">{t.title}</h1>
       </div>
 
       <div className="mt-10">

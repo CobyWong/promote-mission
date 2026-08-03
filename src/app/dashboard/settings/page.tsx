@@ -46,7 +46,6 @@ export default async function DashboardSettingsPage() {
 
       <div className="tactical-card mt-6 p-6 sm:p-8">
         <h1 className="text-3xl font-semibold text-slate-100">{t.title}</h1>
-        <p className="mt-2 text-sm text-slate-300">{t.subtitle}</p>
 
         <div className="mt-6 border-t border-white/10 pt-5">
           <p className="text-sm font-semibold tracking-[0.08em] text-slate-300">{t.languageTitle}</p>

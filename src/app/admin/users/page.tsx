@@ -25,9 +25,7 @@ export default async function AdminUsersPage() {
   return (
     <section className="admin-mobile-ui section-shell py-10 sm:py-16">
       <div className="max-w-3xl">
-        <p className="tactical-section-kicker">Admin Users</p>
         <h1 className="tactical-section-title">{t.title}</h1>
-        <p className="tactical-section-lead">{t.desc}</p>
       </div>
 
       <div className="mt-10">

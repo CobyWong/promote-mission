@@ -36,9 +36,7 @@ export default async function LevelRewardsPage() {
       </Link>
 
       <div className="mt-5 max-w-4xl">
-        {t.kicker ? <p className="tactical-section-kicker">{t.kicker}</p> : null}
         <h1 className="tactical-section-title">{t.title}</h1>
-        {t.lead ? <p className="tactical-section-lead">{t.lead}</p> : null}
       </div>
 
       <div className="tactical-card mt-8 overflow-hidden p-0">

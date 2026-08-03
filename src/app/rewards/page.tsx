@@ -9,7 +9,6 @@ export default async function RewardsPage() {
   return (
     <section className="section-shell py-12 sm:py-16">
       <div className="max-w-3xl">
-        <p className="tactical-section-kicker">{locale === "en" ? "Rewards Store" : "獎賞商城"}</p>
         <h1 className="tactical-section-title">{locale === "en" ? "Creator Rewards Store" : "獎賞商城"}</h1>
       </div>
 

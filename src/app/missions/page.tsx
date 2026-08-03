@@ -94,13 +94,7 @@ export default async function MissionsPage() {
   return (
     <section className="section-shell py-10 sm:py-12">
       <div className="max-w-4xl">
-        <p className="tactical-section-kicker">{locale === "en" ? "Campaign Marketplace" : "任務市集"}</p>
         <h1 className="tactical-section-title">{locale === "en" ? "Mission Center" : "任務中心"}</h1>
-        <p className="mt-4 text-base text-slate-700 sm:text-lg">
-          {locale === "en"
-            ? "Browse available missions and join campaigns that fit your current level."
-            : "瀏覽可參與任務，按目前等級挑選最適合的活動。"}
-        </p>
       </div>
 
       <div className="mt-8 space-y-10">

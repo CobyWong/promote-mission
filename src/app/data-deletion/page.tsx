@@ -15,11 +15,6 @@ export default async function DataDeletionPage() {
         <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
           {isEn ? "Data Deletion Instructions" : "資料刪除指示"}
         </h1>
-        <p className="mt-4 text-slate-700">
-          {isEn
-            ? "You can request account and personal data deletion at any time."
-            : "你可隨時要求刪除帳戶及個人資料。"}
-        </p>
 
         <ol className="mt-6 list-decimal space-y-3 pl-5 text-slate-700">
           <li>
