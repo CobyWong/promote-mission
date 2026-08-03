@@ -116,6 +116,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       referralCheckFailed: "Unable to verify referral code right now. Please try again.",
       instagramCheckFailed: "Unable to verify Instagram account right now. Please try again.",
       instagramCheckSkipped: "Instagram verification is temporarily unavailable. We skipped this check so you can continue registration.",
+      instagramCheckNotConfirmed: "We could not confirm this Instagram username right now. You can continue and connect Instagram after registration.",
       forgotPassword: "Forgot password?",
       forgotEmailRequired: "Please enter your email first.",
       forgotSent: "Password reset email sent. Please check your inbox.",
@@ -157,6 +158,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       referralCheckFailed: "暫時無法驗證推薦碼，請稍後再試。",
       instagramCheckFailed: "暫時無法驗證 Instagram 帳號，請稍後再試。",
       instagramCheckSkipped: "Instagram 驗證服務暫時異常，已略過即時驗證，你可先完成註冊。",
+      instagramCheckNotConfirmed: "暫時未能確認此 Instagram 帳號，你可先完成註冊，稍後再連接 Instagram。",
       forgotPassword: "忘記密碼？",
       forgotEmailRequired: "請先輸入電郵地址。",
       forgotSent: "已發送重設密碼電郵，請檢查收件箱。",
@@ -393,8 +395,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
           if (!igValidationResponse.ok) {
             setNotice(t.instagramCheckSkipped);
           } else if (!igValidationPayload?.valid) {
-            setError(t.invalidInstagram);
-            return;
+            setNotice(t.instagramCheckNotConfirmed);
           }
         } catch {
           setNotice(t.instagramCheckSkipped);
