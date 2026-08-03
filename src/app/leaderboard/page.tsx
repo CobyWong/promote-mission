@@ -31,17 +31,9 @@ export default async function LeaderboardPage() {
   return (
     <section className="section-shell py-12 sm:py-16">
       <div className="max-w-3xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-cyan-300">
-          {locale === "en" ? "Rankings" : "排行榜"}
-        </p>
-        <h1 className="mt-3 text-4xl font-semibold text-slate-900">
+        <h1 className="text-4xl font-semibold text-slate-900">
           {locale === "en" ? "Creator Leaderboard" : "創作者排行榜"}
         </h1>
-        <p className="mt-4 text-lg leading-8 text-slate-700">
-          {locale === "en"
-            ? "Top creators ranked by total Likes this month. Complete missions to climb the ranks."
-            : "本月以總 Like 數排名創作者。完成任務即可提升排名，贏取額外獎勵。"}
-        </p>
       </div>
 
       {/* Monthly reward banner */}
