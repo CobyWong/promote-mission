@@ -67,6 +67,12 @@ type SubmissionQueueCachePayload = {
 
 type MobileSubmissionResponse = {
   id: string;
+  reusedPendingSubmission?: boolean;
+  sync?: {
+    synced: number;
+    autoSettled: number;
+  } | null;
+  syncError?: string | null;
 };
 
 type MobileUploadCreateSessionResponse = {
@@ -479,6 +485,13 @@ async function runQueuedUploadOnce() {
         },
       },
     );
+
+    await postJson<{ synced: number; autoSettled: number }>(
+      "/api/mobile/submissions/sync",
+      {},
+      token,
+      { retries: 0 },
+    ).catch(() => null);
 
     await updateItem((item) => ({
       ...item,

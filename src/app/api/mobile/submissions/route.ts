@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { isZhRequest } from "@/lib/api-locale";
+import { normalizeInstagramPermalink } from "@/lib/instagram";
+import { syncMissionOneSubmissionsForUser } from "@/lib/instagram-system-sync";
 import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { getCreatorExpFromReelInsights } from "@/lib/creator-exp";
@@ -64,6 +66,31 @@ function normalizeStatusFilter(raw: string | null) {
   }
 
   return null;
+}
+
+function getMobileSubmissionPipelineStatus(submission: Pick<Database["public"]["Tables"]["submissions"]["Row"], "status" | "reel_url" | "checklist">) {
+  const normalizedStatus = submission.status.toLowerCase();
+  if (normalizedStatus === "approved") {
+    return "approved";
+  }
+
+  if (normalizedStatus === "rejected") {
+    return "rejected";
+  }
+
+  if (submission.reel_url.startsWith("pending://awaiting-collaborator/")) {
+    return "awaiting_reel_url";
+  }
+
+  const checklist = submission.checklist && typeof submission.checklist === "object" && !Array.isArray(submission.checklist)
+    ? (submission.checklist as Record<string, unknown>)
+    : null;
+
+  if (checklist?.autoDetectedByInstagramSync === true) {
+    return "synced_pending_review";
+  }
+
+  return "awaiting_system_sync";
 }
 
 function buildTimeline(submission: Database["public"]["Tables"]["submissions"]["Row"]): TimelineEvent[] {
@@ -150,7 +177,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: isZh ? "分頁游標格式無效。" : "Invalid cursor." }, { status: 400 });
     }
 
-    const columns = "id, mission_slug, mission_title, mission_brand, reward_coins, status, submitted_at, reviewed_at, review_due_at, sla_breached_at, reel_url, caption_summary, notes, reviewed_by";
+    const columns = "id, mission_slug, mission_title, mission_brand, reward_coins, status, submitted_at, reviewed_at, review_due_at, sla_breached_at, reel_url, caption_summary, notes, reviewed_by, checklist";
 
     let query = includeTotal
       ? admin.from("submissions").select(columns, { count: "exact" })
@@ -200,6 +227,7 @@ export async function GET(request: Request) {
       submittedAt: submission.submitted_at,
       reviewedAt: submission.reviewed_at,
       reviewDueAt: submission.review_due_at,
+      pipelineStatus: getMobileSubmissionPipelineStatus(submission),
       timeline: buildTimeline(submission as Database["public"]["Tables"]["submissions"]["Row"]),
     }));
 
@@ -398,23 +426,6 @@ export async function POST(request: Request) {
       "full_name" | "instagram_handle"
     > | null;
 
-    const submissionPayload: Database["public"]["Tables"]["submissions"]["Insert"] = {
-      user_id: user.id,
-      mission_slug: mission.slug,
-      mission_title: mission.title,
-      mission_brand: mission.brand,
-      reward_coins: mission.points,
-      reel_url: reelUrl,
-      caption_summary: captionSummary,
-      notes,
-      checklist: checks,
-      screenshot_count: 0,
-      screenshot_paths: [],
-      creator_name: profileRow?.full_name ?? user.email ?? "Creator",
-      creator_handle: profileRow?.instagram_handle ?? null,
-      status: "Pending",
-    };
-
     const operation = await beginIdempotentOperation({
       namespace: "mobile-submission-create",
       actorId: user.id,
@@ -462,21 +473,137 @@ export async function POST(request: Request) {
       );
     }
 
-    const { data, error } = await admin
+    const { data: existingSubmission } = await admin
       .from("submissions")
-      .insert(submissionPayload)
-      .select("id")
-      .single();
+      .select("id, status, reel_url, checklist")
+      .eq("user_id", user.id)
+      .eq("mission_slug", mission.slug)
+      .in("status", ["Pending", "Approved"])
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (error) {
-      const errorBody = { error: isZh ? "建立投稿失敗，請稍後再試。" : error.message };
+    if (existingSubmission?.status === "Approved") {
+      const errorBody = {
+        error: isZh
+          ? "此任務已完成審核通過，無需再次提交。"
+          : "This mission is already approved. No additional submission is required.",
+      };
       await finalizeIdempotentOperation({
         storageKey: operation.storageKey,
         ttlMs: operation.ttlMs,
-        status: 400,
+        status: 409,
         body: errorBody,
       });
-      return NextResponse.json(errorBody, { status: 400 });
+      return NextResponse.json(errorBody, { status: 409 });
+    }
+
+    let submissionId = "";
+    let reusedPendingSubmission = false;
+
+    if (existingSubmission?.status === "Pending") {
+      const isPlaceholder = existingSubmission.reel_url.startsWith("pending://awaiting-collaborator/");
+      const existingPermalink = isPlaceholder ? null : normalizeInstagramPermalink(existingSubmission.reel_url);
+      const requestedPermalink = normalizeInstagramPermalink(reelUrl);
+
+      if (existingPermalink && existingPermalink !== requestedPermalink) {
+        const errorBody = {
+          error: isZh
+            ? "你已有一筆待審核提交。請先等待審核結果，或使用同一條 Reel 連結重試。"
+            : "You already have a pending submission for this mission. Wait for review, or retry with the same Reel URL.",
+        };
+        await finalizeIdempotentOperation({
+          storageKey: operation.storageKey,
+          ttlMs: operation.ttlMs,
+          status: 409,
+          body: errorBody,
+        });
+        return NextResponse.json(errorBody, { status: 409 });
+      }
+
+      const baseChecklist = existingSubmission.checklist
+        && typeof existingSubmission.checklist === "object"
+        && !Array.isArray(existingSubmission.checklist)
+        ? (existingSubmission.checklist as Record<string, unknown>)
+        : {};
+
+      const { data: updatedSubmission, error: updateError } = await admin
+        .from("submissions")
+        .update({
+          mission_title: mission.title,
+          mission_brand: mission.brand,
+          reward_coins: mission.points,
+          reel_url: reelUrl,
+          caption_summary: captionSummary,
+          notes,
+          checklist: {
+            ...baseChecklist,
+            ...checks,
+            addedCollaborator: true,
+            awaitingCollaborator: false,
+          },
+          creator_name: profileRow?.full_name ?? user.email ?? "Creator",
+          creator_handle: profileRow?.instagram_handle ?? null,
+        })
+        .eq("id", existingSubmission.id)
+        .eq("user_id", user.id)
+        .eq("status", "Pending")
+        .select("id")
+        .single();
+
+      if (updateError || !updatedSubmission?.id) {
+        const errorBody = { error: isZh ? "更新投稿失敗，請稍後再試。" : (updateError?.message ?? "Unable to update submission.") };
+        await finalizeIdempotentOperation({
+          storageKey: operation.storageKey,
+          ttlMs: operation.ttlMs,
+          status: 400,
+          body: errorBody,
+        });
+        return NextResponse.json(errorBody, { status: 400 });
+      }
+
+      submissionId = updatedSubmission.id;
+      reusedPendingSubmission = true;
+    } else {
+      const submissionPayload: Database["public"]["Tables"]["submissions"]["Insert"] = {
+        user_id: user.id,
+        mission_slug: mission.slug,
+        mission_title: mission.title,
+        mission_brand: mission.brand,
+        reward_coins: mission.points,
+        reel_url: reelUrl,
+        caption_summary: captionSummary,
+        notes,
+        checklist: {
+          ...checks,
+          addedCollaborator: true,
+          awaitingCollaborator: false,
+        },
+        screenshot_count: 0,
+        screenshot_paths: [],
+        creator_name: profileRow?.full_name ?? user.email ?? "Creator",
+        creator_handle: profileRow?.instagram_handle ?? null,
+        status: "Pending",
+      };
+
+      const { data, error } = await admin
+        .from("submissions")
+        .insert(submissionPayload)
+        .select("id")
+        .single();
+
+      if (error || !data?.id) {
+        const errorBody = { error: isZh ? "建立投稿失敗，請稍後再試。" : (error?.message ?? "Unable to create submission.") };
+        await finalizeIdempotentOperation({
+          storageKey: operation.storageKey,
+          ttlMs: operation.ttlMs,
+          status: 400,
+          body: errorBody,
+        });
+        return NextResponse.json(errorBody, { status: 400 });
+      }
+
+      submissionId = data.id;
     }
 
     await logApiEvent({
@@ -504,15 +631,44 @@ export async function POST(request: Request) {
       },
     });
 
-    const successBody = { id: (data as { id: string }).id };
+    let sync: Awaited<ReturnType<typeof syncMissionOneSubmissionsForUser>> | null = null;
+    let syncError: string | null = null;
+
+    try {
+      sync = await syncMissionOneSubmissionsForUser({
+        admin,
+        userId: user.id,
+        locale: isZh ? "zh-HK" : "en",
+      });
+    } catch (error) {
+      syncError = error instanceof Error ? error.message : "sync_failed";
+    }
+
+    const successBody = {
+      id: submissionId,
+      reusedPendingSubmission,
+      sync: sync
+        ? {
+          source: sync.source,
+          synced: sync.insightsUpserted,
+          autoSettled: sync.autoSettled,
+          matchedSubmissions: sync.matchedSubmissions,
+          pendingNeedsManualSubmission: sync.pendingNeedsManualSubmission,
+          pendingMissingRequiredTag: sync.pendingMissingRequiredTag,
+        }
+        : null,
+      syncError,
+    };
+
+    const status = reusedPendingSubmission ? 200 : 201;
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
       ttlMs: operation.ttlMs,
-      status: 201,
+      status,
       body: successBody,
     });
 
-    return NextResponse.json(successBody, { status: 201 });
+    return NextResponse.json(successBody, { status });
   } catch (error) {
     await reportApiError({
       route: "/api/mobile/submissions",

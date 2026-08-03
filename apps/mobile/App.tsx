@@ -75,6 +75,12 @@ type MobileMeResponse = {
 
 type MobileSubmissionResponse = {
   id: string;
+  reusedPendingSubmission?: boolean;
+  sync?: {
+    synced: number;
+    autoSettled: number;
+  } | null;
+  syncError?: string | null;
 };
 
 type MobileSubmissionTimelineEvent = {
@@ -1182,6 +1188,13 @@ function AppContent() {
           },
         },
       );
+
+      await postJson<{ synced: number; autoSettled: number }>(
+        "/api/mobile/submissions/sync",
+        {},
+        token,
+        { retries: 0 },
+      ).catch(() => null);
 
       setSubmissionQueue((current) => current.map((queueItem) => {
         if (queueItem.localId !== item.localId) {
