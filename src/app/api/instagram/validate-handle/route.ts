@@ -53,7 +53,14 @@ export async function GET(request: Request) {
     }
 
     const discoveredUsername = extractUsernameFromHtml(html);
-    const valid = Boolean(discoveredUsername) && discoveredUsername === handle;
+    if (!discoveredUsername) {
+      return NextResponse.json(
+        { valid: false, error: isZh ? "暫時無法驗證 Instagram 帳號，請稍後再試。" : "Unable to verify Instagram account right now. Please try again." },
+        { status: 503 },
+      );
+    }
+
+    const valid = discoveredUsername === handle;
 
     return NextResponse.json({ valid });
   } catch {

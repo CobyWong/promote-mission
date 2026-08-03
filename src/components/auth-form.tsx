@@ -167,14 +167,73 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
 
   const registerStepLabels = [t.stepBasic, t.stepAudience, t.stepFinal];
 
+  const disallowedInstagramPathSegments = new Set([
+    "p",
+    "reel",
+    "reels",
+    "stories",
+    "explore",
+    "accounts",
+    "developer",
+  ]);
+
+  function sanitizeHandleCandidate(value: string) {
+    return value.trim().replace(/^@/, "").replace(/\/+$/, "");
+  }
+
+  function extractHandleFromInstagramUrl(value: string) {
+    const withProtocol = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+
+    try {
+      const parsed = new URL(withProtocol);
+      const host = parsed.hostname.replace(/^www\./i, "").toLowerCase();
+
+      if (host !== "instagram.com") {
+        return "";
+      }
+
+      const firstPathSegment = parsed.pathname.split("/").filter(Boolean)[0] ?? "";
+      if (!firstPathSegment) {
+        return "";
+      }
+
+      if (disallowedInstagramPathSegments.has(firstPathSegment.toLowerCase())) {
+        return "";
+      }
+
+      return firstPathSegment;
+    } catch {
+      return "";
+    }
+  }
+
   function getHandleFromInput(value: string) {
     const trimmed = value.trim();
     if (!trimmed) {
       return "";
     }
 
-    const match = trimmed.match(/(?:instagram\.com\/)?@?([a-zA-Z0-9._]+)/);
-    return (match?.[1] ?? trimmed).replace(/^@/, "");
+    const fromUrl = extractHandleFromInstagramUrl(trimmed);
+    if (fromUrl && /^[a-zA-Z0-9._]{1,30}$/.test(fromUrl)) {
+      return sanitizeHandleCandidate(fromUrl);
+    }
+
+    const embeddedUrlMatch = trimmed.match(/instagram\.com\/([a-zA-Z0-9._]{1,30})/i);
+    if (embeddedUrlMatch?.[1]) {
+      return sanitizeHandleCandidate(embeddedUrlMatch[1]);
+    }
+
+    const atHandleMatch = trimmed.match(/@([a-zA-Z0-9._]{1,30})/);
+    if (atHandleMatch?.[1]) {
+      return sanitizeHandleCandidate(atHandleMatch[1]);
+    }
+
+    const directCandidate = sanitizeHandleCandidate(trimmed);
+    if (/^[a-zA-Z0-9._]{1,30}$/.test(directCandidate)) {
+      return directCandidate;
+    }
+
+    return "";
   }
 
   function validateCurrentRegisterStep() {
