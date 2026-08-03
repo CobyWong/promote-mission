@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 
 import { isZhRequest } from "@/lib/api-locale";
-import { assertInstagramAccountIsPublic, InstagramPrivateAccountError } from "@/lib/instagram";
 import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { getCreatorLevelFromTotalExp, getMissionRequiredLevel, getMissionRewardCoins, MAX_CREATOR_LEVEL } from "@/lib/mission-rules";
 import { getCreatorExpFromReelInsights } from "@/lib/creator-exp";
@@ -324,40 +323,6 @@ export async function POST(request: Request) {
 
     if (!slug) {
       return NextResponse.json({ error: isZh ? "請提供任務識別碼。" : "Mission slug is required." }, { status: 400 });
-    }
-
-    const { data: connectionData, error: connectionError } = await admin
-      .from("instagram_connections")
-      .select("instagram_user_id, access_token, status")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (connectionError || !connectionData || connectionData.status !== "active") {
-      return NextResponse.json(
-        {
-          error: isZh
-            ? "請先連接 Instagram 公開帳號後再提交任務。"
-            : "Please connect an active public Instagram account before creating submissions.",
-        },
-        { status: 400 },
-      );
-    }
-
-    try {
-      await assertInstagramAccountIsPublic(connectionData.instagram_user_id, connectionData.access_token);
-    } catch (error) {
-      if (error instanceof InstagramPrivateAccountError) {
-        return NextResponse.json(
-          {
-            error: isZh
-              ? "Instagram 帳號目前為私人帳號。請先切換為公開帳號，才可追蹤 Reels 的播放與讚好數據。"
-              : "Your Instagram account is private. Please switch it to public to track reel views/likes.",
-          },
-          { status: 409 },
-        );
-      }
-
-      throw error;
     }
 
     const { data: missionRow } = await admin

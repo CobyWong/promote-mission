@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
-import { assertInstagramAccountIsPublic, InstagramPrivateAccountError } from "@/lib/instagram";
 import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { isMissionOpenForApplications } from "@/lib/mission-lifecycle";
 import { getMissionRewardCoins } from "@/lib/mission-rules";
@@ -106,17 +105,21 @@ export async function POST(
     return NextResponse.json(errorBody, { status: 503 });
   }
 
-  const { data: connectionData, error: connectionError } = await admin
-    .from("instagram_connections")
-    .select("instagram_user_id, access_token, status")
-    .eq("user_id", user.id)
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("full_name, instagram_handle")
+    .eq("id", user.id)
     .maybeSingle();
 
-  if (connectionError || !connectionData || connectionData.status !== "active") {
+  const normalizedInstagramHandle = String(profile?.instagram_handle ?? "")
+    .trim()
+    .replace(/^@/, "");
+
+  if (!/^[a-zA-Z0-9._]{1,30}$/.test(normalizedInstagramHandle)) {
     const errorBody = {
       error: isZh
-        ? "請先連接 Instagram 公開帳號後再接受任務。"
-        : "Please connect an active public Instagram account before accepting missions.",
+        ? "請先在個人資料填寫有效的公開 Instagram 帳號，再接受任務。"
+        : "Please set a valid public Instagram username in your profile before accepting missions.",
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
@@ -125,27 +128,6 @@ export async function POST(
       body: errorBody,
     });
     return NextResponse.json(errorBody, { status: 400 });
-  }
-
-  try {
-    await assertInstagramAccountIsPublic(connectionData.instagram_user_id, connectionData.access_token);
-  } catch (error) {
-    if (error instanceof InstagramPrivateAccountError) {
-      const errorBody = {
-        error: isZh
-          ? "Instagram 帳號目前為私人帳號。請先切換為公開帳號，才可接受任務與追蹤 Reels 表現。"
-          : "Your Instagram account is private. Switch it to public before accepting missions and tracking reel metrics.",
-      };
-      await finalizeIdempotentOperation({
-        storageKey: operation.storageKey,
-        ttlMs: operation.ttlMs,
-        status: 409,
-        body: errorBody,
-      });
-      return NextResponse.json(errorBody, { status: 409 });
-    }
-
-    throw error;
   }
 
   const { data: mission } = await admin
@@ -236,8 +218,8 @@ export async function POST(
         awaitingCollaborator: true,
         requiredCaptionTag,
         message: isZh
-        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${captionTagHint}，完成 Instagram 同步後系統會自動完成提交。`
-        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${captionTagHint} and run Instagram sync. Submission will be completed automatically.`,
+        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${captionTagHint}；若已連接 Instagram 可用同步自動完成提交，否則請於 App 手動提交 Reel 連結。`
+        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${captionTagHint}. If Instagram is connected, sync can auto-complete submission; otherwise submit your Reel URL manually in the app.`,
       };
       await finalizeIdempotentOperation({
         storageKey: operation.storageKey,
@@ -375,8 +357,8 @@ export async function POST(
         },
         screenshot_count: 0,
         screenshot_paths: [],
-        creator_name: user.email ?? "Creator",
-        creator_handle: null,
+        creator_name: profile?.full_name ?? user.email ?? "Creator",
+        creator_handle: profile?.instagram_handle ?? null,
         status: "Pending",
       })
       .select("id")
@@ -439,8 +421,8 @@ export async function POST(
       awaitingCollaborator: true,
       requiredCaptionTag,
       message: isZh
-        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${requiredCaptionTag ? `，並在 Caption 加上 ${requiredCaptionTag}` : ""}，完成 Instagram 同步後系統會自動完成提交。`
-        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${requiredCaptionTag ? ` and include ${requiredCaptionTag} in the caption` : ""}, then run Instagram sync. Submission will be completed automatically.`,
+        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${requiredCaptionTag ? `，並在 Caption 加上 ${requiredCaptionTag}` : ""}；若已連接 Instagram 可用同步自動完成提交，否則請於 App 手動提交 Reel 連結。`
+        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${requiredCaptionTag ? ` and include ${requiredCaptionTag} in the caption` : ""}. If Instagram is connected, sync can auto-complete submission; otherwise submit your Reel URL manually in the app.`,
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
@@ -451,12 +433,6 @@ export async function POST(
 
     return NextResponse.json(successBody);
   }
-
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("full_name, instagram_handle")
-    .eq("id", user.id)
-    .maybeSingle();
 
   const { data: submissionCreated, error: submissionError } = await admin
     .from("submissions")

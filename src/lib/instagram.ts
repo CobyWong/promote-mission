@@ -43,6 +43,17 @@ export const instagramScopes = [
   "instagram_manage_insights",
 ];
 
+type FacebookPageInstagramBinding = {
+  id: string;
+  username?: string;
+};
+
+type FacebookPageWithInstagram = {
+  name?: string;
+  instagram_business_account?: FacebookPageInstagramBinding;
+  connected_instagram_account?: FacebookPageInstagramBinding;
+};
+
 export function getMissingInstagramConfig() {
   const missing: string[] = [];
 
@@ -142,27 +153,31 @@ export async function exchangeCodeForLongLivedToken(code: string) {
 
 export async function fetchInstagramBusinessAccount(accessToken: string) {
   const params = new URLSearchParams({
-    fields: "name,instagram_business_account{id,username}",
+    // Some pages expose instagram_business_account while others expose connected_instagram_account.
+    fields: "name,instagram_business_account{id,username},connected_instagram_account{id,username}",
     access_token: accessToken,
   });
 
   const payload = await graphFetch<{
-    data?: Array<{
-      name?: string;
-      instagram_business_account?: { id: string; username?: string };
-    }>;
+    data?: FacebookPageWithInstagram[];
   }>(`${graphBaseUrl}/me/accounts?${params.toString()}`);
 
-  const connected = (payload.data ?? []).find((item) => item.instagram_business_account?.id);
+  const connected = (payload.data ?? []).find(
+    (item) => item.instagram_business_account?.id || item.connected_instagram_account?.id,
+  );
 
-  if (!connected?.instagram_business_account?.id) {
-    throw new Error("No Instagram Professional account found. Please link your Instagram account to a Facebook Page.");
+  const instagramAccount = connected?.instagram_business_account ?? connected?.connected_instagram_account;
+
+  if (!instagramAccount?.id) {
+    throw new Error(
+      "No Instagram Professional account found for API sync. To use auto sync/insights, switch Instagram to Professional and link it to a Facebook Page.",
+    );
   }
 
   return {
-    instagramUserId: connected.instagram_business_account.id,
-    instagramUsername: connected.instagram_business_account.username ?? null,
-    facebookPageName: connected.name ?? null,
+    instagramUserId: instagramAccount.id,
+    instagramUsername: instagramAccount.username ?? null,
+    facebookPageName: connected?.name ?? null,
   };
 }
 

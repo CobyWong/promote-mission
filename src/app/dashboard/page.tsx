@@ -22,7 +22,38 @@ function MenuRow({ href, label, value }: MenuRowProps) {
   );
 }
 
-export default async function DashboardPage() {
+type DashboardSearchParams = {
+  ig?: string;
+  ig_message?: string;
+};
+
+function normalizeInstagramErrorMessage(raw: string, locale: "en" | "zh-HK") {
+  const value = raw.trim();
+  if (!value) {
+    return "";
+  }
+
+  const lower = value.toLowerCase();
+
+  if (lower.includes("no instagram professional account found")) {
+    return locale === "en"
+      ? "Instagram API sync setup failed: no Professional account detected. You can continue with your personal public Instagram account, or switch to Professional + link a Facebook Page if you need automatic sync/insights."
+      : "Instagram API 同步設定失敗：未偵測到專業帳號。你仍可先使用個人公開 Instagram 帳號；若要自動同步/洞察資料，請改用專業帳號並連結 Facebook 專頁。";
+  }
+
+  if (lower.includes("redirect_uri")) {
+    return locale === "en"
+      ? "Instagram connection failed: redirect URI mismatch in Meta app settings."
+      : "Instagram 連接失敗：Meta 應用程式的 redirect URI 設定不一致。";
+  }
+
+  return value;
+}
+
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<DashboardSearchParams> }) {
+  const resolvedSearchParams = await searchParams;
+  const igStatus = (resolvedSearchParams.ig ?? "").toLowerCase();
+  const igMessageRaw = resolvedSearchParams.ig_message ?? "";
   const locale = await getCurrentLocale();
   const t = locale === "en"
     ? {
@@ -53,6 +84,12 @@ export default async function DashboardPage() {
       unavailableDesc: "Dashboard data is unavailable until backend services are configured.",
       profileCenter: "Profile Center",
       userId: "User ID",
+      igConnected: "Instagram connected successfully.",
+      igDenied: "Instagram connection was cancelled.",
+      igStateMismatch: "Instagram verification expired. Please try connecting again.",
+      igNotConfigured: "Instagram integration is not fully configured by the admin.",
+      igFailed: "Instagram connection failed. Please review the message below and retry.",
+      igReconnect: "Connect Instagram (optional)",
     }
     : {
       title: "我的檔案",
@@ -84,12 +121,37 @@ export default async function DashboardPage() {
       userId: "用戶編號",
       unavailableTitle: "服務尚未完成設定",
       unavailableDesc: "後端服務未完成設定前，儀表板資料暫時不可用。",
+      igConnected: "Instagram 已成功連接。",
+      igDenied: "你已取消 Instagram 連接授權。",
+      igStateMismatch: "Instagram 驗證已逾時，請重新連接。",
+      igNotConfigured: "Instagram 整合尚未完成設定。",
+      igFailed: "Instagram 連接失敗，請查看以下訊息並重試。",
+        igReconnect: "連接 Instagram（選填）",
     };
 
   const dashboard = await getDashboardData();
   const supportEmail = getSupportEmail();
   const supportWhatsappUrl = getSupportWhatsappUrl();
   const avatarInitial = dashboard.profile?.name?.trim().slice(0, 1).toUpperCase() ?? "C";
+  const normalizedIgMessage = normalizeInstagramErrorMessage(igMessageRaw, locale);
+
+  const igStatusText = igStatus === "connected"
+    ? t.igConnected
+    : igStatus === "denied"
+      ? t.igDenied
+      : igStatus === "state-mismatch"
+        ? t.igStateMismatch
+        : igStatus === "not-configured"
+          ? t.igNotConfigured
+          : igStatus === "failed"
+            ? t.igFailed
+            : "";
+
+  const igStatusTone = igStatus === "connected"
+    ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
+    : igStatus
+      ? "border-amber-400/40 bg-amber-500/10 text-amber-100"
+      : "";
 
   if (dashboard.mode === "unavailable") {
     return (
@@ -126,6 +188,20 @@ export default async function DashboardPage() {
           <h1 className="tactical-section-title">{t.title}</h1>
         </div>
       </div>
+
+      {igStatusText ? (
+        <div className={`mt-6 rounded-2xl border px-4 py-3 text-sm ${igStatusTone}`}>
+          <p>{igStatusText}</p>
+          {normalizedIgMessage ? <p className="mt-1 text-xs opacity-90">{normalizedIgMessage}</p> : null}
+          {igStatus !== "connected" ? (
+            <div className="mt-3">
+              <Link href="/api/instagram/connect?next=/dashboard" className="inline-flex rounded-full border border-current px-4 py-1.5 text-xs font-semibold transition hover:opacity-90">
+                {t.igReconnect}
+              </Link>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <Link href="/dashboard/profile?edit=1" className="tactical-card mt-10 block p-6 transition hover:bg-white/5 sm:p-8">
         <div className="flex items-center justify-between gap-3">
