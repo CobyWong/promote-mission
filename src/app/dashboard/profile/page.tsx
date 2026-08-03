@@ -102,9 +102,9 @@ export default async function DashboardProfilePage({ searchParams }: { searchPar
             <p className="text-sm text-slate-400">{t.level}</p>
             <p className="text-lg font-semibold text-cyan-200">Lv.{levelProgress.level}/{MAX_CREATOR_LEVEL}</p>
           </div>
-          <div className="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-800/80">
+          <div className="mt-3 h-3 w-full overflow-hidden rounded-full border border-slate-200 bg-slate-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-sky-300 to-emerald-300 transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500 transition-all"
               style={{ width: `${levelProgress.progressPercent}%` }}
             />
           </div>
