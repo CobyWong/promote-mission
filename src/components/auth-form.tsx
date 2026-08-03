@@ -61,6 +61,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [forgotMessage, setForgotMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -114,6 +115,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       selfReferral: "You cannot use your own referral code.",
       referralCheckFailed: "Unable to verify referral code right now. Please try again.",
       instagramCheckFailed: "Unable to verify Instagram account right now. Please try again.",
+      instagramCheckSkipped: "Instagram verification is temporarily unavailable. We skipped this check so you can continue registration.",
       forgotPassword: "Forgot password?",
       forgotEmailRequired: "Please enter your email first.",
       forgotSent: "Password reset email sent. Please check your inbox.",
@@ -154,6 +156,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
       selfReferral: "不可使用自己的推薦碼。",
       referralCheckFailed: "暫時無法驗證推薦碼，請稍後再試。",
       instagramCheckFailed: "暫時無法驗證 Instagram 帳號，請稍後再試。",
+      instagramCheckSkipped: "Instagram 驗證服務暫時異常，已略過即時驗證，你可先完成註冊。",
       forgotPassword: "忘記密碼？",
       forgotEmailRequired: "請先輸入電郵地址。",
       forgotSent: "已發送重設密碼電郵，請檢查收件箱。",
@@ -271,6 +274,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
+    setNotice(null);
 
     const supabase = getSupabaseBrowserClient();
 
@@ -320,20 +324,21 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
           }
         }
 
-        const igValidationResponse = await fetch(`/api/instagram/validate-handle?handle=${encodeURIComponent(normalizedHandle)}`, {
-          method: "GET",
-        });
+        try {
+          const igValidationResponse = await fetch(`/api/instagram/validate-handle?handle=${encodeURIComponent(normalizedHandle)}`, {
+            method: "GET",
+          });
 
-        const igValidationPayload = (await igValidationResponse.json().catch(() => null)) as { valid?: boolean; error?: string } | null;
+          const igValidationPayload = (await igValidationResponse.json().catch(() => null)) as { valid?: boolean; error?: string } | null;
 
-        if (!igValidationResponse.ok) {
-          setError(igValidationPayload?.error ?? t.instagramCheckFailed);
-          return;
-        }
-
-        if (!igValidationPayload?.valid) {
-          setError(t.invalidInstagram);
-          return;
+          if (!igValidationResponse.ok) {
+            setNotice(t.instagramCheckSkipped);
+          } else if (!igValidationPayload?.valid) {
+            setError(t.invalidInstagram);
+            return;
+          }
+        } catch {
+          setNotice(t.instagramCheckSkipped);
         }
 
         const { data, error: signUpError } = await supabase.auth.signUp({
@@ -638,6 +643,7 @@ export function AuthForm({ mode, locale = "zh-HK" }: AuthFormProps) {
                   ) : null}
 
                   {error ? <p className="text-sm text-rose-600">{error}</p> : null}
+                  {notice ? <p className="text-sm text-amber-700">{notice}</p> : null}
                   {showTermsConsentError ? <p className="text-sm text-rose-600">{t.needTerms}</p> : null}
                 </div>
 
