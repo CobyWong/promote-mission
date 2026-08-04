@@ -9,6 +9,7 @@ const rateLimitSalt = process.env.RATE_LIMIT_SALT;
 const upstashRedisRestUrl = process.env.UPSTASH_REDIS_REST_URL;
 const upstashRedisRestToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 const cleanupCronToken = process.env.CLEANUP_CRON_TOKEN;
+const missionOneSyncCronToken = process.env.MISSIONONE_SYNC_CRON_TOKEN;
 
 export function hasSupabaseConfig() {
   return Boolean(supabaseUrl && supabaseAnonKey);
@@ -105,4 +106,12 @@ export function hasCleanupCronToken() {
 
 export function getCleanupCronToken() {
   return cleanupCronToken?.trim() ?? "";
+}
+
+export function hasMissionOneSyncCronToken() {
+  return Boolean(missionOneSyncCronToken?.trim());
+}
+
+export function getMissionOneSyncCronToken() {
+  return missionOneSyncCronToken?.trim() ?? "";
 }

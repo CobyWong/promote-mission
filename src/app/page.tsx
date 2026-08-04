@@ -16,7 +16,7 @@ export default async function Home() {
     ? {
       badge: "Creator mission platform",
       title: "Mission One helps creators earn rewards by completing brand content tasks.",
-      desc: "Creators accept missions, publish Instagram Reels with @missionone_hk collaborator, sync Instagram, and redeem rewards after approval.",
+      desc: "Creators accept missions, publish Instagram Reels with @missionone_hk collaborator, include mission hashtags, and get auto-reviewed from missionone_hk sync.",
       primaryCta: "Browse Missions",
       secondaryCta: "Get Support",
       overviewTitle: "What this website does",
@@ -27,7 +27,7 @@ export default async function Home() {
         },
         {
           title: "Sync-based review",
-          desc: "Each submission is auto-created from synced Instagram collaborator reels for consistent reward review.",
+          desc: "MissionOne syncs missionone_hk reels, classifies by mission hashtag, and updates view/like metrics automatically.",
         },
         {
           title: "Reward redemption",
@@ -37,7 +37,7 @@ export default async function Home() {
       flowTitle: "How it works",
       flowSteps: [
         "Accept a mission that matches your niche.",
-        "Publish content, add @missionone_hk as collaborator, and sync Instagram.",
+        "Publish content, add @missionone_hk as collaborator, and include the mission hashtag.",
         "After approval, receive coins and redeem rewards.",
       ],
       benefitsTitle: "Built for both sides",
@@ -57,7 +57,7 @@ export default async function Home() {
     : {
       badge: "創作者任務平台",
       title: "Mission One 為創作者提供品牌內容任務媒合、審核與獎勵兌換的一站式平台。",
-      desc: "創作者可於本平台接受任務、發佈 Instagram Reels 並將 @missionone_hk 設為協作者，完成同步後進入審核。",
+      desc: "創作者可於本平台接受任務、發佈 Instagram Reels 並將 @missionone_hk 設為協作者，再用任務標籤由系統自動同步審核。",
       primaryCta: "瀏覽任務",
       secondaryCta: "聯絡支援",
       overviewTitle: "平台核心功能",
@@ -68,7 +68,7 @@ export default async function Home() {
         },
         {
           title: "同步審核",
-          desc: "每次提交由 Instagram 同步資料自動建立，確保流程透明且派發標準一致。",
+          desc: "系統會同步 missionone_hk Reels，按任務標籤自動分類並更新觀看與讚好數據。",
         },
         {
           title: "獎勵兌換",
@@ -78,7 +78,7 @@ export default async function Home() {
       flowTitle: "流程簡介",
       flowSteps: [
         "選擇符合內容定位之任務，並確認任務要求與交付規範。",
-        "發佈 Instagram Reels 後，將 @missionone_hk 設為協作者並完成 Instagram 同步。",
+        "發佈 Instagram Reels 後，將 @missionone_hk 設為協作者並加上任務標籤。",
         "經審核通過後獲得 Coins，並可進一步兌換平台獎賞。",
       ],
       benefitsTitle: "兼顧雙方營運需求",

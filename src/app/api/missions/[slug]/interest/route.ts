@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
 import { beginIdempotentOperation, finalizeIdempotentOperation } from "@/lib/idempotency";
+import { syncMissionOneSubmissionsForUser } from "@/lib/instagram-system-sync";
 import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { isMissionOpenForApplications } from "@/lib/mission-lifecycle";
 import { getMissionRewardCoins } from "@/lib/mission-rules";
@@ -166,6 +167,32 @@ export async function POST(
     return NextResponse.json(errorBody, { status: 409 });
   }
 
+  const requiredCaptionTag = getRequiredMissionCaptionTag(mission.tags);
+  if (!requiredCaptionTag) {
+    const errorBody = {
+      error: isZh
+        ? "此任務尚未設定分類標籤，暫時不能申請。"
+        : "This mission is missing its required classification hashtag and is not ready for applications.",
+    };
+    await finalizeIdempotentOperation({
+      storageKey: operation.storageKey,
+      ttlMs: operation.ttlMs,
+      status: 409,
+      body: errorBody,
+    });
+    return NextResponse.json(errorBody, { status: 409 });
+  }
+
+  try {
+    await syncMissionOneSubmissionsForUser({
+      admin,
+      userId: user.id,
+      locale: isZh ? "zh-HK" : "en",
+    });
+  } catch {
+    // Accept flow remains available even if system sync is temporarily unavailable.
+  }
+
   const { data: existingSubmission } = await admin
     .from("submissions")
     .select("id, status, checklist")
@@ -175,7 +202,6 @@ export async function POST(
     .maybeSingle();
 
   if (existingSubmission) {
-    const requiredCaptionTag = getRequiredMissionCaptionTag(mission.tags);
     const checklist = (existingSubmission.checklist ?? null) as Record<string, unknown> | null;
     const awaitingCollaborator = existingSubmission.status === "Pending" && checklist?.awaitingCollaborator === true;
 
@@ -218,8 +244,8 @@ export async function POST(
         awaitingCollaborator: true,
         requiredCaptionTag,
         message: isZh
-        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${captionTagHint}；若已連接 Instagram 可用同步自動完成提交，否則請於 App 手動提交 Reel 連結。`
-        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${captionTagHint}. If Instagram is connected, sync can auto-complete submission; otherwise submit your Reel URL manually in the app.`,
+        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${captionTagHint}；系統會從 missionone_hk 自動同步並按標籤完成分類與審核。`
+        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${captionTagHint}. MissionOne will sync missionone_hk automatically, classify by mission hashtag, and complete review.`,
       };
       await finalizeIdempotentOperation({
         storageKey: operation.storageKey,
@@ -236,8 +262,8 @@ export async function POST(
       .update({
         reel_url: matchedReel.reel_url,
         notes: isZh
-          ? "系統已自動檢測包含 @missionone_hk 協作者的 Reels，無需手動提交 proof。"
-          : "Auto-detected Reel with @missionone_hk collaborator. Manual proof submission is not required.",
+          ? "系統已自動匹配 missionone_hk 協作 Reels，並按任務標籤完成分類。"
+          : "Auto-matched Reel from missionone_hk collaborator feed and classified by mission hashtag.",
         checklist: {
           addedCollaborator: true,
           autoDetectedByInstagramSync: true,
@@ -266,8 +292,8 @@ export async function POST(
       submission_id_input: existingSubmission.id,
       reviewer_id_input: null,
       review_notes_input: isZh
-        ? "系統已根據 Instagram 同步協作者資料自動審核通過。"
-        : "Auto-approved from Instagram sync collaborator detection.",
+        ? "系統已根據 missionone_hk 同步與任務標籤自動審核通過。"
+        : "Auto-approved from missionone_hk sync and mission hashtag classification.",
     });
 
     if (autoApproveError) {
@@ -320,8 +346,6 @@ export async function POST(
 
     return NextResponse.json(successBody);
   }
-
-  const requiredCaptionTag = getRequiredMissionCaptionTag(mission.tags);
 
   const { data: latestCollaboratorReel } = await admin
     .from("reel_insights")
@@ -421,8 +445,8 @@ export async function POST(
       awaitingCollaborator: true,
       requiredCaptionTag,
       message: isZh
-        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者${requiredCaptionTag ? `，並在 Caption 加上 ${requiredCaptionTag}` : ""}；若已連接 Instagram 可用同步自動完成提交，否則請於 App 手動提交 Reel 連結。`
-        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator${requiredCaptionTag ? ` and include ${requiredCaptionTag} in the caption` : ""}. If Instagram is connected, sync can auto-complete submission; otherwise submit your Reel URL manually in the app.`,
+        ? `已接受任務。請先發佈 Reels 並加入 @missionone_hk 協作者，並在 Caption 加上 ${requiredCaptionTag}；系統會從 missionone_hk 自動同步並按標籤完成分類與審核。`
+        : `Mission accepted. Publish your Reel with @missionone_hk as collaborator and include ${requiredCaptionTag} in the caption. MissionOne will sync missionone_hk automatically, classify by mission hashtag, and complete review.`,
     };
     await finalizeIdempotentOperation({
       storageKey: operation.storageKey,
@@ -445,8 +469,8 @@ export async function POST(
       reel_url: matchedReel.reel_url,
       caption_summary: null,
       notes: isZh
-        ? "系統已自動檢測包含 @missionone_hk 協作者的 Reels，無需手動提交 proof。"
-        : "Auto-detected Reel with @missionone_hk collaborator. Manual proof submission is not required.",
+        ? "系統已自動匹配 missionone_hk 協作 Reels，並按任務標籤完成分類。"
+        : "Auto-matched Reel from missionone_hk collaborator feed and classified by mission hashtag.",
       checklist: {
         addedCollaborator: true,
         autoDetectedByInstagramSync: true,
@@ -480,8 +504,8 @@ export async function POST(
     submission_id_input: submissionCreated.id,
     reviewer_id_input: null,
     review_notes_input: isZh
-      ? "系統已根據 Instagram 同步協作者資料自動審核通過。"
-      : "Auto-approved from Instagram sync collaborator detection.",
+      ? "系統已根據 missionone_hk 同步與任務標籤自動審核通過。"
+      : "Auto-approved from missionone_hk sync and mission hashtag classification.",
   });
 
   if (autoApproveError) {

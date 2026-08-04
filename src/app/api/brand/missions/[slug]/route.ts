@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { getMissionRewardCoins } from "@/lib/mission-rules";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -132,10 +133,11 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
   }
 
   const normalizedDifficulty = normalizeDifficultyLabel(body.difficulty);
+  const requestedStatus = normalizeLifecycleStatus(body.status);
 
   const { data: existingMission } = await access.admin
     .from("missions")
-    .select("starts_at, ends_at")
+    .select("starts_at, ends_at, tags, status")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -157,15 +159,15 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
     requirements: Array.isArray(body.requirements) ? body.requirements : undefined,
     deliverables: Array.isArray(body.deliverables) ? body.deliverables : undefined,
     tags: Array.isArray(body.tags) ? body.tags : undefined,
-    status: normalizeLifecycleStatus(body.status),
+    status: requestedStatus,
     starts_at: toIsoOrUndefined(body.starts_at),
     ends_at: toIsoOrUndefined(body.ends_at),
     archived_at: toIsoOrUndefined(body.archived_at),
     is_active: typeof body.is_active === "boolean"
       ? body.is_active
-      : normalizeLifecycleStatus(body.status) === "active"
+      : requestedStatus === "active"
         ? true
-        : normalizeLifecycleStatus(body.status)
+        : requestedStatus
           ? false
           : undefined,
     display_order: displayOrder.value,
@@ -188,6 +190,54 @@ export async function PATCH(request: Request, context: { params: Promise<{ slug:
       { error: isZh ? "截止時間必須晚於開始時間。" : "Mission deadline must be later than start time." },
       { status: 400 },
     );
+  }
+
+  const nextStatus = payload.status ?? existingMission.status;
+  const nextTags = payload.tags ?? existingMission.tags ?? [];
+  const requiredCaptionTag = getRequiredMissionCaptionTag(nextTags);
+
+  if (nextStatus !== "archived" && !requiredCaptionTag) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? "任務必須設定一個 #開頭的分類標籤，才可保存非封存狀態。"
+          : "Mission must include a required hashtag tag (starting with #) before saving in a non-archived state.",
+      },
+      { status: 400 },
+    );
+  }
+
+  if (requiredCaptionTag) {
+    const { data: existingTagRows, error: existingTagError } = await access.admin
+      .from("missions")
+      .select("slug, tags, status")
+      .neq("slug", slug);
+
+    if (existingTagError) {
+      return NextResponse.json(
+        { error: isZh ? "檢查任務標籤衝突失敗，請稍後再試。" : existingTagError.message },
+        { status: 400 },
+      );
+    }
+
+    const conflictingMission = (existingTagRows ?? []).find((row) => {
+      if (row.status === "archived") {
+        return false;
+      }
+
+      return getRequiredMissionCaptionTag(row.tags) === requiredCaptionTag;
+    });
+
+    if (conflictingMission) {
+      return NextResponse.json(
+        {
+          error: isZh
+            ? `任務標籤 ${requiredCaptionTag} 已被任務 ${conflictingMission.slug} 使用，請改用唯一標籤。`
+            : `Mission hashtag ${requiredCaptionTag} is already used by mission ${conflictingMission.slug}. Please use a unique tag.`,
+        },
+        { status: 409 },
+      );
+    }
   }
 
   const { error } = await access.admin.from("missions").update(payload).eq("slug", slug);

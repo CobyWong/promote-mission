@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { getMissionRewardCoins } from "@/lib/mission-rules";
 import type { Database } from "@/lib/supabase/database.types";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
@@ -200,6 +201,49 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: isZh ? "截止時間必須晚於開始時間。" : "Mission deadline must be later than start time." },
       { status: 400 },
+    );
+  }
+
+  const requiredCaptionTag = getRequiredMissionCaptionTag(payload.tags);
+  if (!requiredCaptionTag) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? "每個任務必須在 tags 內設定一個 #開頭的任務分類標籤。"
+          : "Each mission must include a required hashtag tag (starting with #) in tags.",
+      },
+      { status: 400 },
+    );
+  }
+
+  const { data: existingTagRows, error: existingTagError } = await access.admin
+    .from("missions")
+    .select("slug, tags, status")
+    .neq("slug", payload.slug);
+
+  if (existingTagError) {
+    return NextResponse.json(
+      { error: isZh ? "檢查任務標籤衝突失敗，請稍後再試。" : existingTagError.message },
+      { status: 400 },
+    );
+  }
+
+  const conflictingMission = (existingTagRows ?? []).find((row) => {
+    if (row.status === "archived") {
+      return false;
+    }
+
+    return getRequiredMissionCaptionTag(row.tags) === requiredCaptionTag;
+  });
+
+  if (conflictingMission) {
+    return NextResponse.json(
+      {
+        error: isZh
+          ? `任務標籤 ${requiredCaptionTag} 已被任務 ${conflictingMission.slug} 使用，請改用唯一標籤。`
+          : `Mission hashtag ${requiredCaptionTag} is already used by mission ${conflictingMission.slug}. Please use a unique tag.`,
+      },
+      { status: 409 },
     );
   }
 

@@ -175,7 +175,7 @@ smoke("web smoke flow: accept -> auto-submit -> approve -> redeem", async () => 
 
     // Optional smoke should not fail when mission prerequisites are not currently met.
     if (
-      /No Reel with @missionone_hk collaborator|此任務已過截止時間或暫未開放|A similar request is still being processed/.test(errorText)
+      /No Reel with @missionone_hk collaborator|missing its required classification hashtag|此任務尚未設定分類標籤|此任務已過截止時間或暫未開放|A similar request is still being processed/.test(errorText)
     ) {
       return;
     }

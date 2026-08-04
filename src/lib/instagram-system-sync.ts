@@ -3,14 +3,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { captionHasMissionTag, getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import {
   fetchRecentReelsInsights,
-  hasMissionOneCollaborator,
   normalizeInstagramPermalink,
+  type InstagramReelInsight,
 } from "@/lib/instagram";
 import type { Database } from "@/lib/supabase/database.types";
 
 type SubmissionSyncRow = Pick<
   Database["public"]["Tables"]["submissions"]["Row"],
-  "id" | "user_id" | "reel_url" | "status" | "checklist" | "mission_slug"
+  "id" | "user_id" | "reel_url" | "status" | "checklist" | "mission_slug" | "creator_handle" | "submitted_at"
 >;
 
 type MissionTagRef = Pick<
@@ -36,6 +36,63 @@ export type MissionOneSyncResult = {
   pendingNeedsManualSubmission: number;
   pendingMissingRequiredTag: number;
 };
+
+type MissionOneSharedSyncContext = {
+  account: MissionOneSystemAccount;
+  reels: InstagramReelInsight[];
+};
+
+type SyncMissionOneSubmissionsForUserOptions = {
+  admin: SupabaseClient<Database>;
+  userId: string;
+  locale: "en" | "zh-HK";
+  sharedContext?: MissionOneSharedSyncContext;
+};
+
+export type MissionOneBatchSyncResult = {
+  source: SyncSource;
+  usersProcessed: number;
+  usersFailed: number;
+  failedUserIds: string[];
+  missionOneMediaScanned: number;
+  insightsUpserted: number;
+  matchedSubmissions: number;
+  autoSettled: number;
+  pendingNeedsManualSubmission: number;
+  pendingMissingRequiredTag: number;
+};
+
+function normalizeInstagramHandle(rawHandle: string | null | undefined) {
+  const value = (rawHandle ?? "").trim().replace(/^@+/, "").toLowerCase();
+  return value || null;
+}
+
+function escapeRegExp(raw: string) {
+  return raw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function captionMentionsHandle(caption: string | null | undefined, handle: string | null | undefined) {
+  if (!caption) {
+    return false;
+  }
+
+  const normalizedHandle = normalizeInstagramHandle(handle);
+  if (!normalizedHandle) {
+    return false;
+  }
+
+  const mentionPattern = new RegExp(`(^|[^a-zA-Z0-9._])@${escapeRegExp(normalizedHandle)}\\b`, "i");
+  return mentionPattern.test(caption);
+}
+
+function toComparableTimestamp(value: string | null | undefined) {
+  if (!value) {
+    return Number.NEGATIVE_INFINITY;
+  }
+
+  const ts = new Date(value).getTime();
+  return Number.isFinite(ts) ? ts : Number.NEGATIVE_INFINITY;
+}
 
 function getMissionOneSystemAccountFromEnv(): MissionOneSystemAccount | null {
   const instagramUserId = (process.env.MISSIONONE_INSTAGRAM_USER_ID ?? "").trim();
@@ -136,21 +193,17 @@ async function updateSystemSyncStatus(
     .eq("instagram_user_id", account.instagramUserId);
 }
 
-export async function syncMissionOneSubmissionsForUser(options: {
-  admin: SupabaseClient<Database>;
-  userId: string;
-  locale: "en" | "zh-HK";
-}) {
+export async function syncMissionOneSubmissionsForUser(options: SyncMissionOneSubmissionsForUserOptions) {
   const { admin, userId, locale } = options;
   const isZh = locale !== "en";
   let missionOneAccount: MissionOneSystemAccount | null = null;
 
   try {
-    missionOneAccount = await resolveMissionOneSystemAccount(admin);
+    missionOneAccount = options.sharedContext?.account ?? await resolveMissionOneSystemAccount(admin);
 
     const { data: submissionsData, error: submissionsError } = await admin
       .from("submissions")
-      .select("id, user_id, reel_url, status, checklist, mission_slug")
+      .select("id, user_id, reel_url, status, checklist, mission_slug, creator_handle, submitted_at")
       .eq("user_id", userId)
       .in("status", ["Pending", "Approved"]);
 
@@ -159,14 +212,7 @@ export async function syncMissionOneSubmissionsForUser(options: {
     }
 
     const submissions = (submissionsData ?? []) as SubmissionSyncRow[];
-    const pendingSubmissions = submissions.filter((item) => item.status === "Pending");
-
-    const pendingNeedsManualSubmission = pendingSubmissions.filter((item) =>
-      item.reel_url.startsWith("pending://awaiting-collaborator/"),
-    ).length;
-
-    const submissionsWithHttpUrl = submissions.filter((item) => item.reel_url.startsWith("http"));
-    if (submissionsWithHttpUrl.length === 0) {
+    if (submissions.length === 0) {
       await updateSystemSyncStatus(admin, missionOneAccount, {
         last_synced_at: new Date().toISOString(),
         last_error: null,
@@ -174,30 +220,115 @@ export async function syncMissionOneSubmissionsForUser(options: {
 
       return {
         source: missionOneAccount.source,
-        missionOneMediaScanned: 0,
+        missionOneMediaScanned: options.sharedContext?.reels.length ?? 0,
         insightsUpserted: 0,
         matchedSubmissions: 0,
         autoSettled: 0,
-        pendingNeedsManualSubmission,
+        pendingNeedsManualSubmission: 0,
         pendingMissingRequiredTag: 0,
       } satisfies MissionOneSyncResult;
     }
 
-    const reels = await fetchRecentReelsInsights(
+    const pendingSubmissions = submissions.filter((item) => item.status === "Pending");
+
+    const pendingMissionSlugs = Array.from(
+      new Set(pendingSubmissions.map((item) => item.mission_slug)),
+    );
+
+    const requiredTagByMissionSlug = new Map<string, string | null>();
+
+    if (pendingMissionSlugs.length > 0) {
+      const { data: missionData } = await admin
+        .from("missions")
+        .select("slug, tags")
+        .in("slug", pendingMissionSlugs);
+
+      const missionRows = (missionData ?? []) as MissionTagRef[];
+      missionRows.forEach((mission) => {
+        requiredTagByMissionSlug.set(mission.slug, getRequiredMissionCaptionTag(mission.tags));
+      });
+    }
+
+    const reels = options.sharedContext?.reels ?? await fetchRecentReelsInsights(
       missionOneAccount.instagramUserId,
       missionOneAccount.accessToken,
     );
+
+    const normalizedPermalinks = reels.map((reel) => normalizeInstagramPermalink(reel.permalink));
+    const reelClaimedByOtherUser = new Set<string>();
+
+    if (normalizedPermalinks.length > 0) {
+      const { data: claimedReels } = await admin
+        .from("reel_insights")
+        .select("reel_url, user_id")
+        .in("reel_url", normalizedPermalinks);
+
+      (claimedReels ?? []).forEach((row) => {
+        if (row.user_id && row.user_id !== userId) {
+          reelClaimedByOtherUser.add(normalizeInstagramPermalink(row.reel_url));
+        }
+      });
+    }
 
     const reelsByPermalink = new Map(
       reels.map((reel) => [normalizeInstagramPermalink(reel.permalink), reel]),
     );
 
-    const matchedPairs = submissionsWithHttpUrl
-      .map((submission) => ({
-        submission,
-        reel: reelsByPermalink.get(normalizeInstagramPermalink(submission.reel_url)) ?? null,
-      }))
-      .filter((pair) => pair.reel !== null) as Array<{ submission: SubmissionSyncRow; reel: (typeof reels)[number] }>;
+    const matchedPairs: Array<{ submission: SubmissionSyncRow; reel: (typeof reels)[number] }> = [];
+    const usedMediaIds = new Set<string>();
+
+    for (const submission of submissions) {
+      if (!submission.reel_url.startsWith("http")) {
+        continue;
+      }
+
+      const normalizedUrl = normalizeInstagramPermalink(submission.reel_url);
+      const reel = reelsByPermalink.get(normalizedUrl);
+      if (!reel || reelClaimedByOtherUser.has(normalizedUrl)) {
+        continue;
+      }
+
+      matchedPairs.push({ submission, reel });
+      usedMediaIds.add(reel.mediaId);
+    }
+
+    for (const submission of pendingSubmissions) {
+      if (matchedPairs.some((pair) => pair.submission.id === submission.id)) {
+        continue;
+      }
+
+      const requiredTag = requiredTagByMissionSlug.get(submission.mission_slug) ?? null;
+      if (!requiredTag) {
+        continue;
+      }
+
+      const submissionTs = toComparableTimestamp(submission.submitted_at);
+      const candidates = reels
+        .filter((reel) => !usedMediaIds.has(reel.mediaId))
+        .filter((reel) => !reelClaimedByOtherUser.has(normalizeInstagramPermalink(reel.permalink)))
+        .filter((reel) => captionHasMissionTag(reel.caption, requiredTag))
+        .filter((reel) => {
+          const publishedTs = toComparableTimestamp(reel.publishedAt);
+          return publishedTs >= submissionTs;
+        });
+
+      if (candidates.length === 0) {
+        continue;
+      }
+
+      const handleMatchedCandidates = candidates.filter((reel) =>
+        captionMentionsHandle(reel.caption, submission.creator_handle),
+      );
+
+      const selectedCandidate = handleMatchedCandidates[0] ?? (candidates.length === 1 ? candidates[0] : null);
+
+      if (!selectedCandidate) {
+        continue;
+      }
+
+      matchedPairs.push({ submission, reel: selectedCandidate });
+      usedMediaIds.add(selectedCandidate.mediaId);
+    }
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -218,7 +349,7 @@ export async function syncMissionOneSubmissionsForUser(options: {
         ...reel.metrics,
         caption: reel.caption ?? "",
         published_at: reel.publishedAt ?? null,
-        hasMissionOneCollaborator: hasMissionOneCollaborator(reel.caption),
+        hasMissionOneCollaborator: true,
         matchedBy: "missionone_system_account",
       },
     }));
@@ -233,24 +364,6 @@ export async function syncMissionOneSubmissionsForUser(options: {
       }
     }
 
-    const pendingMissionSlugs = Array.from(
-      new Set(pendingSubmissions.map((item) => item.mission_slug)),
-    );
-
-    const requiredTagByMissionSlug = new Map<string, string | null>();
-
-    if (pendingMissionSlugs.length > 0) {
-      const { data: missionData } = await admin
-        .from("missions")
-        .select("slug, tags")
-        .in("slug", pendingMissionSlugs);
-
-      const missionRows = (missionData ?? []) as MissionTagRef[];
-      missionRows.forEach((mission) => {
-        requiredTagByMissionSlug.set(mission.slug, getRequiredMissionCaptionTag(mission.tags));
-      });
-    }
-
     let autoSettled = 0;
     let pendingMissingRequiredTag = 0;
 
@@ -260,6 +373,11 @@ export async function syncMissionOneSubmissionsForUser(options: {
       }
 
       const requiredTag = requiredTagByMissionSlug.get(submission.mission_slug) ?? null;
+      if (!requiredTag) {
+        pendingMissingRequiredTag += 1;
+        continue;
+      }
+
       if (!captionHasMissionTag(reel.caption, requiredTag)) {
         pendingMissingRequiredTag += 1;
         continue;
@@ -303,9 +421,7 @@ export async function syncMissionOneSubmissionsForUser(options: {
       autoSettled += 1;
     }
 
-    const matchedPendingWithHttp = pendingSubmissions
-      .filter((item) => item.reel_url.startsWith("http"))
-      .filter((item) => reelsByPermalink.has(normalizeInstagramPermalink(item.reel_url))).length;
+    const pendingNeedsManualSubmission = Math.max(0, pendingSubmissions.length - autoSettled);
 
     await updateSystemSyncStatus(admin, missionOneAccount, {
       last_synced_at: new Date().toISOString(),
@@ -318,10 +434,7 @@ export async function syncMissionOneSubmissionsForUser(options: {
       insightsUpserted: insightRows.length,
       matchedSubmissions: matchedPairs.length,
       autoSettled,
-      pendingNeedsManualSubmission: Math.max(
-        0,
-        pendingNeedsManualSubmission + (pendingSubmissions.filter((item) => item.reel_url.startsWith("http")).length - matchedPendingWithHttp),
-      ),
+      pendingNeedsManualSubmission,
       pendingMissingRequiredTag,
     } satisfies MissionOneSyncResult;
   } catch (error) {
@@ -333,4 +446,96 @@ export async function syncMissionOneSubmissionsForUser(options: {
 
     throw error;
   }
+}
+
+export async function syncMissionOneSubmissionsForUsers(options: {
+  admin: SupabaseClient<Database>;
+  userIds: string[];
+  locale: "en" | "zh-HK";
+}) {
+  const uniqueUserIds = Array.from(
+    new Set(
+      options.userIds
+        .map((userId) => userId.trim())
+        .filter((userId) => userId.length > 0),
+    ),
+  );
+
+  const account = await resolveMissionOneSystemAccount(options.admin);
+
+  if (uniqueUserIds.length === 0) {
+    await updateSystemSyncStatus(options.admin, account, {
+      last_synced_at: new Date().toISOString(),
+      last_error: null,
+    });
+
+    return {
+      source: account.source,
+      usersProcessed: 0,
+      usersFailed: 0,
+      failedUserIds: [],
+      missionOneMediaScanned: 0,
+      insightsUpserted: 0,
+      matchedSubmissions: 0,
+      autoSettled: 0,
+      pendingNeedsManualSubmission: 0,
+      pendingMissingRequiredTag: 0,
+    } satisfies MissionOneBatchSyncResult;
+  }
+
+  const reels = await fetchRecentReelsInsights(
+    account.instagramUserId,
+    account.accessToken,
+  );
+
+  const sharedContext: MissionOneSharedSyncContext = {
+    account,
+    reels,
+  };
+
+  const failedUserIds: string[] = [];
+  let usersProcessed = 0;
+  let insightsUpserted = 0;
+  let matchedSubmissions = 0;
+  let autoSettled = 0;
+  let pendingNeedsManualSubmission = 0;
+  let pendingMissingRequiredTag = 0;
+
+  for (const userId of uniqueUserIds) {
+    try {
+      const result = await syncMissionOneSubmissionsForUser({
+        admin: options.admin,
+        userId,
+        locale: options.locale,
+        sharedContext,
+      });
+
+      usersProcessed += 1;
+      insightsUpserted += result.insightsUpserted;
+      matchedSubmissions += result.matchedSubmissions;
+      autoSettled += result.autoSettled;
+      pendingNeedsManualSubmission += result.pendingNeedsManualSubmission;
+      pendingMissingRequiredTag += result.pendingMissingRequiredTag;
+    } catch {
+      failedUserIds.push(userId);
+    }
+  }
+
+  await updateSystemSyncStatus(options.admin, account, {
+    last_synced_at: new Date().toISOString(),
+    last_error: failedUserIds.length > 0 ? `partial_failure:${failedUserIds.length}` : null,
+  });
+
+  return {
+    source: account.source,
+    usersProcessed,
+    usersFailed: failedUserIds.length,
+    failedUserIds,
+    missionOneMediaScanned: reels.length,
+    insightsUpserted,
+    matchedSubmissions,
+    autoSettled,
+    pendingNeedsManualSubmission,
+    pendingMissingRequiredTag,
+  } satisfies MissionOneBatchSyncResult;
 }

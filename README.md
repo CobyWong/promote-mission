@@ -1,6 +1,6 @@
 # Mission One
 
-A creator mission platform for Hong Kong-style promotional campaigns. Creators browse IG Reels missions, submit proof, earn Coins, climb the leaderboard, and redeem real rewards. The app is now wired for Supabase-powered auth, submission storage, admin review, and coin rewards.
+A creator mission platform for Hong Kong-style promotional campaigns. Creators browse IG Reels missions, publish with `@missionone_hk` collaborator + mission hashtag, earn Coins, climb the leaderboard, and redeem real rewards. The app is now wired for Supabase-powered auth, submission storage, system-side Reel sync, admin review, and coin rewards.
 
 ## Features
 
@@ -8,8 +8,8 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 - Mission detail pages with deliverables and submission checklist
 - Creator login and registration prototype with onboarding fields
 - Mission marketplace backed by Supabase `missions` records
-- Proof submission flow backed by Supabase `submissions` records and Storage screenshot uploads
-- Instagram Professional account connect flow (Meta OAuth) for Reel metrics sync
+- Auto classification flow backed by Supabase `submissions` + `reel_insights` (mission hashtag + missionone_hk collaborator)
+- MissionOne system-account Instagram sync (Meta Graph API) for Reel views/likes updates
 - Admin review dashboard with approval flow and coin transaction writes
 - Reward catalog + redemption flow backed by Supabase `rewards_catalog` and `reward_redemptions`
 - Admin fulfillment panel for processing reward redemption outcomes
@@ -36,6 +36,7 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 	- `ERROR_MONITOR_WEBHOOK_URL` (optional, webhook endpoint for API error forwarding)
 	- `RATE_LIMIT_SALT` (required for stable, hashed rate-limit keys)
 	- `CLEANUP_CRON_TOKEN` (required, protects scheduled cleanup endpoint)
+	- `MISSIONONE_SYNC_CRON_TOKEN` (optional, protects scheduled MissionOne system sync endpoint)
 	- `FUNNEL_ALERT_SUBMISSION_DROP_PCT` (optional, default `30`)
 	- `FUNNEL_ALERT_APPROVE_DROP_PCT` (optional, default `30`)
 	- `FUNNEL_ALERT_REDEEM_DROP_PCT` (optional, default `30`)
@@ -45,7 +46,7 @@ A creator mission platform for Hong Kong-style promotional campaigns. Creators b
 5. In Supabase Auth, enable Email/Password provider.
 6. Set your project site URL / redirect URL to include `/auth/callback`.
 7. In Meta Developer settings, add `INSTAGRAM_REDIRECT_URI` to Valid OAuth Redirect URIs.
-8. Ensure each creator uses an Instagram Professional account linked to a Facebook Page.
+8. Creators can use normal public personal Instagram accounts; each mission Reel must add `@missionone_hk` as collaborator and include the mission hashtag.
 
 ## Getting started
 
@@ -128,6 +129,13 @@ Scheduled idempotency cleanup (Phase W3-08):
 2. Set repository secret `CLEANUP_CRON_TOKEN` to the same value as app env `CLEANUP_CRON_TOKEN`.
 3. The workflow `.github/workflows/idempotency-cleanup.yml` runs hourly and can also be manually triggered.
 4. Optional manual trigger input `retentionDays` controls deletion cutoff (default `7`, allowed `1-30`).
+
+Scheduled MissionOne system sync:
+
+1. Set repository secret `MISSIONONE_SYNC_ENDPOINT_URL`, for example `https://your-domain.com/api/admin/instagram/system-sync`.
+2. Set repository secret `MISSIONONE_SYNC_CRON_TOKEN` and set app env `MISSIONONE_SYNC_CRON_TOKEN` to the same value.
+3. Workflow `.github/workflows/missionone-system-sync.yml` runs hourly and can also be triggered manually.
+4. Optional manual trigger input `maxUsers` limits one run to the first N users with pending/approved submissions (max `1000`).
 
 Staging abuse/idempotency verification:
 
@@ -278,6 +286,7 @@ Phase 5 batch 1 mobile APIs:
 - Idempotency is now persisted in `public.idempotency_keys` to keep replay/inflight protection across instances even without Redis.
 - Write endpoints (`/api/submissions`, `/api/mobile/submissions`, `/api/redemptions`) now support `Idempotency-Key` to prevent duplicate writes.
 - Scheduled cleanup endpoint `/api/admin/idempotency/cleanup` deletes expired `idempotency_keys` rows using a cron token header (`x-cron-token`).
+- Scheduled MissionOne sync endpoint `/api/admin/instagram/system-sync` runs feed-level auto-sync for users with pending/approved submissions using cron token header (`x-cron-token`).
 - Structured API logs now include request metadata and optional webhook forwarding via `ERROR_MONITOR_WEBHOOK_URL`.
 - Admin KPI now includes abuse counters (rate-limited requests + idempotency replay/inflight events) and recent abuse signal logs.
 - Admin funnel KPI endpoint `/api/admin/kpi/funnel` reports mission accept -> submit -> approve -> redeem conversion for `24h` or `7d` windows.
@@ -286,4 +295,4 @@ Phase 5 batch 1 mobile APIs:
 - Reward redemption uses the SQL function `redeem_reward` to validate balance and insert a negative wallet transaction atomically.
 - Proof submission uploads screenshots into the `submission-screenshots` bucket and stores the uploaded paths on each submission row.
 - Admin review page renders storage-backed screenshot previews with signed URLs for secure proof inspection.
-- Reel metrics sync currently runs from the dashboard "Sync now" button and writes to `reel_insights`.
+- Reel metrics are synced from `missionone_hk` and written to `reel_insights`; mission acceptance also triggers a best-effort system sync.

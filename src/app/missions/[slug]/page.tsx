@@ -160,12 +160,12 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
               {(locale === "en"
                 ? [
                   `Apply before deadline (${deadlineLabel ?? "mission deadline"})`,
-                  `Publish IG Reels from your public personal Instagram account, add @missionone_hk as collaborator${requiredCaptionTag ? `, include ${requiredCaptionTag} in caption` : ""}, then submit Reel URL in app (or use optional Instagram sync).`,
+                  `Publish IG Reels from your public personal Instagram account, add @missionone_hk as collaborator, and include ${requiredCaptionTag ?? "the mission hashtag"}. MissionOne auto-syncs missionone_hk and classifies the Reel by mission hashtag.`,
                   `After deadline, ranking is fixed by Likes and top 3 share HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`,
                 ]
                 : [
                   `請於截止時間（${deadlineLabel ?? "任務截止"}）前申請`,
-                  `使用你的公開個人 Instagram 帳號發佈 Reels，並將 @missionone_hk 設為協作者${requiredCaptionTag ? `，Caption 加上 ${requiredCaptionTag}` : ""}；之後於 App 手動提交 Reel 連結（或選擇使用 Instagram 同步）。`,
+                  `使用你的公開個人 Instagram 帳號發佈 Reels，將 @missionone_hk 設為協作者，並在 Caption 加上 ${requiredCaptionTag ?? "任務指定標籤"}；MissionOne 會從 missionone_hk 自動同步並按任務標籤分類。`,
                   `截止後排名按 Likes 鎖定，前 3 名瓜分 HK$${rewards.totalPrize.toLocaleString()}（60% / 30% / 10%）`,
                 ]
               ).map((step, index) => (

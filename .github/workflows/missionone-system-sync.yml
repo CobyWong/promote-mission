@@ -1,0 +1,72 @@
+name: MissionOne System Sync
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      maxUsers:
+        description: "Optional cap for users processed in this run (1-1000)"
+        required: false
+        default: ""
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Trigger MissionOne system sync endpoint
+        env:
+          SYNC_ENDPOINT_URL: ${{ secrets.MISSIONONE_SYNC_ENDPOINT_URL }}
+          MISSIONONE_SYNC_CRON_TOKEN: ${{ secrets.MISSIONONE_SYNC_CRON_TOKEN }}
+          MAX_USERS: ${{ github.event.inputs.maxUsers || '' }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${SYNC_ENDPOINT_URL}" ]]; then
+            echo "::warning::Skipping MissionOne sync: MISSIONONE_SYNC_ENDPOINT_URL secret is missing."
+            exit 0
+          fi
+
+          if [[ -z "${MISSIONONE_SYNC_CRON_TOKEN}" ]]; then
+            echo "::warning::Skipping MissionOne sync: MISSIONONE_SYNC_CRON_TOKEN secret is missing."
+            exit 0
+          fi
+
+          endpoint="${SYNC_ENDPOINT_URL}"
+          if [[ -n "${MAX_USERS}" ]]; then
+            endpoint="${endpoint}?maxUsers=${MAX_USERS}"
+          fi
+
+          response_body_file="$(mktemp)"
+          http_status="$({
+            curl --silent --show-error \
+              --retry 2 \
+              --retry-all-errors \
+              --connect-timeout 8 \
+              --max-time 60 \
+              --output "${response_body_file}" \
+              --write-out "%{http_code}" \
+              -X POST "${endpoint}" \
+              -H "x-cron-token: ${MISSIONONE_SYNC_CRON_TOKEN}" \
+              -H "content-type: application/json";
+          })"
+
+          echo "MissionOne sync endpoint HTTP status: ${http_status}"
+          echo "MissionOne sync endpoint response:"
+          cat "${response_body_file}"
+          echo
+
+          if [[ "${http_status}" -ge 400 ]]; then
+            if [[ "${http_status}" == "401" ]]; then
+              echo "::error::Unauthorized (401). Usually MISSIONONE_SYNC_CRON_TOKEN mismatch between GitHub secrets and deployment env."
+            elif [[ "${http_status}" == "404" ]]; then
+              echo "::error::Not found (404). Check MISSIONONE_SYNC_ENDPOINT_URL points to /api/admin/instagram/system-sync on deployed domain."
+            elif [[ "${http_status}" == "503" ]]; then
+              echo "::error::Service unavailable (503). Usually missing MISSIONONE_SYNC_CRON_TOKEN in deployment env."
+            else
+              echo "::error::MissionOne sync endpoint returned HTTP ${http_status}."
+            fi
+
+            exit 1
+          fi

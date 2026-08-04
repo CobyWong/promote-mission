@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { hasAdminSession } from "@/lib/admin-session";
 import { isZhRequest } from "@/lib/api-locale";
 import { isSameOriginMutationRequest } from "@/lib/csrf";
+import { getRequiredMissionCaptionTag } from "@/lib/mission-caption-tag";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isBrandOrAdminEmail } from "@/lib/supabase/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -59,7 +60,7 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
   if (status === "active") {
     const { data: missionRow } = await access.admin
       .from("missions")
-      .select("ends_at")
+      .select("ends_at, tags")
       .eq("slug", slug)
       .maybeSingle();
 
@@ -71,6 +72,49 @@ export async function POST(request: Request, context: { params: Promise<{ slug: 
       return NextResponse.json(
         { error: isZh ? "任務必須先設定截止時間，才可啟用。" : "Set mission deadline before activating this mission." },
         { status: 400 },
+      );
+    }
+
+    const requiredCaptionTag = getRequiredMissionCaptionTag(missionRow.tags ?? []);
+    if (!requiredCaptionTag) {
+      return NextResponse.json(
+        {
+          error: isZh
+            ? "任務必須先設定 #開頭的分類標籤，才可啟用。"
+            : "Set a required hashtag tag (starting with #) before activating this mission.",
+        },
+        { status: 400 },
+      );
+    }
+
+    const { data: existingTagRows, error: existingTagError } = await access.admin
+      .from("missions")
+      .select("slug, tags, status")
+      .neq("slug", slug);
+
+    if (existingTagError) {
+      return NextResponse.json(
+        { error: isZh ? "檢查任務標籤衝突失敗，請稍後再試。" : existingTagError.message },
+        { status: 400 },
+      );
+    }
+
+    const conflictingMission = (existingTagRows ?? []).find((row) => {
+      if (row.status === "archived") {
+        return false;
+      }
+
+      return getRequiredMissionCaptionTag(row.tags) === requiredCaptionTag;
+    });
+
+    if (conflictingMission) {
+      return NextResponse.json(
+        {
+          error: isZh
+            ? `任務標籤 ${requiredCaptionTag} 已被任務 ${conflictingMission.slug} 使用，請改用唯一標籤後再啟用。`
+            : `Mission hashtag ${requiredCaptionTag} is already used by mission ${conflictingMission.slug}. Use a unique tag before activation.`,
+        },
+        { status: 409 },
       );
     }
   }
