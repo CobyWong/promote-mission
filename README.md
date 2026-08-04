@@ -254,7 +254,6 @@ Phase 5 batch 1 mobile APIs:
 - `/` landing page
 - `/missions` mission marketplace
 - `/missions/[slug]` mission detail
-- `/submit/[slug]` proof submission form
 - `/rewards` rewards shop
 - `/dashboard` creator dashboard
 - `/login` creator login
@@ -269,7 +268,7 @@ Phase 5 batch 1 mobile APIs:
 
 - `profiles`: creator onboarding profile synced from auth metadata
 - `missions`: live mission catalog for homepage / marketplace / detail pages
-- `submissions`: mission proof submissions awaiting review
+- `submissions`: mission participation records auto-created/updated from missionone_hk collaborator + hashtag sync
 - `rewards_catalog`: redeemable rewards with cost / stock / ETA
 - `reward_redemptions`: creator redemption requests and fulfillment states
 - `coin_transactions`: wallet ledger for approved mission rewards
@@ -284,7 +283,7 @@ Phase 5 batch 1 mobile APIs:
 - API abuse protection now includes route-level rate limits for admin login, auth session, and submission create paths.
 - Rate limiting and idempotency automatically use Upstash Redis (when configured) and fall back to in-memory state in local/dev.
 - Idempotency is now persisted in `public.idempotency_keys` to keep replay/inflight protection across instances even without Redis.
-- Write endpoints (`/api/submissions`, `/api/mobile/submissions`, `/api/redemptions`) now support `Idempotency-Key` to prevent duplicate writes.
+- Write endpoint (`/api/redemptions`) supports `Idempotency-Key` to prevent duplicate writes.
 - Scheduled cleanup endpoint `/api/admin/idempotency/cleanup` deletes expired `idempotency_keys` rows using a cron token header (`x-cron-token`).
 - Scheduled MissionOne sync endpoint `/api/admin/instagram/system-sync` runs feed-level auto-sync for users with pending/approved submissions using cron token header (`x-cron-token`).
 - Structured API logs now include request metadata and optional webhook forwarding via `ERROR_MONITOR_WEBHOOK_URL`.
@@ -293,6 +292,6 @@ Phase 5 batch 1 mobile APIs:
 - Admin funnel alerts endpoint `/api/admin/kpi/funnel/alerts` flags 24h submission/approval/redemption drops against previous 7-day daily baseline.
 - Admin approval uses the SQL function `approve_submission` to mark the submission approved and insert reward coins atomically.
 - Reward redemption uses the SQL function `redeem_reward` to validate balance and insert a negative wallet transaction atomically.
-- Proof submission uploads screenshots into the `submission-screenshots` bucket and stores the uploaded paths on each submission row.
+- Manual proof submission endpoints are disabled; mission submissions are created via missionone_hk system sync.
 - Admin review page renders storage-backed screenshot previews with signed URLs for secure proof inspection.
 - Reel metrics are synced from `missionone_hk` and written to `reel_insights`; mission acceptance also triggers a best-effort system sync.

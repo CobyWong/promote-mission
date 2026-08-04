@@ -61,8 +61,7 @@ describe("/api/mobile/submissions", () => {
     expect(response.status).toBe(400);
   });
 
-  it("POST returns 429 when submission creation is rate-limited", async () => {
-    mockEvaluateRateLimit.mockReturnValue({ allowed: false, remaining: 0, resetAt: Date.now() + 30_000 });
+  it("POST returns 410 when manual mobile submission is disabled", async () => {
 
     const response = await POST(new Request("http://localhost/api/mobile/submissions", {
       method: "POST",
@@ -77,7 +76,6 @@ describe("/api/mobile/submissions", () => {
       }),
     }));
 
-    expect(response.status).toBe(429);
-    expect(response.headers.get("retry-after")).toBe("18");
+    expect(response.status).toBe(410);
   });
 });

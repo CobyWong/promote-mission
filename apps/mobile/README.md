@@ -94,7 +94,7 @@ npm run mobile:submit:production:android
 - Authenticated profile fetch (from `GET /api/mobile/me` with bearer token)
 - Missions list screen (from `GET /api/mobile/missions`)
 - Mission detail screen (from `GET /api/mobile/missions/[slug]`)
-- Proof submission flow (to `POST /api/mobile/submissions`) with validation, checklist, and success/failure feedback
+- Auto-sync status trigger (to `POST /api/mobile/submissions/sync`) for missionone_hk collaborator + hashtag detection
 - Submission history timeline (from `GET /api/mobile/submissions`) with loading/error/retry states
 - Expandable history cards with deep actions (open mission, open reel) and paginated "load more"
 - History status filters + mission/brand search + AsyncStorage cache hydration for faster first paint
@@ -106,5 +106,5 @@ npm run mobile:submit:production:android
 ## Next scope
 
 - Supabase auth on mobile (login + secure session storage)
-- Submission flow (`/api/submissions`) from app
+- Mission accept + sync orchestration UX improvements
 - Rewards + profile screens

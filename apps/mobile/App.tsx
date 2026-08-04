@@ -1,11 +1,8 @@
 import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as DocumentPicker from "expo-document-picker";
-import * as LegacyFileSystem from "expo-file-system/legacy";
-import { Component, type ErrorInfo, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Component, type ErrorInfo, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  AppState,
   FlatList,
   Linking,
   Pressable,
@@ -20,7 +17,6 @@ import {
 
 import { API_BASE_URL, ApiRequestError, fetchJson, getUserFacingApiErrorMessage, postJson } from "./src/lib/api";
 import { mobileConfig } from "./src/lib/config";
-import { registerSubmissionUploadBackgroundTask } from "./src/lib/submission-upload-worker";
 import { hasSupabaseMobileConfig, supabase } from "./src/lib/supabase";
 import { installGlobalErrorHandler, trackApiError, trackAppError } from "./src/lib/telemetry";
 import { mobileTheme } from "./src/theme/mobile";
@@ -73,16 +69,6 @@ type MobileMeResponse = {
   };
 };
 
-type MobileSubmissionResponse = {
-  id: string;
-  reusedPendingSubmission?: boolean;
-  sync?: {
-    synced: number;
-    autoSettled: number;
-  } | null;
-  syncError?: string | null;
-};
-
 type MobileSubmissionTimelineEvent = {
   key: string;
   label: string;
@@ -122,90 +108,6 @@ type MobileSubmissionHistoryResponse = {
   };
 };
 
-type SubmissionQueueStatus = "queued" | "uploading" | "retrying" | "failed" | "completed";
-
-type MobileSubmissionMediaAsset = {
-  uri: string;
-  fileName: string;
-  mimeType: string;
-  fileSize: number;
-  fileChecksumMd5: string;
-};
-
-type MobileUploadSessionState = {
-  uploadId: string | null;
-  filePath: string | null;
-  fileUrl: string | null;
-  uploadedBytes: number;
-  uploadedParts: number[];
-  totalParts: number;
-  chunkSize: number;
-};
-
-type MobileSubmissionQueueItem = {
-  localId: string;
-  idempotencyKey: string;
-  missionSlug: string;
-  missionTitle: string;
-  reelUrl: string;
-  captionSummary: string;
-  notes: string;
-  checks: {
-    published: boolean;
-    taggedBrand: boolean;
-    addedCollaborator: boolean;
-  };
-  mediaAsset: MobileSubmissionMediaAsset | null;
-  uploadSession: MobileUploadSessionState | null;
-  status: SubmissionQueueStatus;
-  progress: number;
-  attempts: number;
-  createdAt: string;
-  updatedAt: string;
-  nextRetryAt: string | null;
-  lastError: string | null;
-  serverSubmissionId: string | null;
-};
-
-type SubmissionQueueCachePayload = {
-  storedAt: number;
-  items: MobileSubmissionQueueItem[];
-};
-
-type MobileUploadCreateSessionResponse = {
-  uploadId: string;
-  chunkSize: number;
-  totalParts: number;
-  uploadedParts: number[];
-  uploadedBytes: number;
-};
-
-type MobileUploadSessionStatusResponse = {
-  uploadId: string;
-  chunkSize: number;
-  totalParts: number;
-  fileSize: number;
-  fileName: string;
-  mimeType: string;
-  uploadedParts: number[];
-  uploadedBytes: number;
-};
-
-type MobileUploadPartResponse = {
-  ok: boolean;
-  partNumber: number;
-  bytes: number;
-};
-
-type MobileUploadCompleteResponse = {
-  uploadId: string;
-  filePath: string;
-  fileUrl: string;
-  fileName: string;
-  mimeType: string;
-  fileSize: number;
-};
-
 const HISTORY_PAGE_SIZE = 6;
 const HISTORY_CACHE_VERSION = 1;
 const HISTORY_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -213,10 +115,6 @@ const HISTORY_STATUS_FILTERS = ["All", "Pending", "Approved", "Rejected"] as con
 const MISSION_CACHE_VERSION = 1;
 const MISSION_CACHE_TTL_MS = 15 * 60 * 1000;
 const MISSION_ZONE_FILTERS = ["Easy", "Medium", "Hard"] as const;
-const SUBMISSION_QUEUE_VERSION = 1;
-const SUBMISSION_QUEUE_MAX_ATTEMPTS = 6;
-const SUBMISSION_QUEUE_RETRY_BASE_MS = 2_000;
-const SUBMISSION_QUEUE_RETRY_MAX_MS = 2 * 60 * 1000;
 
 type MissionZone = (typeof MISSION_ZONE_FILTERS)[number];
 
@@ -238,10 +136,6 @@ function getHistoryCachePrefix(userId: string) {
 
 function getMissionCacheKey() {
   return `mobile:missions:v${MISSION_CACHE_VERSION}`;
-}
-
-function getSubmissionQueueKey(userId: string) {
-  return `mobile:submission-queue:v${SUBMISSION_QUEUE_VERSION}:${userId}`;
 }
 
 function normalizeMissionZone(raw: string): MissionZone {
@@ -326,40 +220,6 @@ function getTimelineToneStyle(tone: MobileSubmissionTimelineEvent["tone"]) {
   return styles.timelineNeutral;
 }
 
-function createIdempotencyKey(namespace: string, slug?: string) {
-  const normalizedSlug = slug?.trim() || "na";
-  return `${namespace}:${normalizedSlug}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
-}
-
-function getQueueStatusLabel(status: SubmissionQueueStatus) {
-  if (status === "uploading") {
-    return "Uploading";
-  }
-
-  if (status === "retrying") {
-    return "Retrying";
-  }
-
-  if (status === "failed") {
-    return "Failed";
-  }
-
-  if (status === "completed") {
-    return "Completed";
-  }
-
-  return "Queued";
-}
-
-function getQueueRetryDelayMs(attempts: number) {
-  const raw = SUBMISSION_QUEUE_RETRY_BASE_MS * 2 ** Math.max(0, attempts - 1);
-  return Math.min(raw, SUBMISSION_QUEUE_RETRY_MAX_MS);
-}
-
-function shouldRetryQueueError(error: ApiRequestError) {
-  return error.isNetworkError || error.status === 409 || error.status === 429 || error.status >= 500;
-}
-
 function toDisplayErrorMessage(error: unknown, fallbackMessage: string) {
   return getUserFacingApiErrorMessage(error, fallbackMessage);
 }
@@ -384,61 +244,6 @@ function reportApiErrorDiagnostics(error: unknown, scope: string) {
     },
     error.message,
   );
-}
-
-function formatRetryCountdown(nextRetryAt: string | null) {
-  if (!nextRetryAt) {
-    return null;
-  }
-
-  const retryAtMs = Date.parse(nextRetryAt);
-  if (Number.isNaN(retryAtMs)) {
-    return null;
-  }
-
-  const remainingMs = retryAtMs - Date.now();
-  if (remainingMs <= 0) {
-    return "Retrying now";
-  }
-
-  const seconds = Math.ceil(remainingMs / 1000);
-  return `Retry in ${seconds}s`;
-}
-
-function formatBytes(totalBytes: number) {
-  if (!Number.isFinite(totalBytes) || totalBytes <= 0) {
-    return "0 B";
-  }
-
-  if (totalBytes < 1024) {
-    return `${Math.round(totalBytes)} B`;
-  }
-
-  if (totalBytes < 1024 * 1024) {
-    return `${(totalBytes / 1024).toFixed(1)} KB`;
-  }
-
-  return `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getUploadedBytesFromParts(
-  uploadedParts: number[],
-  totalParts: number,
-  chunkSize: number,
-  fileSize: number,
-) {
-  if (uploadedParts.length === 0 || totalParts <= 0 || chunkSize <= 0 || fileSize <= 0) {
-    return 0;
-  }
-
-  const uniqueParts = Array.from(new Set(uploadedParts)).filter((part) => part >= 0 && part < totalParts);
-  const lastPart = totalParts - 1;
-  const fullChunkCount = uniqueParts.filter((part) => part !== lastPart).length;
-  const hasLastPart = uniqueParts.includes(lastPart);
-  const lastChunkSize = Math.max(0, fileSize - (chunkSize * (totalParts - 1)));
-  const uploadedBytes = (fullChunkCount * chunkSize) + (hasLastPart ? lastChunkSize : 0);
-
-  return Math.min(fileSize, Math.max(0, uploadedBytes));
 }
 
 type AppErrorBoundaryProps = {
@@ -502,22 +307,9 @@ function AppContent() {
   const [refreshing, setRefreshing] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
-  const [submissionReelUrl, setSubmissionReelUrl] = useState("");
-  const [submissionMediaAsset, setSubmissionMediaAsset] = useState<MobileSubmissionMediaAsset | null>(null);
-  const [submissionCaptionSummary, setSubmissionCaptionSummary] = useState("");
-  const [submissionNotes, setSubmissionNotes] = useState("");
-  const [submissionChecks, setSubmissionChecks] = useState({
-    published: true,
-    taggedBrand: false,
-    addedCollaborator: false,
-  });
   const [submissionBusy, setSubmissionBusy] = useState(false);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
-  const [submissionQueue, setSubmissionQueue] = useState<MobileSubmissionQueueItem[]>([]);
-  const [submissionQueueHydrated, setSubmissionQueueHydrated] = useState(false);
-  const [queueNotice, setQueueNotice] = useState<string | null>(null);
-  const [queueClockMs, setQueueClockMs] = useState(0);
+  const [syncNotice, setSyncNotice] = useState<string | null>(null);
   const [submissionHistory, setSubmissionHistory] = useState<MobileSubmissionHistoryItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [loadingMoreHistory, setLoadingMoreHistory] = useState(false);
@@ -531,7 +323,6 @@ function AppContent() {
   const [historyCacheHydrated, setHistoryCacheHydrated] = useState(false);
   const [shouldIncludeTotalOnNextHead, setShouldIncludeTotalOnNextHead] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const queueProcessingLocalIdRef = useRef<string | null>(null);
   const profileId = profile?.id ?? null;
   const userLevel = profile?.userLevel ?? 1;
 
@@ -558,33 +349,16 @@ function AppContent() {
   }, [selectedMission, userLevel]);
 
   const canSubmit = useMemo(() => {
-    const hasUrl = submissionReelUrl.trim().startsWith("http");
-    const hasMedia = Boolean(submissionMediaAsset?.uri);
     return Boolean(
       accessToken
       && selectedMission
       && !isSelectedMissionLocked
-      && (hasUrl || hasMedia)
-      && submissionChecks.addedCollaborator,
     );
   }, [
     accessToken,
     isSelectedMissionLocked,
     selectedMission,
-    submissionChecks.addedCollaborator,
-    submissionMediaAsset,
-    submissionReelUrl,
   ]);
-
-  const pendingQueueCount = useMemo(() => {
-    return submissionQueue.filter((item) => item.status === "queued" || item.status === "uploading" || item.status === "retrying").length;
-  }, [submissionQueue]);
-
-  const displaySubmissionQueue = useMemo(() => {
-    return [...submissionQueue]
-      .sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt))
-      .slice(0, 8);
-  }, [submissionQueue]);
 
   const applyMissionSnapshot = useCallback((snapshot: MobileMissionListItem[]) => {
     setMissions(snapshot);
@@ -667,18 +441,9 @@ function AppContent() {
   }, []);
 
   const resetSubmissionState = useCallback(() => {
-    setSubmissionReelUrl("");
-    setSubmissionMediaAsset(null);
-    setSubmissionCaptionSummary("");
-    setSubmissionNotes("");
-    setSubmissionChecks({
-      published: true,
-      taggedBrand: false,
-      addedCollaborator: false,
-    });
     setSubmissionBusy(false);
     setSubmissionError(null);
-    setSubmissionId(null);
+    setSyncNotice(null);
   }, []);
 
   useEffect(() => {
@@ -854,495 +619,6 @@ function AppContent() {
     }
   }, []);
 
-  const hydrateSubmissionQueueForUser = useCallback(async (userId: string) => {
-    try {
-      const raw = await AsyncStorage.getItem(getSubmissionQueueKey(userId));
-      if (!raw) {
-        setSubmissionQueue([]);
-        return;
-      }
-
-      const parsed = JSON.parse(raw) as SubmissionQueueCachePayload;
-      const items = Array.isArray(parsed.items) ? parsed.items : [];
-      const normalized = items.map((item) => {
-        const normalizedStatus = item.status === "uploading" ? "retrying" : item.status;
-        const defaultRetryAt = normalizedStatus === "retrying" ? new Date().toISOString() : null;
-        return {
-          ...item,
-          status: normalizedStatus,
-          progress: item.status === "completed" ? 100 : Math.max(0, Math.min(100, Number(item.progress) || 0)),
-          attempts: Math.max(0, Number(item.attempts) || 0),
-          nextRetryAt: normalizedStatus === "retrying"
-            ? (item.nextRetryAt && !Number.isNaN(Date.parse(item.nextRetryAt)) ? item.nextRetryAt : defaultRetryAt)
-            : null,
-          updatedAt: item.updatedAt || new Date().toISOString(),
-          createdAt: item.createdAt || new Date().toISOString(),
-          lastError: item.lastError ?? null,
-          serverSubmissionId: item.serverSubmissionId ?? null,
-          mediaAsset: item.mediaAsset && typeof item.mediaAsset === "object"
-            ? {
-              uri: String(item.mediaAsset.uri ?? ""),
-              fileName: String(item.mediaAsset.fileName ?? "proof-media"),
-              mimeType: String(item.mediaAsset.mimeType ?? "application/octet-stream"),
-              fileSize: Math.max(0, Number(item.mediaAsset.fileSize) || 0),
-                  fileChecksumMd5: String(item.mediaAsset.fileChecksumMd5 ?? "").toLowerCase(),
-            }
-            : null,
-          uploadSession: item.uploadSession && typeof item.uploadSession === "object"
-            ? {
-              uploadId: typeof item.uploadSession.uploadId === "string" ? item.uploadSession.uploadId : null,
-              filePath: typeof item.uploadSession.filePath === "string" ? item.uploadSession.filePath : null,
-              fileUrl: typeof item.uploadSession.fileUrl === "string" ? item.uploadSession.fileUrl : null,
-              uploadedBytes: Math.max(0, Number(item.uploadSession.uploadedBytes) || 0),
-              uploadedParts: Array.isArray(item.uploadSession.uploadedParts)
-                ? item.uploadSession.uploadedParts
-                  .map((part) => Number(part))
-                  .filter((part) => Number.isInteger(part) && part >= 0)
-                : [],
-              totalParts: Math.max(1, Number(item.uploadSession.totalParts) || 1),
-              chunkSize: Math.max(1, Number(item.uploadSession.chunkSize) || 512 * 1024),
-            }
-            : null,
-        } as MobileSubmissionQueueItem;
-      });
-
-      setSubmissionQueue(normalized);
-    } catch {
-      setSubmissionQueue([]);
-    } finally {
-      setSubmissionQueueHydrated(true);
-    }
-  }, []);
-
-  const queueSubmissionFromCurrentForm = useCallback(() => {
-    if (!selectedMission) {
-      return;
-    }
-
-    const nowIso = new Date().toISOString();
-    const queuedItem: MobileSubmissionQueueItem = {
-      localId: createIdempotencyKey("mobile-queue", selectedMission.slug),
-      idempotencyKey: createIdempotencyKey("mobile-submission", selectedMission.slug),
-      missionSlug: selectedMission.slug,
-      missionTitle: selectedMission.title,
-      reelUrl: submissionReelUrl.trim(),
-      captionSummary: submissionCaptionSummary,
-      notes: submissionNotes,
-      checks: submissionChecks,
-      mediaAsset: submissionMediaAsset,
-      uploadSession: submissionMediaAsset
-        ? {
-          uploadId: null,
-          filePath: null,
-          fileUrl: null,
-          uploadedBytes: 0,
-          uploadedParts: [],
-          totalParts: Math.max(1, Math.ceil(submissionMediaAsset.fileSize / (512 * 1024))),
-          chunkSize: 512 * 1024,
-        }
-        : null,
-      status: "queued",
-      progress: 0,
-      attempts: 0,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-      nextRetryAt: null,
-      lastError: null,
-      serverSubmissionId: null,
-    };
-
-    setSubmissionQueue((current) => [...current, queuedItem]);
-    setQueueNotice(`Queued proof upload for ${selectedMission.title}.`);
-  }, [selectedMission, submissionCaptionSummary, submissionChecks, submissionMediaAsset, submissionNotes, submissionReelUrl]);
-
-  const processQueuedSubmission = useCallback(async (item: MobileSubmissionQueueItem, token: string) => {
-    if (queueProcessingLocalIdRef.current) {
-      return;
-    }
-
-    queueProcessingLocalIdRef.current = item.localId;
-    setSubmissionQueue((current) => current.map((queueItem) => {
-      if (queueItem.localId !== item.localId) {
-        return queueItem;
-      }
-
-      return {
-        ...queueItem,
-        status: "uploading",
-        attempts: queueItem.attempts + 1,
-        progress: Math.max(queueItem.progress, 1),
-        updatedAt: new Date().toISOString(),
-        nextRetryAt: null,
-        lastError: null,
-      };
-    }));
-
-    try {
-      const setQueueItem = (updater: (queueItem: MobileSubmissionQueueItem) => MobileSubmissionQueueItem) => {
-        setSubmissionQueue((current) => current.map((queueItem) => {
-          if (queueItem.localId !== item.localId) {
-            return queueItem;
-          }
-
-          return updater(queueItem);
-        }));
-      };
-
-      let reelUrlForSubmission = item.reelUrl.trim();
-
-      if (item.mediaAsset) {
-        const media = item.mediaAsset;
-        let mediaChecksumMd5 = media.fileChecksumMd5?.toLowerCase();
-        if (!/^[a-f0-9]{32}$/.test(mediaChecksumMd5 ?? "")) {
-          const info = await LegacyFileSystem.getInfoAsync(media.uri, { md5: true });
-          mediaChecksumMd5 = info.exists && typeof info.md5 === "string" ? info.md5.toLowerCase() : "";
-          if (!/^[a-f0-9]{32}$/.test(mediaChecksumMd5)) {
-            throw new Error("Unable to compute file checksum for upload integrity.");
-          }
-
-          setQueueItem((queueItem) => ({
-            ...queueItem,
-            mediaAsset: queueItem.mediaAsset
-              ? {
-                ...queueItem.mediaAsset,
-                fileChecksumMd5: mediaChecksumMd5,
-              }
-              : null,
-          }));
-        }
-
-        let uploadSession = item.uploadSession;
-        if (!uploadSession?.uploadId) {
-          const createdSession = await postJson<MobileUploadCreateSessionResponse>(
-            "/api/mobile/uploads/sessions",
-            {
-              fileName: media.fileName,
-              mimeType: media.mimeType,
-              fileSize: media.fileSize,
-              missionSlug: item.missionSlug,
-              fileChecksumMd5: mediaChecksumMd5,
-            },
-            token,
-          );
-
-          uploadSession = {
-            uploadId: createdSession.uploadId,
-            filePath: null,
-            fileUrl: null,
-            uploadedBytes: createdSession.uploadedBytes,
-            uploadedParts: createdSession.uploadedParts,
-            totalParts: createdSession.totalParts,
-            chunkSize: createdSession.chunkSize,
-          };
-
-          const initialProgress = Math.round((uploadSession.uploadedBytes / Math.max(media.fileSize, 1)) * 100);
-          setQueueItem((queueItem) => ({
-            ...queueItem,
-            uploadSession,
-            progress: Math.max(queueItem.progress, initialProgress),
-            updatedAt: new Date().toISOString(),
-          }));
-        }
-
-        let sessionStatus: MobileUploadSessionStatusResponse;
-        try {
-          sessionStatus = await fetchJson<MobileUploadSessionStatusResponse>(
-            `/api/mobile/uploads/sessions/${uploadSession.uploadId}`,
-            token,
-          );
-        } catch (requestError) {
-          if (!(requestError instanceof ApiRequestError) || requestError.status !== 404) {
-            throw requestError;
-          }
-
-          const recreatedSession = await postJson<MobileUploadCreateSessionResponse>(
-            "/api/mobile/uploads/sessions",
-            {
-              fileName: media.fileName,
-              mimeType: media.mimeType,
-              fileSize: media.fileSize,
-              missionSlug: item.missionSlug,
-              fileChecksumMd5: mediaChecksumMd5,
-            },
-            token,
-          );
-
-          sessionStatus = {
-            uploadId: recreatedSession.uploadId,
-            chunkSize: recreatedSession.chunkSize,
-            totalParts: recreatedSession.totalParts,
-            fileSize: media.fileSize,
-            fileName: media.fileName,
-            mimeType: media.mimeType,
-            uploadedParts: recreatedSession.uploadedParts,
-            uploadedBytes: recreatedSession.uploadedBytes,
-          };
-        }
-
-        const uploadedPartsSet = new Set(sessionStatus.uploadedParts);
-        const totalParts = sessionStatus.totalParts;
-        const chunkSize = sessionStatus.chunkSize;
-
-        setQueueItem((queueItem) => ({
-          ...queueItem,
-          uploadSession: {
-            uploadId: sessionStatus.uploadId,
-            filePath: queueItem.uploadSession?.filePath ?? null,
-            fileUrl: queueItem.uploadSession?.fileUrl ?? null,
-            uploadedBytes: Math.min(sessionStatus.uploadedBytes, media.fileSize),
-            uploadedParts: Array.from(uploadedPartsSet).sort((left, right) => left - right),
-            totalParts,
-            chunkSize,
-          },
-          progress: Math.min(100, Math.round((Math.min(sessionStatus.uploadedBytes, media.fileSize) / Math.max(media.fileSize, 1)) * 100)),
-          updatedAt: new Date().toISOString(),
-        }));
-
-        for (let partNumber = 0; partNumber < totalParts; partNumber += 1) {
-          if (uploadedPartsSet.has(partNumber)) {
-            continue;
-          }
-
-          const partStart = partNumber * chunkSize;
-          const partLength = Math.min(chunkSize, Math.max(0, media.fileSize - partStart));
-          if (partLength <= 0) {
-            continue;
-          }
-
-          const chunkBase64 = await LegacyFileSystem.readAsStringAsync(media.uri, {
-            encoding: LegacyFileSystem.EncodingType.Base64,
-            position: partStart,
-            length: partLength,
-          });
-
-          await postJson<MobileUploadPartResponse>(
-            `/api/mobile/uploads/sessions/${sessionStatus.uploadId}/parts/${partNumber}`,
-            {
-              chunkBase64,
-            },
-            token,
-          );
-
-          uploadedPartsSet.add(partNumber);
-          const uploadedParts = Array.from(uploadedPartsSet).sort((left, right) => left - right);
-          const uploadedBytes = getUploadedBytesFromParts(uploadedParts, totalParts, chunkSize, media.fileSize);
-          const progress = Math.min(100, Math.round((uploadedBytes / Math.max(media.fileSize, 1)) * 100));
-
-          setQueueItem((queueItem) => ({
-            ...queueItem,
-            uploadSession: {
-              uploadId: sessionStatus.uploadId,
-              filePath: queueItem.uploadSession?.filePath ?? null,
-              fileUrl: queueItem.uploadSession?.fileUrl ?? null,
-              uploadedBytes,
-              uploadedParts,
-              totalParts,
-              chunkSize,
-            },
-            progress,
-            updatedAt: new Date().toISOString(),
-          }));
-        }
-
-        const completedUpload = await postJson<MobileUploadCompleteResponse>(
-          `/api/mobile/uploads/sessions/${sessionStatus.uploadId}/complete`,
-          {},
-          token,
-        );
-
-        reelUrlForSubmission = completedUpload.fileUrl;
-        setQueueItem((queueItem) => ({
-          ...queueItem,
-          uploadSession: {
-            uploadId: completedUpload.uploadId,
-            filePath: completedUpload.filePath,
-            fileUrl: completedUpload.fileUrl,
-            uploadedBytes: completedUpload.fileSize,
-            uploadedParts: Array.from({ length: totalParts }, (_, index) => index),
-            totalParts,
-            chunkSize,
-          },
-          progress: 100,
-          updatedAt: new Date().toISOString(),
-        }));
-      }
-
-      if (!reelUrlForSubmission.startsWith("http")) {
-        throw new Error("Please provide a valid reel URL or attach media for upload.");
-      }
-
-      const result = await postJson<MobileSubmissionResponse>(
-        "/api/mobile/submissions",
-        {
-          slug: item.missionSlug,
-          reelUrl: reelUrlForSubmission,
-          captionSummary: item.captionSummary,
-          notes: item.notes,
-          checks: item.checks,
-        },
-        token,
-        {
-          retries: 0,
-          headers: {
-            "idempotency-key": item.idempotencyKey,
-          },
-        },
-      );
-
-      await postJson<{ synced: number; autoSettled: number }>(
-        "/api/mobile/submissions/sync",
-        {},
-        token,
-        { retries: 0 },
-      ).catch(() => null);
-
-      setSubmissionQueue((current) => current.map((queueItem) => {
-        if (queueItem.localId !== item.localId) {
-          return queueItem;
-        }
-
-        return {
-          ...queueItem,
-          status: "completed",
-          progress: 100,
-          updatedAt: new Date().toISOString(),
-          nextRetryAt: null,
-          lastError: null,
-          serverSubmissionId: result.id,
-        };
-      }));
-
-      setSubmissionId(result.id);
-      setSubmissionError(null);
-      setQueueNotice(`Upload completed for ${item.missionTitle}.`);
-      await loadSubmissionHistory(token, { includeTotalOverride: true });
-      setShouldIncludeTotalOnNextHead(false);
-    } catch (requestError) {
-      reportApiErrorDiagnostics(requestError, "processQueuedSubmission");
-      const nowMs = Date.now();
-      const message = toDisplayErrorMessage(requestError, "Submission failed. Please retry.");
-
-      if (requestError instanceof ApiRequestError && requestError.status === 401) {
-        setError("Session expired. Please sign in again.");
-      }
-
-      setSubmissionQueue((current) => current.map((queueItem) => {
-        if (queueItem.localId !== item.localId) {
-          return queueItem;
-        }
-
-        const retryable = requestError instanceof ApiRequestError && shouldRetryQueueError(requestError);
-        const uploadedBytes = queueItem.uploadSession?.uploadedBytes ?? 0;
-        const mediaBytes = queueItem.mediaAsset?.fileSize ?? 0;
-        const mediaProgress = mediaBytes > 0 ? Math.round((uploadedBytes / mediaBytes) * 100) : queueItem.progress;
-        if (retryable && queueItem.attempts < SUBMISSION_QUEUE_MAX_ATTEMPTS) {
-          const retryDelay = getQueueRetryDelayMs(queueItem.attempts);
-          return {
-            ...queueItem,
-            status: "retrying",
-            progress: Math.max(0, Math.min(100, mediaProgress)),
-            updatedAt: new Date().toISOString(),
-            nextRetryAt: new Date(nowMs + retryDelay).toISOString(),
-            lastError: message,
-          };
-        }
-
-        return {
-          ...queueItem,
-          status: "failed",
-          progress: Math.max(0, Math.min(100, mediaProgress)),
-          updatedAt: new Date().toISOString(),
-          nextRetryAt: null,
-          lastError: message,
-        };
-      }));
-
-      setSubmissionError(message);
-      if (requestError instanceof ApiRequestError && shouldRetryQueueError(requestError) && item.attempts < SUBMISSION_QUEUE_MAX_ATTEMPTS) {
-        setQueueNotice(`Upload retry scheduled for ${item.missionTitle}.`);
-      } else {
-        setQueueNotice(`Upload failed for ${item.missionTitle}.`);
-      }
-    } finally {
-      queueProcessingLocalIdRef.current = null;
-    }
-  }, [loadSubmissionHistory]);
-
-  const retrySubmissionFromQueue = useCallback((localId: string) => {
-    setSubmissionQueue((current) => current.map((item) => {
-      if (item.localId !== localId) {
-        return item;
-      }
-
-      return {
-        ...item,
-        status: "queued",
-        progress: item.mediaAsset && item.uploadSession
-          ? Math.min(100, Math.round((item.uploadSession.uploadedBytes / Math.max(item.mediaAsset.fileSize, 1)) * 100))
-          : 0,
-        updatedAt: new Date().toISOString(),
-        nextRetryAt: null,
-        lastError: null,
-      };
-    }));
-  }, []);
-
-  const removeSubmissionFromQueue = useCallback((localId: string) => {
-    setSubmissionQueue((current) => current.filter((item) => item.localId !== localId));
-  }, []);
-
-  const clearCompletedQueueItems = useCallback(() => {
-    setSubmissionQueue((current) => current.filter((item) => item.status !== "completed"));
-  }, []);
-
-  const handlePickSubmissionMedia = useCallback(async () => {
-    if (isSelectedMissionLocked) {
-      setSubmissionError("Mission is locked. Reach the required level before uploading proof media.");
-      return;
-    }
-
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ["video/*", "image/*"],
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-
-      if (result.canceled || !result.assets || result.assets.length === 0) {
-        return;
-      }
-
-      const picked = result.assets[0];
-      const fileSize = Number(picked.size ?? 0);
-      if (!Number.isFinite(fileSize) || fileSize <= 0) {
-        setSubmissionError("Selected media file is invalid.");
-        return;
-      }
-
-      const fileInfo = await LegacyFileSystem.getInfoAsync(picked.uri, { md5: true });
-      const fileChecksumMd5 = fileInfo.exists && typeof fileInfo.md5 === "string"
-        ? fileInfo.md5.toLowerCase()
-        : null;
-      if (!fileChecksumMd5 || !/^[a-f0-9]{32}$/.test(fileChecksumMd5)) {
-        setSubmissionError("Unable to compute file checksum for upload integrity.");
-        return;
-      }
-
-      setSubmissionMediaAsset({
-        uri: picked.uri,
-        fileName: picked.name || "proof-media",
-        mimeType: picked.mimeType || "application/octet-stream",
-        fileSize,
-        fileChecksumMd5,
-      });
-      setSubmissionError(null);
-      setQueueNotice(`Attached ${picked.name || "media file"} (${formatBytes(fileSize)}).`);
-    } catch (requestError) {
-      reportApiErrorDiagnostics(requestError, "handlePickSubmissionMedia");
-      setSubmissionError(toDisplayErrorMessage(requestError, "Unable to select media file."));
-    }
-  }, [isSelectedMissionLocked]);
-
   useEffect(() => {
     const restoreSession = async () => {
       const {
@@ -1391,127 +667,6 @@ function AppContent() {
       authSubscription.subscription.unsubscribe();
     };
   }, [loadProfile, syncServerSession]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      void registerSubmissionUploadBackgroundTask().then((result) => {
-        if (!result.ok) {
-          setQueueNotice("Background upload task is unavailable in this runtime.");
-        }
-      }).catch(() => {
-        setQueueNotice("Background upload task registration failed.");
-      });
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!profileId) {
-        setSubmissionQueue([]);
-        setSubmissionQueueHydrated(false);
-        return;
-      }
-
-      void hydrateSubmissionQueueForUser(profileId);
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [hydrateSubmissionQueueForUser, profileId]);
-
-  useEffect(() => {
-    if (!profileId) {
-      return;
-    }
-
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") {
-        void hydrateSubmissionQueueForUser(profileId);
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, [hydrateSubmissionQueueForUser, profileId]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!profileId || !submissionQueueHydrated) {
-        return;
-      }
-
-      const persistedItems = submissionQueue.filter((item) => {
-        if (item.status !== "completed") {
-          return true;
-        }
-
-        const updatedAtMs = Date.parse(item.updatedAt);
-        if (Number.isNaN(updatedAtMs)) {
-          return false;
-        }
-
-        return Date.now() - updatedAtMs < 15 * 60 * 1000;
-      });
-
-      const payload: SubmissionQueueCachePayload = {
-        storedAt: Date.now(),
-        items: persistedItems,
-      };
-
-      void AsyncStorage.setItem(getSubmissionQueueKey(profileId), JSON.stringify(payload));
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [profileId, submissionQueue, submissionQueueHydrated]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!submissionQueueHydrated || !accessToken || !profileId) {
-        return;
-      }
-
-      if (queueProcessingLocalIdRef.current) {
-        return;
-      }
-
-      const nowMs = Date.now();
-      const nextReadyItem = [...submissionQueue]
-        .filter((item) => item.status === "queued" || (item.status === "retrying" && item.nextRetryAt !== null && Date.parse(item.nextRetryAt) <= nowMs))
-        .sort((left, right) => Date.parse(left.createdAt) - Date.parse(right.createdAt))
-        .at(0);
-
-      if (nextReadyItem) {
-        void processQueuedSubmission(nextReadyItem, accessToken);
-        return;
-      }
-
-      const nextRetryMs = submissionQueue
-        .filter((item) => item.status === "retrying" && item.nextRetryAt)
-        .map((item) => Date.parse(item.nextRetryAt as string))
-        .filter((value) => !Number.isNaN(value) && value > nowMs)
-        .sort((left, right) => left - right)
-        .at(0);
-
-      if (nextRetryMs) {
-        const delayMs = Math.min(nextRetryMs - nowMs, 1_000);
-        setTimeout(() => {
-          setQueueClockMs(Date.now());
-        }, delayMs);
-      }
-    }, 0);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [accessToken, processQueuedSubmission, profileId, queueClockMs, submissionQueue, submissionQueueHydrated]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1657,9 +812,7 @@ function AppContent() {
       await supabase.auth.signOut();
       setAccessToken(null);
       setProfile(null);
-      setSubmissionQueue([]);
-      setSubmissionQueueHydrated(false);
-      setQueueNotice(null);
+      setSyncNotice(null);
     } catch (authError) {
       reportApiErrorDiagnostics(authError, "handleSignOut");
       setError(toDisplayErrorMessage(authError, "Unable to sign out."));
@@ -1684,9 +837,9 @@ function AppContent() {
     }
   }, [accessToken, loadMissionDetail, loadMissions, loadSubmissionHistory, selectedSlug]);
 
-  const handleSubmitProof = useCallback(() => {
+  const handleSubmitProof = useCallback(async () => {
     if (!accessToken) {
-      setSubmissionError("Please sign in before submitting proof.");
+      setSubmissionError("Please sign in before running mission sync.");
       return;
     }
 
@@ -1696,17 +849,7 @@ function AppContent() {
     }
 
     if (isSelectedMissionLocked) {
-      setSubmissionError(`Mission is locked. Reach Lv.${selectedMission.requiredLevel} to submit proof.`);
-      return;
-    }
-
-    if (!submissionReelUrl.trim().startsWith("http") && !submissionMediaAsset) {
-      setSubmissionError("Please enter a valid reel URL or attach a media file.");
-      return;
-    }
-
-    if (!submissionChecks.addedCollaborator) {
-      setSubmissionError("Please confirm @missionone.hk was added as collaborator.");
+      setSubmissionError(`Mission is locked. Reach Lv.${selectedMission.requiredLevel} to sync this mission.`);
       return;
     }
 
@@ -1714,25 +857,34 @@ function AppContent() {
     setSubmissionError(null);
 
     try {
-      queueSubmissionFromCurrentForm();
-      setSubmissionId(null);
-      setSubmissionCaptionSummary("");
-      setSubmissionNotes("");
-      setSubmissionChecks((current) => ({ ...current, taggedBrand: false, addedCollaborator: false }));
+      const result = await postJson<{
+        synced: number;
+        autoSettled: number;
+        matchedSubmissions: number;
+        pendingNeedsManualSubmission: number;
+        pendingMissingRequiredTag: number;
+      }>(
+        "/api/mobile/submissions/sync",
+        {},
+        accessToken,
+      );
+
+      await loadSubmissionHistory(accessToken, { includeTotalOverride: true });
+      setShouldIncludeTotalOnNextHead(false);
+      setSyncNotice(
+        `System sync complete. Matched ${result.matchedSubmissions} reel(s), auto-approved ${result.autoSettled}.`,
+      );
     } catch (requestError) {
       reportApiErrorDiagnostics(requestError, "handleSubmitProof");
-      setSubmissionError(toDisplayErrorMessage(requestError, "Unable to queue submission."));
+      setSubmissionError(toDisplayErrorMessage(requestError, "Unable to run mission sync."));
     } finally {
       setSubmissionBusy(false);
     }
   }, [
     accessToken,
     isSelectedMissionLocked,
-    queueSubmissionFromCurrentForm,
+    loadSubmissionHistory,
     selectedMission,
-    submissionChecks.addedCollaborator,
-    submissionMediaAsset,
-    submissionReelUrl,
   ]);
 
   const handleLoadMoreHistory = useCallback(async () => {
@@ -1948,7 +1100,7 @@ function AppContent() {
             <View style={styles.stateCard}>
               <Text style={styles.hint}>
                 {historyStatusFilter === "All" && !historySearchQuery
-                  ? "No submissions yet. Your recent proof uploads will appear here."
+                  ? "No submissions yet. MissionOne sync results will appear here after collaborator + hashtag detection."
                   : "No submissions match the current filters."}
               </Text>
             </View>
@@ -2246,105 +1398,26 @@ function AppContent() {
               </View>
 
               <View style={styles.detailSection}>
-                <Text style={styles.detailSectionTitle}>Submit Proof</Text>
+                <Text style={styles.detailSectionTitle}>Auto Sync Status</Text>
                 {!accessToken ? (
-                  <Text style={styles.hint}>Sign in to unlock proof submission.</Text>
+                  <Text style={styles.hint}>Sign in to run mission sync.</Text>
                 ) : null}
 
                 {isSelectedMissionLocked ? (
-                  <Text style={styles.hint}>Submission is disabled until this mission is unlocked.</Text>
-                ) : null}
-
-                {!isSelectedMissionLocked ? (
-                  <View style={styles.mediaPickerWrap}>
-                    <Pressable style={styles.secondaryButton} onPress={() => {
-                      void handlePickSubmissionMedia();
-                    }}>
-                      <Text style={styles.secondaryButtonText}>{submissionMediaAsset ? "Replace media file" : "Attach media file"}</Text>
-                    </Pressable>
-                    {submissionMediaAsset ? (
-                      <View style={styles.mediaPickerMetaRow}>
-                        <Text style={styles.hint}>Attached: {submissionMediaAsset.fileName} ({formatBytes(submissionMediaAsset.fileSize)})</Text>
-                        <Pressable
-                          style={styles.ghostActionButton}
-                          onPress={() => {
-                            setSubmissionMediaAsset(null);
-                          }}
-                        >
-                          <Text style={styles.ghostActionText}>Remove file</Text>
-                        </Pressable>
-                      </View>
-                    ) : (
-                      <Text style={styles.hint}>Attach a video/image proof for resumable upload, or paste a reel URL below.</Text>
-                    )}
-                  </View>
-                ) : null}
-
-                {!isSelectedMissionLocked ? (
-                  <TextInput
-                    value={submissionReelUrl}
-                    onChangeText={setSubmissionReelUrl}
-                    placeholder="https://instagram.com/reel/... (optional if file attached)"
-                    placeholderTextColor={mobileTheme.colors.textSoft}
-                    autoCapitalize="none"
-                    style={styles.input}
-                  />
-                ) : null}
-
-                {!isSelectedMissionLocked ? (
-                  <TextInput
-                    value={submissionCaptionSummary}
-                    onChangeText={setSubmissionCaptionSummary}
-                    placeholder="Caption summary (optional)"
-                    placeholderTextColor={mobileTheme.colors.textSoft}
-                    multiline
-                    numberOfLines={3}
-                    style={[styles.input, styles.textAreaInput]}
-                  />
-                ) : null}
-
-                {!isSelectedMissionLocked ? (
-                  <TextInput
-                    value={submissionNotes}
-                    onChangeText={setSubmissionNotes}
-                    placeholder="Notes (optional)"
-                    placeholderTextColor={mobileTheme.colors.textSoft}
-                    multiline
-                    numberOfLines={3}
-                    style={[styles.input, styles.textAreaInput]}
-                  />
+                  <Text style={styles.hint}>Sync is disabled until this mission is unlocked.</Text>
                 ) : null}
 
                 {!isSelectedMissionLocked ? (
                   <View style={styles.checklistWrap}>
-                  {[
-                    { key: "published", label: "Video is published publicly" },
-                    { key: "taggedBrand", label: "Brand account and hashtags are tagged" },
-                    { key: "addedCollaborator", label: "@missionone.hk added as collaborator" },
-                  ].map((item) => {
-                    const checked = submissionChecks[item.key as keyof typeof submissionChecks];
-                    return (
-                      <Pressable
-                        key={item.key}
-                        onPress={() => {
-                          setSubmissionChecks((current) => ({
-                            ...current,
-                            [item.key]: !current[item.key as keyof typeof current],
-                          }));
-                        }}
-                        style={styles.checklistRow}
-                      >
-                        <View style={[styles.checkbox, checked ? styles.checkboxChecked : null]} />
-                        <Text style={styles.checklistLabel}>{item.label}</Text>
-                      </Pressable>
-                    );
-                  })}
+                    <Text style={styles.hint}>1. Post Reel from your personal public Instagram account.</Text>
+                    <Text style={styles.hint}>2. Add @missionone_hk as collaborator.</Text>
+                    <Text style={styles.hint}>3. Include the mission hashtag shown above.</Text>
+                    <Text style={styles.hint}>4. Tap sync to refresh mission status and rankings.</Text>
                   </View>
                 ) : null}
 
                 {submissionError ? <Text style={styles.error}>{submissionError}</Text> : null}
-                {submissionId ? <Text style={styles.success}>Submitted successfully. ID: {submissionId}</Text> : null}
-                {queueNotice ? <Text style={styles.hint}>{queueNotice}</Text> : null}
+                {syncNotice ? <Text style={styles.hint}>{syncNotice}</Text> : null}
 
                 <Pressable
                   onPress={() => {
@@ -2353,92 +1426,8 @@ function AppContent() {
                   style={[styles.primaryButton, !canSubmit || submissionBusy ? styles.buttonDisabled : null]}
                   disabled={!canSubmit || submissionBusy}
                 >
-                  <Text style={styles.primaryButtonText}>{submissionBusy ? "Submitting..." : "Submit proof"}</Text>
+                  <Text style={styles.primaryButtonText}>{submissionBusy ? "Syncing..." : "Sync mission status"}</Text>
                 </Pressable>
-
-                <View style={styles.queuePanel}>
-                  <View style={styles.queueHeaderRow}>
-                    <Text style={styles.detailSectionTitle}>Upload Queue</Text>
-                    <Text style={styles.hint}>{pendingQueueCount} pending</Text>
-                  </View>
-
-                  {displaySubmissionQueue.length === 0 ? (
-                    <Text style={styles.hint}>No pending uploads. New proof submissions will appear here.</Text>
-                  ) : (
-                    <View style={styles.queueList}>
-                      {displaySubmissionQueue.map((item) => {
-                        const retryCountdown = formatRetryCountdown(item.nextRetryAt);
-                        const canRetryNow = item.status === "retrying" || item.status === "failed";
-                        const canRemove = item.status === "failed" || item.status === "completed" || item.status === "queued";
-                        return (
-                          <View key={item.localId} style={styles.queueCard}>
-                            <View style={styles.queueHeaderRow}>
-                              <Text style={styles.missionTitle}>{item.missionTitle}</Text>
-                              <Text style={styles.hint}>{getQueueStatusLabel(item.status)} · Try {Math.max(item.attempts, 1)}</Text>
-                            </View>
-                            <Text style={styles.hint}>Queued: {formatDateTime(item.createdAt)}</Text>
-                            {item.mediaAsset ? (
-                              <Text style={styles.hint}>Media: {item.mediaAsset.fileName} ({formatBytes(item.mediaAsset.fileSize)})</Text>
-                            ) : (
-                              <Text style={styles.hint}>Mode: URL submission</Text>
-                            )}
-
-                            <View style={styles.progressTrack}>
-                              <View
-                                style={[
-                                  styles.progressFill,
-                                  {
-                                    width: `${Math.min(100, Math.max(0, item.progress))}%`,
-                                  },
-                                ]}
-                              />
-                            </View>
-
-                            {item.status === "uploading" ? <ActivityIndicator color={mobileTheme.colors.accent} size="small" /> : null}
-                            {item.mediaAsset && item.uploadSession ? (
-                              <Text style={styles.hint}>
-                                {formatBytes(item.uploadSession.uploadedBytes)} / {formatBytes(item.mediaAsset.fileSize)} uploaded
-                              </Text>
-                            ) : null}
-                            {item.status === "retrying" && retryCountdown ? <Text style={styles.hint}>{retryCountdown}</Text> : null}
-                            {item.serverSubmissionId ? <Text style={styles.success}>Submission ID: {item.serverSubmissionId}</Text> : null}
-                            {item.lastError ? <Text style={styles.error}>{item.lastError}</Text> : null}
-
-                            <View style={styles.queueActionRow}>
-                              {canRetryNow ? (
-                                <Pressable
-                                  style={styles.ghostActionButton}
-                                  onPress={() => {
-                                    retrySubmissionFromQueue(item.localId);
-                                  }}
-                                >
-                                  <Text style={styles.ghostActionText}>Retry now</Text>
-                                </Pressable>
-                              ) : null}
-
-                              {canRemove ? (
-                                <Pressable
-                                  style={styles.ghostActionButton}
-                                  onPress={() => {
-                                    removeSubmissionFromQueue(item.localId);
-                                  }}
-                                >
-                                  <Text style={styles.ghostActionText}>Remove</Text>
-                                </Pressable>
-                              ) : null}
-                            </View>
-                          </View>
-                        );
-                      })}
-                    </View>
-                  )}
-
-                  {submissionQueue.some((item) => item.status === "completed") ? (
-                    <Pressable style={styles.secondaryButton} onPress={clearCompletedQueueItems}>
-                      <Text style={styles.secondaryButtonText}>Clear completed uploads</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
               </View>
             </View>
           ) : null}
@@ -2690,45 +1679,6 @@ const styles = StyleSheet.create({
   },
   checklistWrap: {
     gap: 8,
-  },
-  mediaPickerWrap: {
-    gap: 8,
-    marginBottom: 2,
-  },
-  mediaPickerMetaRow: {
-    gap: 8,
-  },
-  queuePanel: {
-    marginTop: 6,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    borderRadius: mobileTheme.radius.sm,
-    backgroundColor: "rgba(15, 23, 42, 0.35)",
-    padding: 10,
-  },
-  queueList: {
-    gap: 8,
-  },
-  queueCard: {
-    gap: 6,
-    borderWidth: 1,
-    borderColor: mobileTheme.colors.border,
-    borderRadius: mobileTheme.radius.sm,
-    backgroundColor: mobileTheme.colors.panelMuted,
-    padding: 8,
-  },
-  queueHeaderRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  queueActionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginTop: 2,
   },
   historyCard: {
     borderWidth: 1,
