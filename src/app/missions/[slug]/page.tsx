@@ -65,7 +65,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
         <div className="glass-panel p-5 sm:p-8">
           <h1 className="break-words text-3xl font-semibold text-slate-900 sm:text-4xl">{mission.title}</h1>
 
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+          <div className="mt-8">
             <p className="text-sm font-semibold text-slate-600">
               {locale === "en" ? "Mission Description" : "任務描述"}
             </p>
@@ -74,22 +74,20 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
             </p>
           </div>
 
-          <div className="mt-10">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-              <p className="text-sm text-slate-500">{locale === "en" ? "Reward" : "獎勵"}</p>
-              <p className="mt-2 break-words text-lg font-semibold leading-relaxed text-cyan-700 sm:text-2xl">
-                {`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
-              </p>
-              <p className="mt-2 text-xs text-slate-600">
-                {isLevelLocked
-                  ? (locale === "en"
-                    ? `Rewards are visible now, but you need Lv.${requiredLevel} to accept this mission.`
-                    : `獎勵現已可見，但需達到 Lv.${requiredLevel} 才可接取任務。`)
-                  : (locale === "en"
-                    ? `Split by likes ranking from total pool HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`
-                    : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`)}
-              </p>
-            </div>
+          <div className="mt-8">
+            <p className="text-sm text-slate-500">{locale === "en" ? "Reward" : "獎勵"}</p>
+            <p className="mt-2 break-words text-lg font-semibold leading-relaxed text-cyan-700 sm:text-2xl">
+              {`#1 HK$${rewards.first.toLocaleString()} · #2 HK$${rewards.second.toLocaleString()} · #3 HK$${rewards.third.toLocaleString()}`}
+            </p>
+            <p className="mt-2 text-xs text-slate-600">
+              {isLevelLocked
+                ? (locale === "en"
+                  ? `Rewards are visible now, but you need Lv.${requiredLevel} to accept this mission.`
+                  : `獎勵現已可見，但需達到 Lv.${requiredLevel} 才可接取任務。`)
+                : (locale === "en"
+                  ? `Split by likes ranking from total pool HK$${rewards.totalPrize.toLocaleString()} (60% / 30% / 10%)`
+                  : `按 Like 排名由總獎金池 HK$${rewards.totalPrize.toLocaleString()} 派發（60% / 30% / 10%）`)}
+            </p>
           </div>
 
           {mission.lifecyclePhase === "ranking_confirmation" ? (
@@ -118,9 +116,9 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
           <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Mission Requirements" : "任務要求"}</h2>
-            <ul className="mt-5 space-y-3 text-slate-700">
+            <ul className="mt-5 list-disc space-y-2 pl-5 text-slate-700 marker:text-slate-500">
               {missionRequirements.map((item) => (
-                <li key={item} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">• {item}</li>
+                <li key={item}>{item}</li>
               ))}
             </ul>
           </div>
@@ -128,9 +126,9 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
           <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Mission Ranking (Likes)" : "任務排名（Likes）"}</h2>
             {rankingEntries.length > 0 ? (
-              <div className="mt-5 space-y-3">
+              <div className="mt-5 divide-y divide-slate-200">
                 {rankingEntries.map((entry) => (
-                  <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <div key={`${mission.slug}-${entry.rank}-${entry.handle}`} className="flex items-center justify-between py-3">
                     <div className="flex items-center gap-3">
                       <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-cyan-100 text-xs font-bold text-cyan-700">
                         {entry.rank}
@@ -149,7 +147,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
                 ))}
               </div>
             ) : (
-              <p className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <p className="mt-5 text-sm text-slate-500">
                 {locale === "en" ? "No ranking records yet." : "目前尚無排名紀錄。"}
               </p>
             )}
@@ -157,7 +155,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
           <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
-            <div className="mt-6 space-y-3">
+            <ol className="mt-6 list-decimal space-y-3 pl-5 marker:font-semibold marker:text-cyan-700">
               {(locale === "en"
                 ? [
                   `Apply before deadline (${deadlineLabel ?? "mission deadline"})`,
@@ -170,16 +168,9 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
                   `截止後排名按 Likes 鎖定，前 3 名瓜分 HK$${rewards.totalPrize.toLocaleString()}（60% / 30% / 10%）`,
                 ]
               ).map((step, index) => (
-                <div key={step} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-                  <div className="flex items-start gap-3">
-                    <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-cyan-100 px-2 text-xs font-bold text-cyan-700">
-                      {index + 1}
-                    </span>
-                    <p className="leading-relaxed text-slate-800">{step}</p>
-                  </div>
-                </div>
+                <li key={`${index}-${step}`} className="leading-relaxed text-slate-800">{step}</li>
               ))}
-            </div>
+            </ol>
           </div>
 
           {!isLevelLocked ? (
