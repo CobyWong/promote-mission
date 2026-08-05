@@ -39,6 +39,7 @@ export function hasMissionOneCollaborator(caption?: string | null) {
 
 export const instagramScopes = [
   "pages_show_list",
+  "pages_read_engagement",
   "instagram_basic",
   "instagram_manage_insights",
 ];
@@ -162,15 +163,28 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
     data?: FacebookPageWithInstagram[];
   }>(`${graphBaseUrl}/me/accounts?${params.toString()}`);
 
-  const connected = (payload.data ?? []).find(
+  const pages = payload.data ?? [];
+  if (pages.length === 0) {
+    throw new Error(
+      "No Facebook Pages were returned by Meta OAuth. Reconnect and ensure you approve page access (pages_show_list/pages_read_engagement) and select the correct Facebook Page.",
+    );
+  }
+
+  const connected = pages.find(
     (item) => item.instagram_business_account?.id || item.connected_instagram_account?.id,
   );
 
   const instagramAccount = connected?.instagram_business_account ?? connected?.connected_instagram_account;
 
   if (!instagramAccount?.id) {
+    const availablePages = pages
+      .map((item) => item.name?.trim())
+      .filter((item): item is string => Boolean(item));
+
     throw new Error(
-      "No Instagram Professional account found for API sync. To use auto sync/insights, switch Instagram to Professional and link it to a Facebook Page.",
+      availablePages.length > 0
+        ? `No Instagram Professional account is linked to the selected Facebook Pages (${availablePages.join(", ")}). Link missionone_hk to one of these Pages and reconnect.`
+        : "No Instagram Professional account found for API sync. Link missionone_hk to a Facebook Page and reconnect.",
     );
   }
 
