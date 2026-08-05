@@ -65,12 +65,13 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
         <div className="glass-panel p-5 sm:p-8">
           <h1 className="break-words text-3xl font-semibold text-slate-900 sm:text-4xl">{mission.title}</h1>
 
-          <div className="mt-8 flex flex-wrap gap-3 text-sm text-slate-700">
-            {mission.tags.map((tag) => (
-              <span key={tag} className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2">
-                {tag}
-              </span>
-            ))}
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+            <p className="text-sm font-semibold text-slate-600">
+              {locale === "en" ? "Mission Description" : "任務描述"}
+            </p>
+            <p className="mt-2 break-words leading-relaxed text-slate-800">
+              {mission.description}
+            </p>
           </div>
 
           <div className="mt-10">
@@ -156,7 +157,7 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
 
           <div className="glass-panel p-5 sm:p-8">
             <h2 className="text-2xl font-semibold text-slate-900">{locale === "en" ? "Submission Steps" : "交稿流程"}</h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            <div className="mt-6 space-y-3">
               {(locale === "en"
                 ? [
                   `Apply before deadline (${deadlineLabel ?? "mission deadline"})`,
@@ -169,9 +170,13 @@ export default async function MissionDetailPage({ params }: { params: Promise<{ 
                   `截止後排名按 Likes 鎖定，前 3 名瓜分 HK$${rewards.totalPrize.toLocaleString()}（60% / 30% / 10%）`,
                 ]
               ).map((step, index) => (
-                <div key={step} className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <p className="text-sm text-cyan-700">Step {index + 1}</p>
-                  <p className="mt-3 text-slate-800">{step}</p>
+                <div key={step} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-cyan-100 px-2 text-xs font-bold text-cyan-700">
+                      {index + 1}
+                    </span>
+                    <p className="leading-relaxed text-slate-800">{step}</p>
+                  </div>
                 </div>
               ))}
             </div>
