@@ -150,7 +150,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const igStatusTone = igStatus === "connected"
     ? "border-emerald-400/40 bg-emerald-500/10 text-emerald-100"
     : igStatus
-      ? "border-amber-400/40 bg-amber-500/10 text-amber-100"
+      ? "border-amber-300 bg-amber-50 text-amber-900"
       : "";
 
   if (dashboard.mode === "unavailable") {
