@@ -10,10 +10,11 @@ export async function middleware(request: NextRequest) {
   const isAdminLogin = pathname === "/admin/login";
   const isAdminAuthApi = pathname === "/api/admin/login" || pathname === "/api/admin/logout";
   const isCronProtectedCleanupApi = pathname === "/api/admin/idempotency/cleanup" || pathname === "/api/admin/mobile-uploads/cleanup";
+  const isCronProtectedMissionOneSyncApi = pathname === "/api/admin/instagram/system-sync";
   const isProtectedCreatorRoute = pathname === "/missions" || pathname.startsWith("/missions/");
   const isProtectedAdminRoute = pathname.startsWith("/admin") || pathname.startsWith("/brand") || pathname.startsWith("/api/admin") || pathname.startsWith("/api/brand");
 
-  if ((!isProtectedAdminRoute && !isProtectedCreatorRoute) || isAdminLogin || isAdminAuthApi || isCronProtectedCleanupApi) {
+  if ((!isProtectedAdminRoute && !isProtectedCreatorRoute) || isAdminLogin || isAdminAuthApi || isCronProtectedCleanupApi || isCronProtectedMissionOneSyncApi) {
     return NextResponse.next({ request });
   }
 
