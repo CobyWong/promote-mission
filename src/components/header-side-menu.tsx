@@ -57,7 +57,6 @@ export function HeaderSideMenu({ locale, isAuthenticated, isAdmin }: HeaderSideM
       missions: "Missions",
       rewards: "Rewards",
       dashboard: "Profile",
-      support: "Support",
       login: "Login",
       register: "Get Started",
       adminReview: "Admin Review",
@@ -73,7 +72,6 @@ export function HeaderSideMenu({ locale, isAuthenticated, isAdmin }: HeaderSideM
       missions: "任務中心",
       rewards: "獎賞商城",
       dashboard: "個人檔案",
-      support: "客服中心",
       login: "登入",
       register: "免費開始",
       adminReview: "審核後台",
@@ -134,9 +132,6 @@ export function HeaderSideMenu({ locale, isAuthenticated, isAdmin }: HeaderSideM
                     {links.dashboard}
                   </Link>
                 )}
-                <Link href="/dashboard#support-center" prefetch className={menuLinkClass}>
-                  {links.support}
-                </Link>
 
                 {isAdmin ? (
                   <>
@@ -165,9 +160,6 @@ export function HeaderSideMenu({ locale, isAuthenticated, isAdmin }: HeaderSideM
                 </Link>
                 <Link href="/register" prefetch className="block rounded-full bg-cyan-500 px-4 py-3 text-center text-sm font-semibold text-white transition hover:bg-cyan-600">
                   {links.register}
-                </Link>
-                <Link href="/dashboard#support-center" prefetch className={menuLinkClass}>
-                  {links.support}
                 </Link>
               </>
             )}
