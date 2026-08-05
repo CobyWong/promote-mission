@@ -196,7 +196,7 @@ export function MissionAcceptCard({ missionSlug, locale, minParticipants, curren
         disabled={loading}
         className="w-full rounded-full bg-cyan-400 px-5 py-4 text-2xl font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {loading ? labels.accepting : acceptedAt ? labels.restart : labels.accept}
+          {loading ? labels.accepting : acceptedAt ? labels.accepted : labels.accept}
       </button>
       {error ? <p className="text-sm text-rose-700">{error}</p> : null}
       {autoSubmissionReady ? <p className="text-sm text-emerald-700">{labels.acceptedHint}</p> : null}
