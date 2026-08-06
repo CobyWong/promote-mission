@@ -55,6 +55,17 @@ type FacebookPageWithInstagram = {
   connected_instagram_account?: FacebookPageInstagramBinding;
 };
 
+type FacebookDebugTokenPayload = {
+  data?: {
+    app_id?: string;
+    application?: string;
+    is_valid?: boolean;
+    scopes?: string[];
+    user_id?: string;
+    type?: string;
+  };
+};
+
 type FacebookPermissionStatus = {
   permission?: string;
   status?: string;
@@ -100,6 +111,24 @@ function getMetaAppId() {
 
 function getMetaAppSecret() {
   return process.env.META_APP_SECRET ?? "";
+}
+
+async function debugUserToken(accessToken: string) {
+  const appId = getMetaAppId();
+  const appSecret = getMetaAppSecret();
+
+  if (!appId || !appSecret) {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    input_token: accessToken,
+    access_token: `${appId}|${appSecret}`,
+  });
+
+  const payload = await graphFetch<FacebookDebugTokenPayload>(`${graphBaseUrl}/debug_token?${params.toString()}`);
+
+  return payload.data ?? null;
 }
 
 async function graphFetch<T>(url: string): Promise<T> {
@@ -173,7 +202,25 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
     data?: FacebookPageWithInstagram[];
   }>(`${graphBaseUrl}/me/accounts?${params.toString()}`);
 
-  const pages = payload.data ?? [];
+  let pages = payload.data ?? [];
+
+  // Fallback: some business setups expose page assets more reliably via /me?fields=accounts{...}
+  // with the same user token even when /me/accounts returns an empty array.
+  if (pages.length === 0) {
+    const meWithAccounts = await graphFetch<{
+      accounts?: {
+        data?: FacebookPageWithInstagram[];
+      };
+    }>(
+      `${graphBaseUrl}/me?${new URLSearchParams({
+        fields: "accounts{name,instagram_business_account{id,username},connected_instagram_account{id,username}}",
+        access_token: accessToken,
+      }).toString()}`,
+    );
+
+    pages = meWithAccounts.accounts?.data ?? [];
+  }
+
   if (pages.length === 0) {
     const viewerName = viewer.name?.trim() || "unknown";
     const viewerId = viewer.id?.trim() || "unknown";
@@ -205,8 +252,27 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
         : "missing_page_scopes=[]",
     ].join("; ");
 
+    let tokenDebugSummary = "token_debug=unavailable";
+    try {
+      const tokenDebug = await debugUserToken(accessToken);
+      if (tokenDebug) {
+        const debugAppId = tokenDebug.app_id?.trim() || "unknown";
+        const debugApplication = tokenDebug.application?.trim() || "unknown";
+        const debugType = tokenDebug.type?.trim() || "unknown";
+        const debugIsValid = tokenDebug.is_valid === true ? "true" : "false";
+        const debugUserId = tokenDebug.user_id?.trim() || "unknown";
+        const debugScopes = Array.isArray(tokenDebug.scopes) && tokenDebug.scopes.length > 0
+          ? tokenDebug.scopes.join(",")
+          : "";
+
+        tokenDebugSummary = `token_debug={app_id:${debugAppId},application:${debugApplication},type:${debugType},is_valid:${debugIsValid},user_id:${debugUserId},scopes:[${debugScopes}]}`;
+      }
+    } catch {
+      tokenDebugSummary = "token_debug=unavailable";
+    }
+
     throw new Error(
-      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). ${permissionsSummary}. Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
+      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). ${permissionsSummary}; ${tokenDebugSummary}. Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
     );
   }
 
