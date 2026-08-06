@@ -44,12 +44,17 @@ export const instagramScopes = [
   "instagram_manage_insights",
 ];
 
+function getInstagramFallbackPageId() {
+  return process.env.INSTAGRAM_FALLBACK_PAGE_ID?.trim() ?? "";
+}
+
 type FacebookPageInstagramBinding = {
   id: string;
   username?: string;
 };
 
 type FacebookPageWithInstagram = {
+  id?: string;
   name?: string;
   instagram_business_account?: FacebookPageInstagramBinding;
   connected_instagram_account?: FacebookPageInstagramBinding;
@@ -223,6 +228,35 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
   }
 
   if (pages.length === 0) {
+    const fallbackPageId = getInstagramFallbackPageId();
+    let fallbackPageDiagnostic = "fallback_page=not-configured";
+
+    if (fallbackPageId) {
+      try {
+        const fallbackPage = await graphFetch<FacebookPageWithInstagram>(
+          `${graphBaseUrl}/${fallbackPageId}?${new URLSearchParams({
+            fields: "id,name,instagram_business_account{id,username},connected_instagram_account{id,username}",
+            access_token: accessToken,
+          }).toString()}`,
+        );
+
+        const fallbackInstagram = fallbackPage.instagram_business_account ?? fallbackPage.connected_instagram_account;
+
+        if (fallbackInstagram?.id) {
+          return {
+            instagramUserId: fallbackInstagram.id,
+            instagramUsername: fallbackInstagram.username ?? null,
+            facebookPageName: fallbackPage.name ?? null,
+          };
+        }
+
+        fallbackPageDiagnostic = `fallback_page=${fallbackPageId},result=no-linked-instagram`;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "unknown";
+        fallbackPageDiagnostic = `fallback_page=${fallbackPageId},error=${message}`;
+      }
+    }
+
     const viewerName = viewer.name?.trim() || "unknown";
     const viewerId = viewer.id?.trim() || "unknown";
 
@@ -273,7 +307,7 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
     }
 
     throw new Error(
-      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). ${permissionsSummary}; ${tokenDebugSummary}. Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
+      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). ${permissionsSummary}; ${tokenDebugSummary}; ${fallbackPageDiagnostic}. Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
     );
   }
 
