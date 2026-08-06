@@ -154,6 +154,10 @@ export async function exchangeCodeForLongLivedToken(code: string) {
 }
 
 export async function fetchInstagramBusinessAccount(accessToken: string) {
+  const viewer = await graphFetch<{ id?: string; name?: string }>(
+    `${graphBaseUrl}/me?${new URLSearchParams({ fields: "id,name", access_token: accessToken }).toString()}`,
+  );
+
   const params = new URLSearchParams({
     // Some pages expose instagram_business_account while others expose connected_instagram_account.
     fields: "name,instagram_business_account{id,username},connected_instagram_account{id,username}",
@@ -166,8 +170,11 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
 
   const pages = payload.data ?? [];
   if (pages.length === 0) {
+    const viewerName = viewer.name?.trim() || "unknown";
+    const viewerId = viewer.id?.trim() || "unknown";
+
     throw new Error(
-      "No Facebook Pages were returned by Meta OAuth. Reconnect and ensure you approve page access (pages_show_list/pages_read_engagement) and select the correct Facebook Page.",
+      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
     );
   }
 
