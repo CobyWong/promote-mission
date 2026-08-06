@@ -184,6 +184,7 @@ export async function exchangeCodeForLongLivedToken(code: string) {
   return {
     accessToken: longTokenPayload.access_token,
     expiresIn: longTokenPayload.expires_in,
+    shortAccessToken: shortTokenPayload.access_token,
   };
 }
 

@@ -68,8 +68,22 @@ export async function GET(request: Request) {
   }
 
   try {
-    const { accessToken, expiresIn } = await exchangeCodeForLongLivedToken(code);
-    const account = await fetchInstagramBusinessAccount(accessToken);
+    const { accessToken, expiresIn, shortAccessToken } = await exchangeCodeForLongLivedToken(code);
+
+    let account;
+    try {
+      account = await fetchInstagramBusinessAccount(accessToken);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      const shouldFallbackToShortToken = message.includes("No Facebook Pages were returned by Meta OAuth");
+
+      if (!shouldFallbackToShortToken) {
+        throw error;
+      }
+
+      account = await fetchInstagramBusinessAccount(shortAccessToken);
+    }
+
     const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
 
     const connectionPayload: Database["public"]["Tables"]["instagram_connections"]["Insert"] = {
