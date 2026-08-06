@@ -38,6 +38,7 @@ export function hasMissionOneCollaborator(caption?: string | null) {
 }
 
 export const instagramScopes = [
+  "business_management",
   "pages_show_list",
   "pages_read_engagement",
   "instagram_basic",
