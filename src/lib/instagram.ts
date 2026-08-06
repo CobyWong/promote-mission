@@ -115,6 +115,7 @@ export function buildInstagramOAuthUrl(state: string) {
     redirect_uri: redirectUri,
     state,
     response_type: "code",
+    auth_type: "rerequest",
     scope: instagramScopes.join(","),
   });
 
