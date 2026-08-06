@@ -55,6 +55,11 @@ type FacebookPageWithInstagram = {
   connected_instagram_account?: FacebookPageInstagramBinding;
 };
 
+type FacebookPermissionStatus = {
+  permission?: string;
+  status?: string;
+};
+
 export function getMissingInstagramConfig() {
   const missing: string[] = [];
 
@@ -173,8 +178,35 @@ export async function fetchInstagramBusinessAccount(accessToken: string) {
     const viewerName = viewer.name?.trim() || "unknown";
     const viewerId = viewer.id?.trim() || "unknown";
 
+    const permissionsPayload = await graphFetch<{ data?: FacebookPermissionStatus[] }>(
+      `${graphBaseUrl}/me/permissions?${new URLSearchParams({ access_token: accessToken }).toString()}`,
+    );
+
+    const permissions = permissionsPayload.data ?? [];
+    const grantedPermissions = permissions
+      .filter((item) => item.status === "granted" && typeof item.permission === "string")
+      .map((item) => item.permission as string);
+    const nonGrantedPermissions = permissions
+      .filter((item) => item.status !== "granted" && typeof item.permission === "string")
+      .map((item) => `${item.permission}:${item.status ?? "unknown"}`);
+
+    const requiredPagePermissions = ["pages_show_list", "pages_read_engagement"];
+    const missingRequiredPagePermissions = requiredPagePermissions.filter(
+      (permission) => !grantedPermissions.includes(permission),
+    );
+
+    const permissionsSummary = [
+      grantedPermissions.length > 0 ? `granted=[${grantedPermissions.join(",")}]` : "granted=[]",
+      nonGrantedPermissions.length > 0
+        ? `non_granted=[${nonGrantedPermissions.join(",")}]`
+        : "non_granted=[]",
+      missingRequiredPagePermissions.length > 0
+        ? `missing_page_scopes=[${missingRequiredPagePermissions.join(",")}]`
+        : "missing_page_scopes=[]",
+    ].join("; ");
+
     throw new Error(
-      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
+      `No Facebook Pages were returned by Meta OAuth (authorized user: ${viewerName}, id: ${viewerId}). ${permissionsSummary}. Reconnect with the personal Facebook account that has Full control for the target Page, and approve page access (pages_show_list/pages_read_engagement).`,
     );
   }
 
